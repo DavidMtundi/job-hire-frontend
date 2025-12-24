@@ -1,0 +1,47 @@
+[
+  {
+    "id": "c07d9e2e-8b43-4f9f-a211-1b32f8d44e23",
+    "title": "Frontend Engineer",
+    "department": "Engineering",
+    "description": "We are looking for a passionate Frontend Engineer to join our dynamic team. You’ll work on building high-performance, visually stunning, and user-friendly web applications. Our ideal candidate has a keen eye for detail, strong problem-solving skills, and a drive for creating seamless digital experiences.",
+    "education_requirements": "Bachelor’s degree in Computer Science, Software Engineering, or a related field.; Solid understanding of web fundamentals (HTML, CSS, JavaScript).; Familiarity with modern frontend frameworks such as React, Vue, or Angular.; Experience with TypeScript and component-based architecture.; Understanding of responsive and accessible design principles.",
+    "experience_level": "mid",
+    "required_skills": [
+      "Strong proficiency in React.js and Next.js.",
+      "Experience with modern JavaScript (ES6+).",
+      "Proficiency in Tailwind CSS or similar CSS frameworks.",
+      "Experience integrating RESTful or GraphQL APIs.",
+      "Knowledge of version control systems (Git, GitHub).",
+      "Strong debugging and performance optimization skills."
+    ],
+    "responsibilities": [
+      "Develop responsive and interactive user interfaces using React and Next.js.",
+      "Collaborate with backend developers and UI/UX designers to implement new features.",
+      "Ensure code quality through unit testing and code reviews.",
+      "Optimize web applications for speed, scalability, and cross-browser compatibility.",
+      "Contribute to improving the frontend architecture and tooling.",
+      "Stay updated with emerging frontend technologies and trends.",
+      "Participate in sprint planning, reviews, and agile ceremonies."
+    ],
+    "benefits": [
+      "Flexible remote work policy.",
+      "Health insurance coverage.",
+      "Annual performance bonus.",
+      "Professional training and development budget.",
+      "Paid time off and holidays."
+    ],
+    "job_type": "full_time",
+    "location": "Dhaka, Bangladesh (Hybrid)",
+    "is_remote": true,
+    "salary_currency": "USD",
+    "salary_min": 2000,
+    "salary_max": 3500,
+    "application_deadline": "2025-11-15",
+    "max_applications": 100,
+    "status": "active",
+    "created_at": "2025-10-14T14:05:42.123456",
+    "updated_at": "2025-10-14T14:05:42.123456",
+    "created_by": "63",
+    "updated_by": "63"
+  }
+]

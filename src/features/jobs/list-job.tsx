@@ -1,0 +1,174 @@
+"use client";
+
+import debounce from "lodash.debounce";
+import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useGetJobsQuery } from "~/apis/jobs/queries";
+import { DataList } from "~/components/data-list";
+import { FilterGroup, FilterItem } from "~/components/filters/FilterGroup";
+import { Input } from "~/components/ui/input";
+import { useUrlFilter } from "~/hooks/useFilters";
+import { columns } from "./columns";
+import { JobsSkeleton } from "./jobs-skeleton";
+import { useGetCategoriesQuery } from "~/apis/categories/queries";
+import { DataTablePagination } from "~/components/data-table-pagination";
+
+type JobFilters = {
+  search?: string;
+  location?: string;
+  job_type?: string;
+  category?: string;
+};
+
+export const ListJob = () => {
+  const { filters, setFilters } = useUrlFilter<JobFilters>();
+  const [searchValue, setSearchValue] = useState(filters.search ?? "");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const jobsQuery = useGetJobsQuery({
+    page: currentPage,
+    page_size: pageSize,
+    search: searchValue ?? "",
+    status: "active",
+    ...(filters.job_type && { job_type: filters.job_type }),
+    ...(filters.category && { category: filters.category }),
+  });
+
+  const categoriesQuery = useGetCategoriesQuery();
+  const categories = categoriesQuery.data?.data ?? [];
+
+  const filteredJobs = jobsQuery.data?.data ?? [];
+  const pagination = jobsQuery.data?.pagination;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.search, filters.job_type, filters.category]);
+
+  // const filteredJobs = jobsQuery.data?.data.filter((job) => {
+  //   const searchTerm = filters.search?.toLowerCase().trim();
+  //   const locationFilter = filters.location?.toLowerCase();
+  //   const typeFilter = filters.job_type?.toLowerCase();
+  //   const categoryFilter = filters.category?.toLowerCase();
+
+  //   const matchSearch =
+  //     !searchTerm ||
+  //     job.title.toLowerCase().includes(searchTerm) ||
+  //     job.category?.name.toLowerCase().includes(searchTerm) ||
+  //     job.required_skills?.some((skill: string) =>
+  //       skill.toLowerCase().includes(searchTerm)
+  //     );
+
+  //   const matchLocation =
+  //     !locationFilter ||
+  //     job.location.toLowerCase().includes(locationFilter)
+
+  //   const matchCategory = !categoryFilter || job.category?.slug === categoryFilter;
+
+  //   return matchSearch && matchLocation && matchCategory;
+  // });
+
+  const debouncedSetSearch = useMemo(() => {
+    return debounce((value: string) => {
+      setFilters((prev) => ({
+        ...prev,
+        search: value || undefined,
+      }));
+    }, 200);
+  }, [setFilters]);
+
+  useEffect(() => {
+    return () => {
+      debouncedSetSearch.cancel();
+    };
+  }, [debouncedSetSearch]);
+
+  const filterItems: FilterItem[] = [
+    {
+      label: "Job Type",
+      value: filters.job_type ?? "all",
+      width: "w-40",
+      options: [
+        { label: "All Types", value: "all" },
+        { label: "Full time", value: "full_time" },
+        { label: "Contract", value: "contract" },
+        { label: "Part-time", value: "part_time" },
+      ],
+      onChange: (value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          job_type: value === "all" ? undefined : value,
+        })),
+    },
+    {
+      label: "Category",
+      value: filters.category ?? "all",
+      width: "w-40",
+      options: [
+        { label: "All Categories", value: "all" },
+        ...categories.map((category) => ({ label: category.name, value: category.slug ?? "" })),
+      ],
+      onChange: (value: string) =>
+        setFilters((prev) => ({
+          ...prev,
+          category: value === "all" ? undefined : value,
+        })),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute bg-white shadow-lg  left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search jobs, companies, or skills..."
+              value={filters.search ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchValue(val);
+                debouncedSetSearch(val);
+              }}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <FilterGroup filters={filterItems} />
+        </div>
+      </div>
+
+      <div className="grid gap-6">
+        {jobsQuery.isLoading ? <JobsSkeleton /> : (
+          filteredJobs && filteredJobs.length > 0 ? (
+            <div>
+              <DataList data={filteredJobs} columns={columns} disablePagination />
+              {pagination ? (
+                <DataTablePagination
+                  currentPage={currentPage}
+                  totalPages={pagination.total_pages}
+                  totalCount={pagination.total_counts}
+                  pageSize={pagination.page_size}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              ) : null}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No jobs found matching your criteria.
+              </p>
+              <p className="text-gray-400 mt-2">
+                Try adjusting your search or filters.
+              </p>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}

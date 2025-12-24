@@ -1,0 +1,99 @@
+services:
+  # Backend Service (FastAPI) - Development
+  backend:
+    build:
+      context: ../job-hire-backend
+      dockerfile: Dockerfile
+    container_name: job-hire-backend-dev
+    ports:
+      - "8002:8002"
+    environment:
+      - APP_PORT=8002
+      - BASE_URL=http://backend:8002
+      - BACKEND_URL=http://backend:8002
+      - FRONTEND_URL=http://localhost:3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-mh_db}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - LOCAL_SECRET_KEY=${LOCAL_SECRET_KEY:-dev-local-secret-key}
+      - LOCAL=true
+      - ENV=dev
+      - EMAIL_USER=${EMAIL_USER:-}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-AIzaSyAovxu29z8xMNfd6bVIBbcScdXjPv9lVMM}
+      - GEN_AI_MODEL_NAME=${GEN_AI_MODEL_NAME:-gemini-2.5-flash-lite}
+          - FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS:-}
+      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-jobhire-1766594347.firebasestorage.app}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY:-}
+      - AWS_TOKEN=${AWS_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-dev-must-company-resume}
+      - BUCKET_NAME=${BUCKET_NAME:-dev-must-company-resume}
+    volumes:
+      # Mount source code for hot reload
+      - ../must-hire-backend/api:/app/api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - must-hire-network
+    restart: unless-stopped
+    command: python -m uvicorn api.main:app --host 0.0.0.0 --port 8002 --reload
+
+  # Frontend Service (Next.js) - Development
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: job-hire-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_BASE_API_URL=http://localhost:8002
+      - AUTH_URL=http://localhost:3000
+      - AUTH_SECRET=${AUTH_SECRET:-dev-auth-secret-change-in-production}
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - must-hire-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: job-hire-postgres-dev
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-mh_db}
+    # Port not exposed externally - only accessible from other containers
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - must-hire-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  job-hire-network:
+    driver: bridge
+
+volumes:
+  postgres_data_dev:
+
