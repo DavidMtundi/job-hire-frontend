@@ -10,6 +10,7 @@ import { CandidateDetailsCard } from "./candidate-details-card";
 import { ResumeMatchingCard } from "./resume-matching-card";
 import { AIInterviewAssessmentCard } from "./ai-interview-assessment-card";
 import { JobDetailsCard } from "./job-details-card";
+import { CandidateSummaryCard } from "./candidate-summary-card";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Loader } from "~/components/loader";
@@ -90,6 +91,12 @@ export default function ApplicationDetailsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 space-y-6">
             <CandidateDetailsCard application={application} />
+            <CandidateSummaryCard 
+              summary={application?.metadata?.ai_summary} 
+              candidateName={application?.first_name && application?.last_name 
+                ? `${application.first_name} ${application.last_name}` 
+                : undefined}
+            />
             <ResumeMatchingCard application={application} />
             <AIInterviewAssessmentCard application={application} />
             <JobDetailsCard application={application} />

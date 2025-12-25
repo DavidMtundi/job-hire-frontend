@@ -1,19 +1,18 @@
-import { redirect } from "next/navigation";
-import OnboardingScreen from "~/features/onboarding";
 import { authSession } from "~/lib/auth";
+import OnboardingLoading from "./loading";
+import { RedirectHandler } from "./_components/redirect-handler";
 
 export default async function OnboardingPage() {
   const session = await authSession();
 
   if (!session) {
-    redirect("/login");
+    return <RedirectHandler redirectTo="/login" />;
   }
   
   if (session.user.onboardingCompleted) {
-    redirect("/user/dashboard");
+    return <RedirectHandler redirectTo="/user/dashboard" />;
   }
 
-  redirect("/onboarding/resume-upload");
-
-  // return <OnboardingScreen />;
-};
+  // Use client-side redirect to prevent performance measurement issues
+  return <RedirectHandler redirectTo="/onboarding/resume-upload" />;
+}

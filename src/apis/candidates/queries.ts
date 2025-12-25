@@ -36,6 +36,37 @@ export const useGetCandidateQuery = (candidateId: string) => {
   });
 };
 
+export const useGetCandidateByUserIdQuery = (userId: string) => {
+  return useQuery<ICandidateResponse, Error>({
+    queryKey: ["candidates", "by-user", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      try {
+        const response = await apiClient.get<ICandidateResponse>(`/candidates/by-user/${userId}`);
+        return response.data;
+      } catch (error: any) {
+        // Handle 404 as "not found" (expected for new users) - return success=false
+        // Check both axios error structure and ApiError structure
+        const is404 = error?.response?.status === 404 || 
+                     error?.status_code === 404 ||
+                     error?.code === "404" || 
+                     error?.code === 404 ||
+                     (error?.name === "ApiError" && error?.status_code === 404);
+        
+        if (is404) {
+          return {
+            success: false,
+            message: "Candidate not found",
+            data: null
+          } as ICandidateResponse;
+        }
+        throw error;
+      }
+    },
+    retry: false, // Don't retry on 404
+  });
+};
+
 export const useCreateCandidateMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -62,7 +93,13 @@ export const useUpdateCandidateMutation = () => {
       return response.data;
     },
     onSuccess: (data) => {
+      // Invalidate all candidate-related queries
       queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      queryClient.invalidateQueries({ queryKey: ["get-auth-user-profile"] });
+      // If we have the candidate ID, invalidate that specific query too
+      if (data?.data?.id) {
+        queryClient.invalidateQueries({ queryKey: ["candidates", data.data.id] });
+      }
     },
     onError: (error) => {
       console.error("Error updating candidate:", error);

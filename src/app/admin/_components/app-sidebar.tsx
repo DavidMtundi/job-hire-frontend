@@ -57,6 +57,11 @@ const data = {
   ],
   navSecondary: [
     {
+      title: "Audit Logs",
+      url: "/admin/audit-logs",
+      icon: TbListDetails,
+    },
+    {
       title: "Settings",
       url: "/admin/settings",
       icon: TbSettings,

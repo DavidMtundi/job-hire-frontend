@@ -73,25 +73,59 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    const { data, status } = error.response || {};
-    const message = data?.message || error.message || "Something went wrong";
-    const code = data?.status_code || status || (error.code ? String(error.code) : 500);
+    // Handle different error structures
+    const response = error?.response || {};
+    const { data, status } = response;
+    const message = data?.message || data?.detail || error?.message || "Something went wrong";
+    const code = data?.status_code || status || (error?.code ? String(error.code) : 500);
 
-    // Log detailed error for debugging
-    console.error("Axios Error:", {
-      message: error.message,
-      status: status,
-      data: data,
-      url: error.config?.url,
-      baseURL: error.config?.baseURL,
-    });
+    // Don't log 404 errors - they're often handled gracefully by queries
+    // (e.g., checking if a resource exists)
+    const shouldLogError = status !== 404;
 
+    if (shouldLogError) {
+      // Log detailed error for debugging
+      // Build error info object with only defined values
+      const errorInfo: Record<string, any> = {};
+      
+      if (message) errorInfo.message = message;
+      if (status) errorInfo.status = status;
+      if (response?.statusText) errorInfo.statusText = response.statusText;
+      if (data) errorInfo.data = data;
+      if (error?.config?.url) errorInfo.url = error.config.url;
+      if (error?.config?.method) errorInfo.method = error.config.method;
+      if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
+      if (error?.message && error.message !== message) errorInfo.errorMessage = error.message;
+      if (error?.code) errorInfo.code = error.code;
+      if (error?.stack) errorInfo.stack = error.stack;
+
+      // Only log if we have meaningful error information
+      if (Object.keys(errorInfo).length > 0) {
+        console.error("Axios Error:", errorInfo);
+      } else {
+        // If error object is completely empty/malformed, log what we can
+        console.error("Axios Error (malformed):", {
+          errorType: typeof error,
+          errorKeys: error ? Object.keys(error) : [],
+          errorString: String(error),
+          errorValue: error,
+        });
+      }
+    }
+
+    // Handle 401 Unauthorized - redirect to login
     if (status === 401 && typeof window !== "undefined") {
       window.location.href = "/login";
-      return;
+      return Promise.reject(new ApiError("Unauthorized", 401));
     }
-    return Promise.reject(new ApiError(message, code));
-    // return Promise.reject(error);
+
+    // Handle 404 Not Found - return a proper error
+    if (status === 404) {
+      return Promise.reject(new ApiError(message || "Resource not found", 404));
+    }
+
+    // For all other errors, reject with ApiError
+    return Promise.reject(new ApiError(message, Number(code) || 500));
   }
 );
 

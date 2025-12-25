@@ -132,17 +132,26 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
         token.tokens = tokens;
       }
 
+      // Ensure token always has required structure
+      if (!token.user) {
+        token.user = {} as IUser;
+      }
+
       return token;
     },
     async session({ session, token }) {
       // console.log("calbacks.session", session, token);
 
       // token from jwt callback
-      if (token) {
+      if (token && token.user) {
         session.user = token.user as IUser;
         session.isAuthenticated = true;
-        session.isValid = !!(token.user as IUser).email;
-        session.tokens = token.tokens as ITokenResponse;
+        session.isValid = !!(token.user as IUser)?.email;
+        session.tokens = (token.tokens as ITokenResponse) || null;
+      } else {
+        // Handle case where there's no valid token
+        session.isAuthenticated = false;
+        session.isValid = false;
       }
 
       return session;

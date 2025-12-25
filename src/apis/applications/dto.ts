@@ -78,6 +78,22 @@ export interface IApplicationDetail {
   matching_skills: string[];
   missing_skills: string[];
   recommendation: string | null;
+  // Explainable matching breakdown (if available)
+  matching_breakdown?: {
+    total_score: number;
+    skills_score: number;
+    experience_score: number;
+    education_score: number;
+    matched_skills: string[];
+    missing_skills: string[];
+    experience_gap: number | null;
+    education_match: boolean;
+    education_details: string;
+    skills_contribution: number;
+    experience_contribution: number;
+    education_contribution: number;
+    explanation: string;
+  };
   interview_title: string | null;
   interview_datetime: string | null;
   interview_id: string | null;

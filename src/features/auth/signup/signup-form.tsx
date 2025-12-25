@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { FormError } from "~/components/form-error";
 import { FormSuccess } from "~/components/form-success";
 import { Button } from "~/components/ui/button";
@@ -20,6 +21,7 @@ export const SignupForm = () => {
   const [success, setSuccess] = useState<string | undefined>("");
   const [error, setError] = useState<string | undefined>("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -111,14 +113,30 @@ export const SignupForm = () => {
               <FormItem>
                 <Label htmlFor={field.name}>Password</Label>
                 <FormControl>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    disabled={isPending || isSubmitted}
-                    placeholder="******"
-                    type="password"
-                    autoComplete="new-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      {...field}
+                      id={field.name}
+                      disabled={isPending || isSubmitted}
+                      placeholder="Enter your password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      className="h-10 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                      disabled={isPending || isSubmitted}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

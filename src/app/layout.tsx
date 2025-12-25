@@ -34,7 +34,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await authSession();
+  // Wrap authSession in try-catch to handle cases where there's no valid session
+  let session = null;
+  try {
+    session = await authSession();
+  } catch (error) {
+    // If there's a JWT error (e.g., invalid token, no session), continue with null session
+    // This is expected for unauthenticated users
+    console.warn("Session error (this is normal for unauthenticated users):", error);
+  }
 
   return (
     <SessionProvider session={session}>
@@ -45,6 +53,7 @@ export default async function RootLayout({
             geistSans.variable,
             geistMono.variable
           )}
+          suppressHydrationWarning
         >
           <ReactQueryProvider>
             <ThemeProvider
