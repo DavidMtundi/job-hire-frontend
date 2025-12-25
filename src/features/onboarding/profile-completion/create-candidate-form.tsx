@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeftIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
@@ -48,6 +49,52 @@ export const CreateCandidateForm = () => {
   })
 
   const { mutate: createCandidate, isPending } = useCreateCandidateMutation();
+
+  // Update form when resumeData changes (e.g., after CV upload)
+  useEffect(() => {
+    if (resumeData) {
+      form.reset({
+        first_name: resumeData.first_name || "",
+        last_name: resumeData.last_name || "",
+        email: resumeData.email || "",
+        phone: resumeData.phone || "",
+        address: resumeData.address || "",
+        current_position: resumeData.current_position || "",
+        years_experience: resumeData.years_experience,
+        stack: resumeData.stack || [],
+        skills: resumeData.skills || [],
+        linkedin_url: resumeData.linkedin_url || "",
+        summary: resumeData.summary || "",
+        expected_salary: resumeData.expected_salary || "",
+        last_education: resumeData.last_education || "",
+        joining_availability: "1 month",
+        resume_url: resumeData.resume_url || "",
+      });
+    }
+  }, [resumeData, form]);
+
+  // Update form when resumeData changes (e.g., after CV upload)
+  useEffect(() => {
+    if (resumeData) {
+      form.reset({
+        first_name: resumeData.first_name || "",
+        last_name: resumeData.last_name || "",
+        email: resumeData.email || "",
+        phone: resumeData.phone || "",
+        address: resumeData.address || "",
+        current_position: resumeData.current_position || "",
+        years_experience: resumeData.years_experience,
+        stack: resumeData.stack || [],
+        skills: resumeData.skills || [],
+        linkedin_url: resumeData.linkedin_url || "",
+        summary: resumeData.summary || "",
+        expected_salary: resumeData.expected_salary || "",
+        last_education: resumeData.last_education || "",
+        joining_availability: "1 month",
+        resume_url: resumeData.resume_url || "",
+      });
+    }
+  }, [resumeData, form]);
 
   const onSubmit = async (values: TCreateCandidate) => {
     // return console.log("values", values);
