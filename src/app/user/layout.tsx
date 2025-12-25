@@ -15,7 +15,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="p-4">
+        <div className="p-4 sm:p-6 h-full overflow-auto">
           {children}
         </div>
       </SidebarInset>

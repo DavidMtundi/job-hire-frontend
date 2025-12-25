@@ -66,50 +66,49 @@ export default function ApplicationsScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="bg-white shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>My Applications</CardTitle>
-              <Button onClick={() => router.push("/user/jobs")}>
-                <Plus />
-                Apply to New Job
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* <Tabs 
-              defaultValue="all" 
-              className="w-full mb-4" 
-              onValueChange={(value) => setFilter({ ...filter, stage: value as TApplicationStatus })}
-            >
-              <TabsList className="w-full">
-                <TabsTrigger value="all" className="cursor-pointer">
-                  All ({count.all})
-                </TabsTrigger>
-                <TabsTrigger value="pending" className="cursor-pointer">
-                  Pending ({count.Applied + count.Screening})
-                </TabsTrigger>
-                <TabsTrigger value="interviews" className="cursor-pointer">
-                  Interviews ({count["HR Interview"] + count["Technical Interview"] + count["Final Interview"]})
-                </TabsTrigger>
-                {/* <TabsTrigger value="In Review" className="cursor-pointer">
-                  In Review ({count["In Review"]})
-                </TabsTrigger> */}
-                {/* <TabsTrigger value="accepted" className="cursor-pointer">
-                  Accepted ({count["Offer Sent"] + count["Hired"]})
-                </TabsTrigger>
-                <TabsTrigger value="rejected" className="cursor-pointer">
-                  Rejected ({count.Rejected + count["Talent Pool"]})
-                </TabsTrigger>
-              </TabsList>
-            </Tabs> */} 
+    <div className="w-full h-full">
+      <Card className="bg-white shadow-lg transition-shadow w-full">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="text-lg sm:text-xl">My Applications</CardTitle>
+            <Button onClick={() => router.push("/user/jobs")} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Apply to New Job</span>
+              <span className="sm:hidden">Apply</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          {/* <Tabs 
+            defaultValue="all" 
+            className="w-full mb-4" 
+            onValueChange={(value) => setFilter({ ...filter, stage: value as TApplicationStatus })}
+          >
+            <TabsList className="w-full">
+              <TabsTrigger value="all" className="cursor-pointer">
+                All ({count.all})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="cursor-pointer">
+                Pending ({count.Applied + count.Screening})
+              </TabsTrigger>
+              <TabsTrigger value="interviews" className="cursor-pointer">
+                Interviews ({count["HR Interview"] + count["Technical Interview"] + count["Final Interview"]})
+              </TabsTrigger>
+              {/* <TabsTrigger value="In Review" className="cursor-pointer">
+                In Review ({count["In Review"]})
+              </TabsTrigger> */}
+              {/* <TabsTrigger value="accepted" className="cursor-pointer">
+                Accepted ({count["Offer Sent"] + count["Hired"]})
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="cursor-pointer">
+                Rejected ({count.Rejected + count["Talent Pool"]})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs> */} 
 
-            <DataList columns={columns} data={applications} />
-          </CardContent>
-        </Card>
-      </div>
+          <DataList columns={columns} data={applications} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

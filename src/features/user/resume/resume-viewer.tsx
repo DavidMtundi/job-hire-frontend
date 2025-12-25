@@ -44,11 +44,12 @@ export const ResumeViewer = () => {
   }
 
   return (
-    <iframe
-      src={pdfUrl}
-      width="100%"
-      height="800px"
-      style={{ border: "none" }}
-    />
+    <div className="w-full h-full">
+      <iframe
+        src={pdfUrl}
+        className="w-full h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)]"
+        style={{ border: "none", minHeight: "600px" }}
+      />
+    </div>
   );
 };

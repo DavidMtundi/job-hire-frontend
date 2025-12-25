@@ -230,40 +230,40 @@ export const CandidateProfile = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6">
-      <Tabs defaultValue="personal" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className='w-full'>
-          <TabsTrigger value="personal">Personal Details</TabsTrigger>
-          <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="experience">Work Experience</TabsTrigger>
-          <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="additional">Additional Details</TabsTrigger>
+    <div className="w-full h-full flex flex-col gap-4 sm:gap-6">
+      <Tabs defaultValue="personal" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className='w-full flex-wrap h-auto'>
+          <TabsTrigger value="personal" className="text-xs sm:text-sm">Personal</TabsTrigger>
+          <TabsTrigger value="education" className="text-xs sm:text-sm">Education</TabsTrigger>
+          <TabsTrigger value="experience" className="text-xs sm:text-sm">Experience</TabsTrigger>
+          <TabsTrigger value="skills" className="text-xs sm:text-sm">Skills</TabsTrigger>
+          <TabsTrigger value="additional" className="text-xs sm:text-sm">Additional</TabsTrigger>
         </TabsList>
-        <TabsContent value="personal">
-          <Card>
-            <CardContent className='space-y-4'>
-              <div className='flex items-center justify-between gap-4'>
-                <div className='space-y-1 flex-1'>
+        <TabsContent value="personal" className="w-full">
+          <Card className="w-full">
+            <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
+              <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+                <div className='space-y-1 flex-1 w-full'>
                   <Label>Name</Label>
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-3 flex-wrap'>
                     {isEditMode ? (
-                      <div className='flex gap-2 flex-1'>
+                      <div className='flex flex-col sm:flex-row gap-2 flex-1 w-full'>
                         <Input
                           value={formData.first_name || ''}
                           onChange={(e) => handleInputChange('first_name', e.target.value)}
                           placeholder="First Name"
-                          className='flex-1'
+                          className='flex-1 w-full'
                         />
                         <Input
                           value={formData.last_name || ''}
                           onChange={(e) => handleInputChange('last_name', e.target.value)}
                           placeholder="Last Name"
-                          className='flex-1'
+                          className='flex-1 w-full'
                         />
                       </div>
                     ) : (
                       <>
-                        <div className='text-2xl font-bold text-gray-800'>{candidateProfile.first_name} {candidateProfile.last_name}</div>
+                        <div className='text-xl sm:text-2xl font-bold text-gray-800 break-words'>{candidateProfile.first_name} {candidateProfile.last_name}</div>
                         <Tooltip>
                           <TooltipTrigger>
                             {isProfileComplete ?
@@ -277,21 +277,22 @@ export const CandidateProfile = () => {
                     )}
                   </div>
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-shrink-0'>
                   {isEditMode ? (
                     <>
                       <Button
                         onClick={handleSave}
                         disabled={isUpdating}
                         size='sm'
+                        className="flex-1 sm:flex-initial"
                       >
                         {isUpdating ? (
                           <>
-                            <Spinner className='size-4 mr-2' /> Saving...
+                            <Spinner className='size-4 mr-2' /> <span className="hidden sm:inline">Saving...</span>
                           </>
                         ) : (
                           <>
-                            <Check className='h-4 w-4 mr-2' /> Save
+                            <Check className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Save</span>
                           </>
                         )}
                       </Button>
@@ -300,6 +301,7 @@ export const CandidateProfile = () => {
                         variant='outline'
                         size='sm'
                         disabled={isUpdating}
+                        className="flex-1 sm:flex-initial"
                       >
                         Cancel
                       </Button>
@@ -309,13 +311,14 @@ export const CandidateProfile = () => {
                       onClick={handleEditClick}
                       variant='outline'
                       size='sm'
+                      className="w-full sm:w-auto"
                     >
-                      <EditIcon className='h-4 w-4 mr-2' /> Edit
+                      <EditIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   )}
                 </div>
               </div>
-              <div className='grid grid-cols-3 gap-4'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
                 <div className='space-y-1'>
                   <Label><MailIcon className='size-3.5' /> Email</Label>
                   {isEditMode ? (
@@ -375,15 +378,13 @@ export const CandidateProfile = () => {
                 <Label>Resume</Label>
                 {resumeUrl ? (
                   <div className='space-y-2'>
-                    <div className='flex items-center gap-2'>
-                      <Button variant='outline' size='sm' asChild>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <Button variant='outline' size='sm' asChild className="w-full sm:w-auto">
                         <Link href={resumeUrl} target='_blank' rel='noopener noreferrer'>
-                          <EyeIcon className='h-4 w-4 mr-2' /> View Resume <ExternalLinkIcon className='h-3 w-3 ml-1' />
+                          <EyeIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">View Resume</span> <ExternalLinkIcon className='h-3 w-3 ml-1' />
                         </Link>
                       </Button>
-                      
                     </div>
-                    
                   </div>
                 ) : (
                   <span className='text-sm text-gray-700'>No resume uploaded</span>
@@ -392,16 +393,16 @@ export const CandidateProfile = () => {
               <div className='space-y-2'>
                 <Label>Upload/Update Resume</Label>
                 <div className='space-y-3'>
-                  <div className='flex items-center gap-2'>
+                  <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2'>
                     <Input
                       ref={fileInputRef}
                       type='file'
                       accept='.pdf,application/pdf'
                       onChange={handleFileSelect}
-                      className='flex-1'
+                      className='flex-1 w-full'
                     />
                     {selectedFile && (
-                      <Button variant='outline' size='sm' onClick={handleRemoveFile}>
+                      <Button variant='outline' size='sm' onClick={handleRemoveFile} className="w-full sm:w-auto">
                         <XIcon className='h-4 w-4' />
                       </Button>
                     )}
@@ -429,37 +430,39 @@ export const CandidateProfile = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="education">
-          <Card>
-            <CardContent className='space-y-4'>
-              <div className='flex items-center justify-between gap-4'>
-                <div className='space-y-1 flex-1'>
+        <TabsContent value="education" className="w-full">
+          <Card className="w-full">
+            <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
+              <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+                <div className='space-y-1 flex-1 w-full'>
                   <Label>Last Education</Label>
                   {isEditMode ? (
                     <Input
                       value={formData.last_education || ''}
                       onChange={(e) => handleInputChange('last_education', e.target.value)}
                       placeholder="Last Education"
+                      className="w-full"
                     />
                   ) : (
-                    <p className='text-gray-900'>{candidateProfile.last_education}</p>
+                    <p className='text-gray-900 break-words'>{candidateProfile.last_education}</p>
                   )}
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-shrink-0'>
                   {isEditMode ? (
                     <>
                       <Button
                         onClick={handleSave}
                         disabled={isUpdating}
                         size='sm'
+                        className="flex-1 sm:flex-initial"
                       >
                         {isUpdating ? (
                           <>
-                            <Spinner className='size-4 mr-2' /> Saving...
+                            <Spinner className='size-4 mr-2' /> <span className="hidden sm:inline">Saving...</span>
                           </>
                         ) : (
                           <>
-                            <Check className='h-4 w-4 mr-2' /> Save
+                            <Check className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Save</span>
                           </>
                         )}
                       </Button>
@@ -468,6 +471,7 @@ export const CandidateProfile = () => {
                         variant='outline'
                         size='sm'
                         disabled={isUpdating}
+                        className="flex-1 sm:flex-initial"
                       >
                         Cancel
                       </Button>
@@ -477,8 +481,9 @@ export const CandidateProfile = () => {
                       onClick={handleEditClick}
                       variant='outline'
                       size='sm'
+                      className="w-full sm:w-auto"
                     >
-                      <EditIcon className='h-4 w-4 mr-2' /> Edit
+                      <EditIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   )}
                 </div>
@@ -486,11 +491,11 @@ export const CandidateProfile = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="experience">
-          <Card>
-            <CardContent className='space-y-4'>
-              <div className='flex items-center justify-between gap-4'>
-                <div className='space-y-4 flex-1'>
+        <TabsContent value="experience" className="w-full">
+          <Card className="w-full">
+            <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
+              <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4'>
+                <div className='space-y-4 flex-1 w-full'>
                   <div className='space-y-1'>
                     <Label>Current Position</Label>
                     {isEditMode ? (
@@ -498,9 +503,10 @@ export const CandidateProfile = () => {
                         value={formData.current_position || ''}
                         onChange={(e) => handleInputChange('current_position', e.target.value)}
                         placeholder="Current Position"
+                        className="w-full"
                       />
                     ) : (
-                      <p className='text-gray-900'>{candidateProfile.current_position}</p>
+                      <p className='text-gray-900 break-words'>{candidateProfile.current_position}</p>
                     )}
                   </div>
                   <div className='space-y-1'>
@@ -512,27 +518,29 @@ export const CandidateProfile = () => {
                         onChange={(e) => handleInputChange('years_experience', parseInt(e.target.value) || 0)}
                         placeholder="Years of Experience"
                         min={0}
+                        className="w-full"
                       />
                     ) : (
                       <p className='text-gray-900'>{candidateProfile.years_experience} years</p>
                     )}
                   </div>
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-shrink-0'>
                   {isEditMode ? (
                     <>
                       <Button
                         onClick={handleSave}
                         disabled={isUpdating}
                         size='sm'
+                        className="flex-1 sm:flex-initial"
                       >
                         {isUpdating ? (
                           <>
-                            <Spinner className='size-4 mr-2' /> Saving...
+                            <Spinner className='size-4 mr-2' /> <span className="hidden sm:inline">Saving...</span>
                           </>
                         ) : (
                           <>
-                            <Check className='h-4 w-4 mr-2' /> Save
+                            <Check className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Save</span>
                           </>
                         )}
                       </Button>
@@ -541,6 +549,7 @@ export const CandidateProfile = () => {
                         variant='outline'
                         size='sm'
                         disabled={isUpdating}
+                        className="flex-1 sm:flex-initial"
                       >
                         Cancel
                       </Button>
@@ -550,8 +559,9 @@ export const CandidateProfile = () => {
                       onClick={handleEditClick}
                       variant='outline'
                       size='sm'
+                      className="w-full sm:w-auto"
                     >
-                      <EditIcon className='h-4 w-4 mr-2' /> Edit
+                      <EditIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   )}
                 </div>
@@ -559,11 +569,11 @@ export const CandidateProfile = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="skills">
-          <Card>
-            <CardContent className='space-y-6'>
-              <div className='flex items-center justify-between gap-4'>
-                <div className='space-y-6 flex-1'>
+        <TabsContent value="skills" className="w-full">
+          <Card className="w-full">
+            <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
+              <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4'>
+                <div className='space-y-4 sm:space-y-6 flex-1 w-full'>
                   <div className='space-y-2'>
                     <Label>Stack/Technologies (comma-separated)</Label>
                     {isEditMode ? (
@@ -571,6 +581,7 @@ export const CandidateProfile = () => {
                         value={Array.isArray(formData.stack) ? formData.stack.join(', ') : ''}
                         onChange={(e) => handleInputChange('stack', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
                         placeholder="e.g., Front-End, Back-End, Full-Stack"
+                        className="w-full"
                       />
                     ) : (
                       <div className='flex flex-wrap gap-2'>
@@ -591,6 +602,7 @@ export const CandidateProfile = () => {
                         value={Array.isArray(formData.skills) ? formData.skills.join(', ') : ''}
                         onChange={(e) => handleInputChange('skills', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
                         placeholder="e.g., NextJs, Flutter, React"
+                        className="w-full"
                       />
                     ) : (
                       <div className='flex flex-wrap gap-2'>
@@ -605,21 +617,22 @@ export const CandidateProfile = () => {
                     )}
                   </div>
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-shrink-0'>
                   {isEditMode ? (
                     <>
                       <Button
                         onClick={handleSave}
                         disabled={isUpdating}
                         size='sm'
+                        className="flex-1 sm:flex-initial"
                       >
                         {isUpdating ? (
                           <>
-                            <Spinner className='size-4 mr-2' /> Saving...
+                            <Spinner className='size-4 mr-2' /> <span className="hidden sm:inline">Saving...</span>
                           </>
                         ) : (
                           <>
-                            <Check className='h-4 w-4 mr-2' /> Save
+                            <Check className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Save</span>
                           </>
                         )}
                       </Button>
@@ -628,6 +641,7 @@ export const CandidateProfile = () => {
                         variant='outline'
                         size='sm'
                         disabled={isUpdating}
+                        className="flex-1 sm:flex-initial"
                       >
                         Cancel
                       </Button>
@@ -637,8 +651,9 @@ export const CandidateProfile = () => {
                       onClick={handleEditClick}
                       variant='outline'
                       size='sm'
+                      className="w-full sm:w-auto"
                     >
-                      <EditIcon className='h-4 w-4 mr-2' /> Edit
+                      <EditIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   )}
                 </div>
@@ -646,11 +661,11 @@ export const CandidateProfile = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="additional">
-          <Card>
-            <CardContent className='space-y-4'>
-              <div className='flex items-center justify-between'>
-                <div className='space-y-4 flex-1'>
+        <TabsContent value="additional" className="w-full">
+          <Card className="w-full">
+            <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
+              <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4'>
+                <div className='space-y-4 flex-1 w-full'>
                   <div className='space-y-1'>
                     <Label>Summary</Label>
                     {isEditMode ? (
@@ -659,9 +674,10 @@ export const CandidateProfile = () => {
                         onChange={(e) => handleInputChange('summary', e.target.value)}
                         placeholder="Summary"
                         rows={4}
+                        className="w-full"
                       />
                     ) : (
-                      <p className='text-gray-900 text-sm'>{candidateProfile.summary || 'Not provided'}</p>
+                      <p className='text-gray-900 text-sm break-words'>{candidateProfile.summary || 'Not provided'}</p>
                     )}
                   </div>
                   <div className='space-y-1'>
@@ -671,9 +687,10 @@ export const CandidateProfile = () => {
                         value={formData.expected_salary || ''}
                         onChange={(e) => handleInputChange('expected_salary', e.target.value)}
                         placeholder="Expected Salary"
+                        className="w-full"
                       />
                     ) : (
-                      <p className='text-gray-900'>${candidateProfile.expected_salary || 'Not specified'}</p>
+                      <p className='text-gray-900 break-words'>${candidateProfile.expected_salary || 'Not specified'}</p>
                     )}
                   </div>
                   <div className='space-y-1'>
@@ -683,27 +700,29 @@ export const CandidateProfile = () => {
                         value={formData.joining_availability || ''}
                         onChange={(e) => handleInputChange('joining_availability', e.target.value)}
                         placeholder="e.g., immediately, 1 week, 1 month"
+                        className="w-full"
                       />
                     ) : (
-                      <p className='text-gray-900'>{candidateProfile.joining_availability || 'Not specified'}</p>
+                      <p className='text-gray-900 break-words'>{candidateProfile.joining_availability || 'Not specified'}</p>
                     )}
                   </div>
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-shrink-0'>
                   {isEditMode ? (
                     <>
                       <Button
                         onClick={handleSave}
                         disabled={isUpdating}
                         size='sm'
+                        className="flex-1 sm:flex-initial"
                       >
                         {isUpdating ? (
                           <>
-                            <Spinner className='size-4 mr-2' /> Saving...
+                            <Spinner className='size-4 mr-2' /> <span className="hidden sm:inline">Saving...</span>
                           </>
                         ) : (
                           <>
-                            <Check className='h-4 w-4 mr-2' /> Save
+                            <Check className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Save</span>
                           </>
                         )}
                       </Button>
@@ -712,6 +731,7 @@ export const CandidateProfile = () => {
                         variant='outline'
                         size='sm'
                         disabled={isUpdating}
+                        className="flex-1 sm:flex-initial"
                       >
                         Cancel
                       </Button>
@@ -721,8 +741,9 @@ export const CandidateProfile = () => {
                       onClick={handleEditClick}
                       variant='outline'
                       size='sm'
+                      className="w-full sm:w-auto"
                     >
-                      <EditIcon className='h-4 w-4 mr-2' /> Edit
+                      <EditIcon className='h-4 w-4 mr-2' /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   )}
                 </div>

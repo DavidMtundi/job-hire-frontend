@@ -16,13 +16,13 @@ export default function DashboardScreen() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="space-y-3">
+    <div className="w-full h-full">
+      <div className="space-y-4 sm:space-y-6">
         <Welcome />
 
         <ApplicationOverview />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <ApplicationTrend />
           <ApplicationStatus />
         </div>

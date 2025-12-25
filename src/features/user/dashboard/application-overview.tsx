@@ -67,8 +67,8 @@ export const ApplicationOverview = () => {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-      <div className="grid grid-cols-4 divide-x divide-gray-200">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 w-full overflow-x-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-0 sm:divide-x divide-gray-200 min-w-max sm:min-w-0">
         {metricsData.map((metric, idx) => (
           <MetricCard key={idx} {...metric} />
         ))}
@@ -79,10 +79,10 @@ export const ApplicationOverview = () => {
 
 const ApplicationOverviewSkeleton = () => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-      <div className="grid grid-cols-4 divide-x divide-gray-200">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 w-full overflow-x-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-0 sm:divide-x divide-gray-200 min-w-max sm:min-w-0">
         {Array.from({ length: 4 }).map((_, idx) => (
-          <div key={idx} className="flex items-center gap-3 px-6 first:pl-0 last:pr-0">
+          <div key={idx} className="flex items-center gap-3 px-4 sm:px-6 first:pl-0 last:pr-0">
             <Skeleton className="size-10 rounded-lg" />
             <div className="flex flex-col gap-2">
               <Skeleton className="w-24 h-3" />

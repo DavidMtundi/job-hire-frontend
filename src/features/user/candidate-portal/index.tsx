@@ -249,22 +249,22 @@ export default function CandidatePortalScreen() {
   };
 
   return (
-    <div className="space-y-6">
-    
+    <div className="w-full h-full space-y-4 sm:space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">Application Portal</h1>
-          <Button variant="secondary" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" /> Back to Applications
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Application Portal</h1>
+          <Button variant="secondary" size="sm" onClick={() => router.back()} className="w-full sm:w-auto">
+            <ArrowLeft className="h-4 w-4 mr-2" /> 
+            <span className="hidden sm:inline">Back to Applications</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           View application status and scheduled interviews
         </p>
       </div>
 
-     
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
        
         <div className="lg:col-span-1">
           <Card>
@@ -319,19 +319,16 @@ export default function CandidatePortalScreen() {
           </Card>
         </div>
 
-       
-        <div className="lg:col-span-2 space-y-6">
-        
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Application View</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Application View</h2>
+            <p className="text-xs sm:text-sm text-gray-600">
               View application status and scheduled interviews
             </p>
           </div>
 
-       
-          <Card>
-            <CardContent className="p-6 space-y-6">
+          <Card className="w-full">
+            <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
              
               <div>
                 
@@ -511,10 +508,10 @@ export default function CandidatePortalScreen() {
           </Card>
 
          
-       </div>
-       <div className="lg:col-span-3 space-y-6">
-       <Card>
-            <CardContent className="p-6">
+        </div>
+        <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+          <Card className="w-full">
+            <CardContent className="p-4 sm:p-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Your Interviews
@@ -673,7 +670,7 @@ export default function CandidatePortalScreen() {
                                       </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                                       <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
                                         <FileText className="w-5 h-5 text-blue-600" />
                                         <div>
