@@ -1,6 +1,8 @@
 services:
   # Backend Service (FastAPI) - Development
   backend:
+    env_file:
+      - .env
     build:
       context: ../job-hire-backend
       dockerfile: Dockerfile
@@ -23,10 +25,10 @@ services:
       - ENV=dev
       - EMAIL_USER=${EMAIL_USER:-}
       - EMAIL_PASSWORD=${EMAIL_PASSWORD:-}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-AIzaSyAovxu29z8xMNfd6bVIBbcScdXjPv9lVMM}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - GEN_AI_MODEL_NAME=${GEN_AI_MODEL_NAME:-gemini-2.5-flash-lite}
       - FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS:-}
-      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-jobhire-1766594347.firebasestorage.app}
+      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY:-}
       - AWS_TOKEN=${AWS_TOKEN:-}
