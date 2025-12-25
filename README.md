@@ -1,6 +1,6 @@
-# Job-Hire Frontend
+# Job Hire Frontend
 
-Next.js frontend application for the Job-Hire platform.
+Next.js frontend application for the Job Hire platform.
 
 ## 🚀 Quick Start
 
@@ -39,13 +39,6 @@ Next.js frontend application for the Job-Hire platform.
    npm run dev:all
    ```
 
-## 📚 Documentation
-
-- [DOCKER_QUICK_START.md](./DOCKER_QUICK_START.md) - Quick Docker setup
-- [DOCKER_SETUP.md](./DOCKER_SETUP.md) - Complete Docker guide
-- [QUICK_START.md](./QUICK_START.md) - Local development quick start
-- [DEVELOPMENT_SETUP.md](./DEVELOPMENT_SETUP.md) - Detailed development guide
-
 ## 🛠️ Tech Stack
 
 - Next.js 16
@@ -58,4 +51,3 @@ Next.js frontend application for the Job-Hire platform.
 ## 📝 License
 
 Private project - All rights reserved
-# job-hire-frontend

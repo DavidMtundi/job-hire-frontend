@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightIcon, BriefcaseIcon, LogOutIcon } from "lucide-react";
+import { ArrowRightIcon, LogOutIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,16 +15,15 @@ export const Header = () => {
       <Container className="h-full flex justify-between items-center">
         <Link href="/">
           <div className="flex items-center gap-2">
-            {/* <Image 
+            <Image 
               src="/logo.svg" 
-              alt="MustHire" 
-              width={100} 
-              height={100} 
+              alt="Job Hire" 
+              width={32} 
+              height={32} 
               className="size-8" 
-            /> */}
-            <BriefcaseIcon className="size-7 text-primary/90" />
+            />
             <span className="text-xl font-bold text-blue-950">
-              MustHire
+              Job Hire
             </span>
           </div>
         </Link>

@@ -1,6 +1,7 @@
 "use client"
 
 import { HelpCircleIcon, SearchIcon, SettingsIcon } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 import { PiFiles, PiListMagnifyingGlassDuotone, PiReadCvLogo, PiUserCircleCheckDuotone, PiUserFocusDuotone } from "react-icons/pi"
@@ -106,8 +107,13 @@ export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
           <SidebarMenuItem className="flex justify-center items-center">
             <Button asChild size="icon" variant="ghost">
               <Link href="/user/dashboard">
-                <TbInnerShadowTop className="size-6 text-blue-950" />
-                {/* <span className="text-lg font-bold">MustHire</span> */}
+                <Image 
+                  src="/logo.svg" 
+                  alt="Job Hire" 
+                  width={24} 
+                  height={24} 
+                  className="size-6" 
+                />
               </Link>
             </Button>
           </SidebarMenuItem>
