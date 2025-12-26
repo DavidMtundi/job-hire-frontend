@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Mail } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useGetApplicationDetailQuery } from "~/apis/applications/queries";
 import { ScheduleInterviewModal } from "~/features/admin/interviews/schedule-interview-modal";
@@ -11,6 +11,7 @@ import { ResumeMatchingCard } from "./resume-matching-card";
 import { AIInterviewAssessmentCard } from "./ai-interview-assessment-card";
 import { JobDetailsCard } from "./job-details-card";
 import { CandidateSummaryCard } from "./candidate-summary-card";
+import { EmailDraftModal } from "./email-draft-modal";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Loader } from "~/components/loader";
@@ -71,20 +72,41 @@ export default function ApplicationDetailsPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Applications
             </Button>
-            <Button
-              onClick={() => {
-                if (!applicationId && !application?.id) {
-                  toast.error("Application ID is missing. Please refresh the page.");
-                  return;
+            <div className="flex gap-2">
+              <EmailDraftModal
+                applicationId={applicationId || application?.id || ""}
+                candidateName={
+                  application?.first_name && application?.last_name
+                    ? `${application.first_name} ${application.last_name}`
+                    : undefined
                 }
-                setIsScheduleModalOpen(true);
-              }}
-              size="sm"
-              className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 text-white text-sm px-3 py-1.5"
-            >
-              <Calendar className="h-3.5 w-3.5 mr-1.5" />
-              Schedule Interview
-            </Button>
+                jobTitle={application?.title}
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-sm px-3 py-1.5"
+                  >
+                    <Mail className="h-3.5 w-3.5 mr-1.5" />
+                    Send Email
+                  </Button>
+                }
+              />
+              <Button
+                onClick={() => {
+                  if (!applicationId && !application?.id) {
+                    toast.error("Application ID is missing. Please refresh the page.");
+                    return;
+                  }
+                  setIsScheduleModalOpen(true);
+                }}
+                size="sm"
+                className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 text-white text-sm px-3 py-1.5"
+              >
+                <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                Schedule Interview
+              </Button>
+            </div>
           </div>
         </div>
 

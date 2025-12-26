@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { LoginForm } from "./login-form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { BackButton } from "../components/back-button";
@@ -13,16 +14,32 @@ const LoginScreen = () => {
               Welcome back!
             </CardTitle>
             <CardDescription>
-              Login to your account
+              Login to your account (Candidates, HR, or Company Owners)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
           </CardContent>
-          <CardFooter className="flex justify-center">
-            {/* <Divider>Or continue with</Divider>
-            <SocialAuth /> */}
+          <CardFooter className="flex flex-col items-center gap-3">
             <BackButton label="Don&apos;t have an account? Signup" href="/signup" />
+            <div className="text-center text-sm text-gray-600">
+              <p>New to the platform?</p>
+              <div className="flex gap-4 justify-center mt-2">
+                <Link 
+                  href="/signup" 
+                  className="text-blue-600 hover:text-blue-700 font-medium underline"
+                >
+                  Sign up as Candidate
+                </Link>
+                <span className="text-gray-400">•</span>
+                <Link 
+                  href="/admin/companies/register" 
+                  className="text-blue-600 hover:text-blue-700 font-medium underline"
+                >
+                  Register Company
+                </Link>
+              </div>
+            </div>
           </CardFooter>
         </Card>
       </div>

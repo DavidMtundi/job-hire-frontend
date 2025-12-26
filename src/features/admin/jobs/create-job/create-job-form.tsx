@@ -30,10 +30,20 @@ import { cn } from "~/lib/utils";
 import { useCreateJobMutation } from "~/apis/jobs/queries";
 import { CreateJobSchema, TCreateJob } from "~/apis/jobs/schemas";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { useGetDepartmentsQuery } from "~/apis/departments/queries";
-import { useGetCategoriesQuery } from "~/apis/categories/queries";
-import { useEffect } from "react";
+import { useGetDepartmentsQuery, useCreateDepartmentMutation } from "~/apis/departments/queries";
+import { useGetCategoriesQuery, useCreateCategoryMutation } from "~/apis/categories/queries";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { IAIGeneratedJobData } from "~/apis/jobs/dto";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { TCreateCategory, CreateCategorySchema } from "~/apis/categories/schemas";
+import { TCreateDepartment, CreateDepartmentSchema } from "~/apis/departments/schemas";
 
 const jobTypes = [
   { label: "Full-time", value: "full_time" },
@@ -62,6 +72,7 @@ interface CreateJobFormProps {
 
 export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const form = useForm<TCreateJob>({
     resolver: zodResolver(CreateJobSchema),
@@ -96,6 +107,31 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
   const categories = categoriesData?.data || [];
 
   const { mutate: createJob, isPending, isSuccess } = useCreateJobMutation();
+  
+  // State for create modals
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
+  const [isCreateDepartmentOpen, setIsCreateDepartmentOpen] = useState(false);
+  
+  // Create mutations with callbacks
+  const { mutate: createCategory } = useCreateCategoryMutation();
+  const { mutate: createDepartment } = useCreateDepartmentMutation();
+  
+  // Form instances for create modals
+  const categoryForm = useForm<TCreateCategory>({
+    resolver: zodResolver(CreateCategorySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+  
+  const departmentForm = useForm<TCreateDepartment>({
+    resolver: zodResolver(CreateDepartmentSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
 
   useEffect(() => {
     if (aiGeneratedData) {
@@ -160,6 +196,50 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
         // router.push("/admin/jobs");
       },
       onError: (error) => {
+        toast.error(error.message || "Something went wrong");
+      },
+    });
+  };
+  
+  // Handle category creation
+  const handleCreateCategory = (data: TCreateCategory) => {
+    createCategory(data, {
+      onSuccess: async (response) => {
+        toast.success("Category created successfully.");
+        setIsCreateCategoryOpen(false);
+        categoryForm.reset();
+        
+        // Refetch categories to update the dropdown
+        await queryClient.refetchQueries({ queryKey: ["categories"] });
+        
+        // Select the newly created category from the response
+        if (response?.data?.id) {
+          form.setValue("category_id", Number(response.data.id));
+        }
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Something went wrong");
+      },
+    });
+  };
+  
+  // Handle department creation
+  const handleCreateDepartment = (data: TCreateDepartment) => {
+    createDepartment(data, {
+      onSuccess: async (response) => {
+        toast.success("Department created successfully.");
+        setIsCreateDepartmentOpen(false);
+        departmentForm.reset();
+        
+        // Refetch departments to update the dropdown
+        await queryClient.refetchQueries({ queryKey: ["departments"] });
+        
+        // Select the newly created department from the response
+        if (response?.data?.id) {
+          form.setValue("department_id", Number(response.data.id));
+        }
+      },
+      onError: (error: any) => {
         toast.error(error.message || "Something went wrong");
       },
     });
@@ -283,6 +363,19 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                                 {item.name}
                               </SelectItem>
                             ))}
+                            <div
+                              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-primary font-medium"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsCreateDepartmentOpen(true);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <PlusIcon className="h-4 w-4" />
+                                Create New Department
+                              </div>
+                            </div>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -325,6 +418,19 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                                 {item.name}
                               </SelectItem>
                             ))}
+                            <div
+                              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-primary font-medium"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsCreateCategoryOpen(true);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <PlusIcon className="h-4 w-4" />
+                                Create New Category
+                              </div>
+                            </div>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -838,6 +944,160 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
           </div>
         </form>
       </Form>
+      
+      {/* Create Category Dialog */}
+      <Dialog open={isCreateCategoryOpen} onOpenChange={setIsCreateCategoryOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Category</DialogTitle>
+            <DialogDescription>
+              Add a new category for job classification.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...categoryForm}>
+            <form
+              onSubmit={categoryForm.handleSubmit(handleCreateCategory)}
+              className="space-y-4"
+            >
+              <FormField
+                control={categoryForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>
+                      Name <span className="text-red-500">*</span>
+                    </Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        placeholder="e.g: Frontend Development"
+                        disabled={categoryForm.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={categoryForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Description</Label>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        placeholder="Enter description"
+                        disabled={categoryForm.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateCategoryOpen(false);
+                    categoryForm.reset();
+                  }}
+                  className="w-28"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={categoryForm.formState.isSubmitting}
+                  className="w-28"
+                >
+                  {categoryForm.formState.isSubmitting ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create Department Dialog */}
+      <Dialog open={isCreateDepartmentOpen} onOpenChange={setIsCreateDepartmentOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Department</DialogTitle>
+            <DialogDescription>
+              Add a new department for job organization.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...departmentForm}>
+            <form
+              onSubmit={departmentForm.handleSubmit(handleCreateDepartment)}
+              className="space-y-4"
+            >
+              <FormField
+                control={departmentForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>
+                      Name <span className="text-red-500">*</span>
+                    </Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        placeholder="e.g: Engineering"
+                        disabled={departmentForm.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={departmentForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Description</Label>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        placeholder="Enter description"
+                        disabled={departmentForm.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDepartmentOpen(false);
+                    departmentForm.reset();
+                  }}
+                  className="w-28"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={departmentForm.formState.isSubmitting}
+                  className="w-28"
+                >
+                  {departmentForm.formState.isSubmitting ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

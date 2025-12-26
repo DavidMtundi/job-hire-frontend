@@ -70,7 +70,10 @@ export default function Applications() {
 
   const { data: hiringFunnelData } = useGetHiringFunnelQuery();
 
-  const applications = applicationsData?.data ?? [];
+  // Ensure applications is always an array - handle different response structures
+  const applications = Array.isArray(applicationsData?.data) 
+    ? applicationsData.data 
+    : [];
   const pagination = applicationsData?.pagination;
   const hiringFunnel = hiringFunnelData?.data ?? [];
 

@@ -144,10 +144,17 @@ export const SignupForm = () => {
           />
         </div>
         <Button disabled={isPending || isSubmitted} type="submit" className="w-full">
-          Create an account
+          {isPending ? "Creating account..." : "Create Candidate Account"}
         </Button>
         <FormSuccess message={success} />
         <FormError message={error} />
+        {success && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Next steps:</strong> Check your email to verify your account, then complete your profile to start applying for jobs.
+            </p>
+          </div>
+        )}
       </form>
     </Form>
   );

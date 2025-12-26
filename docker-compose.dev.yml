@@ -35,16 +35,17 @@ services:
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-dev-must-company-resume}
       - BUCKET_NAME=${BUCKET_NAME:-dev-must-company-resume}
+      - PYTHONPATH=/app:/app/api
     volumes:
-      # Mount source code for hot reload
-      - ../job-hire-backend/api:/app/api
+      # Mount source code for hot reload - mount to /app to match Dockerfile structure
+      - ../job-hire-backend/api:/app
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - job-hire-network
     restart: unless-stopped
-    command: python -m uvicorn api.api:app --host 0.0.0.0 --port 8002 --reload
+    command: bash -c "PYTHONPATH=/app:/app/api python -m uvicorn api:app --host 0.0.0.0 --port 8002 --reload"
 
   # Frontend Service (Next.js) - Development
   frontend:

@@ -13,6 +13,7 @@ import {
   TbListDetails,
   TbSearch,
   TbSettings,
+  TbBuilding,
 } from "react-icons/tb"
 import {
   Sidebar,
@@ -56,6 +57,11 @@ const data = {
     },
   ],
   navSecondary: [
+    {
+      title: "Company",
+      url: "/admin/companies",
+      icon: TbBuilding,
+    },
     {
       title: "Audit Logs",
       url: "/admin/audit-logs",

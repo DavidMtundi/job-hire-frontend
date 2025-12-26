@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
-import { Geist, Geist_Mono } from "next/font/google";
+// Temporarily disabled Google Fonts due to Docker/Turbopack compatibility issue
+// import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "~/config/site";
 import { authSession } from "~/lib/auth";
 import { cn } from "~/lib/utils";
@@ -10,15 +11,16 @@ import { ToasterProvider } from "~/providers/toast-provider";
 
 import "~/styles/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Temporarily disabled - using system fonts instead
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: siteConfig.title,
@@ -49,9 +51,9 @@ export default async function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body
           className={cn(
-            "min-h-screen bg-background font-sans antialiased",
-            geistSans.variable,
-            geistMono.variable
+            "min-h-screen bg-background font-sans antialiased"
+            // geistSans.variable,
+            // geistMono.variable
           )}
           suppressHydrationWarning
         >

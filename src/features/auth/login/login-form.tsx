@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
@@ -26,6 +26,14 @@ export const LoginForm = () => {
   const searchParams = useSearchParams();
 
   const redirectPath = searchParams.get("redirect");
+  const registered = searchParams.get("registered");
+
+  // Show success message if user just registered
+  useEffect(() => {
+    if (registered === "true") {
+      toast.success("Registration successful! Please login with your credentials.");
+    }
+  }, [registered]);
 
   const form = useForm<TLogin>({
     resolver: zodResolver(LoginSchema),
@@ -146,7 +154,7 @@ export const LoginForm = () => {
           disabled={isLoading || isPending} 
           className="w-full"
         >
-          Login
+          {isLoading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Form>
