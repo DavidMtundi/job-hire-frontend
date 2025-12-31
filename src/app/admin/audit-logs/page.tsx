@@ -29,13 +29,29 @@ export default function AuditLogsPage() {
     ...filters,
   });
 
-  const { data: aiMetricsData, isLoading: metricsLoading } = useQuery({
+  const { data: aiMetricsData, isLoading: metricsLoading, error: aiMetricsError } = useQuery({
     queryKey: ["ai-usage-metrics", "month"],
     queryFn: async () => {
-      const response = await apiClient.get("/audit/ai-usage", { params: { period: "month" } });
-      return response.data;
+      try {
+        const response = await apiClient.get("/audit/ai-usage", { 
+          params: { 
+            period: "month"
+          } 
+        });
+        return response.data;
+      } catch (error: any) {
+        // Silently handle errors - this is an optional feature
+        // 403 errors mean user doesn't have permission (not admin/HR)
+        // 404/500 errors mean endpoint doesn't exist or server error
+        if (error?.response?.status !== 403) {
+          console.warn("Failed to fetch AI usage metrics:", error?.response?.status, error?.response?.data);
+        }
+        return null;
+      }
     },
     enabled: true,
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const logs = logsData?.data?.items || [];
@@ -69,7 +85,7 @@ export default function AuditLogsPage() {
         </div>
 
         {/* AI Usage Metrics */}
-        {!metricsLoading && aiMetricsData?.success && aiMetricsData?.data && Array.isArray(aiMetricsData.data) && aiMetricsData.data.length > 0 && (
+        {!metricsLoading && !aiMetricsError && aiMetricsData?.success && aiMetricsData?.data && Array.isArray(aiMetricsData.data) && aiMetricsData.data.length > 0 && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">

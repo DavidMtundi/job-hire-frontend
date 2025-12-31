@@ -83,7 +83,7 @@ apiClient.interceptors.response.use(
     // (e.g., checking if a resource exists)
     const shouldLogError = status !== 404;
 
-    if (shouldLogError) {
+    if (shouldLogError && error) {
       // Log detailed error for debugging
       // Build error info object with only defined values
       const errorInfo: Record<string, any> = {};
@@ -91,7 +91,7 @@ apiClient.interceptors.response.use(
       if (message) errorInfo.message = message;
       if (status) errorInfo.status = status;
       if (response?.statusText) errorInfo.statusText = response.statusText;
-      if (data) errorInfo.data = data;
+      if (data && Object.keys(data).length > 0) errorInfo.data = data;
       if (error?.config?.url) errorInfo.url = error.config.url;
       if (error?.config?.method) errorInfo.method = error.config.method;
       if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
@@ -108,7 +108,6 @@ apiClient.interceptors.response.use(
           errorType: typeof error,
           errorKeys: error ? Object.keys(error) : [],
           errorString: String(error),
-          errorValue: error,
         });
       }
     }
