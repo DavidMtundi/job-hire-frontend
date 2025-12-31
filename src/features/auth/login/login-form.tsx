@@ -71,7 +71,12 @@ export const LoginForm = () => {
         fallbackRedirect = "/onboarding";
       }
     } else if (user?.role === "admin" || user?.role === "hr") {
-      fallbackRedirect = "/admin/dashboard";
+      // If there's a redirect param (e.g., from company registration), use it
+      if (redirectPath && redirectPath.includes("/admin/companies/register")) {
+        fallbackRedirect = redirectPath;
+      } else {
+        fallbackRedirect = "/admin/dashboard";
+      }
     } else if (user?.role === "manager") {
       fallbackRedirect = "/manager/dashboard";
     } else {

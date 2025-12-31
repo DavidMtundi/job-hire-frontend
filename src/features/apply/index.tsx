@@ -4,6 +4,8 @@ import type React from "react";
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import { Upload, FileText, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -21,8 +23,16 @@ export default function Apply() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const params = useParams();
+  const { data: session } = useSession();
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (!session?.isAuthenticated) {
+      toast.error("Please login to apply for this job");
+      router.push(`/login?redirect=/apply/${params.id}`);
+      return;
+    }
+
     // Prefill from saved resume meta (uploaded during onboarding)
     const savedMeta = localStorage.getItem("userResumeMeta");
     if (savedMeta) {
@@ -45,7 +55,7 @@ export default function Apply() {
           );
       } catch {}
     }
-  }, []);
+  }, [session, router, params.id]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { PreviewResumeModal } from "./preview-resume-modal";
 import { useUploadResumeMutation, useGetCandidateByUserIdQuery } from "~/apis/candidates/queries";
+import { useGetAuthUserProfileQuery } from "~/apis/auth/queries";
 import { useOnboardingStore } from "~/hooks/use-onboarding-store";
 
 export default function ResumeUploadScreen() {
@@ -21,7 +22,8 @@ export default function ResumeUploadScreen() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  // Check if user already has a resume uploaded
+  // Check if user already has a resume uploaded - use user profile first (more efficient)
+  const { data: userProfile, isLoading: isLoadingUserProfile } = useGetAuthUserProfileQuery();
   const { 
     data: existingCandidate, 
     isLoading: isLoadingCandidate,
@@ -29,8 +31,10 @@ export default function ResumeUploadScreen() {
     refetch: refetchCandidate 
   } = useGetCandidateByUserIdQuery(userId || "");
 
-  const existingResumeUrl = existingCandidate?.data?.resume_url;
+  // Prefer resume_url from user profile (already loaded), fallback to candidate query
+  const existingResumeUrl = userProfile?.data?.candidate_profile?.resume_url || existingCandidate?.data?.resume_url;
   const hasExistingResume = !!existingResumeUrl;
+  const isLoading = isLoadingUserProfile || isLoadingCandidate;
   
   // Extract resume filename from URL if available
   const getResumeFileName = (url: string) => {
@@ -78,6 +82,85 @@ export default function ResumeUploadScreen() {
 
     // If user has existing resume and no new file selected, continue with existing
     if (hasExistingResume && !resume) {
+      // Extract profile data from existing candidate record to autofill the form
+      // Prefer existingCandidate data, fallback to userProfile.candidate_profile
+      const candidateData = existingCandidate?.data || userProfile?.data?.candidate_profile;
+      
+      if (candidateData) {
+        // Extract raw extraction data from metadata if available (contains all extracted fields from resume)
+        // The metadata might be stored as 'metadata' or as a nested object
+        const metadata = candidateData.metadata as any;
+        const rawExtraction = metadata?.raw_extraction || null;
+        
+        // Helper function to safely extract field values, preferring raw_extraction over direct fields
+        const getFieldValue = (fieldName: string, camelCaseField?: string): any => {
+          // Check raw_extraction first (most accurate, directly from resume)
+          if (rawExtraction?.[fieldName]) return rawExtraction[fieldName];
+          if (camelCaseField && rawExtraction?.[camelCaseField]) return rawExtraction[camelCaseField];
+          
+          // Fallback to candidate table fields
+          const candidateValue = (candidateData as any)[fieldName];
+          if (candidateValue) return candidateValue;
+          
+          return "";
+        };
+
+        // Map candidate data to resumeData format (TResumeData)
+        // Note: years_experience might be stored as string, convert to number if needed
+        const yearsExpRaw = rawExtraction?.years_experience ?? candidateData.years_experience;
+        const parsedYearsExperience = yearsExpRaw
+          ? (typeof yearsExpRaw === 'string' 
+              ? parseFloat(yearsExpRaw) || 0 
+              : yearsExpRaw)
+          : 0;
+
+        const resumeDataFromCandidate = {
+          first_name: getFieldValue("first_name") || "",
+          last_name: getFieldValue("last_name") || "",
+          email: getFieldValue("email") || session.user.email || "",
+          phone: getFieldValue("phone") || "",
+          address: getFieldValue("address") || "",
+          current_position: getFieldValue("current_position") || getFieldValue("currentRole") || "",
+          years_experience: parsedYearsExperience,
+          stack: Array.isArray(rawExtraction?.stack || candidateData.stack) 
+            ? (rawExtraction?.stack || candidateData.stack) 
+            : [],
+          skills: Array.isArray(rawExtraction?.skills || candidateData.skills) 
+            ? (rawExtraction?.skills || candidateData.skills) 
+            : [],
+          // CRITICAL: Check raw_extraction for these fields as they might not be in the main table
+          linkedin_url: getFieldValue("linkedin_url", "linkedinUrl") || "",
+          summary: getFieldValue("summary") || "",
+          last_education: getFieldValue("last_education") || "",
+          expected_salary: getFieldValue("expected_salary", "expectationSalary") || "",
+          joining_availability: getFieldValue("joining_availability", "availability") || candidateData.joining_availability || "1 month",
+          resume_url: existingResumeUrl || "",
+        };
+
+        // Set the resume data in the onboarding store to autofill the profile form
+        setResumeData(resumeDataFromCandidate);
+        toast.success("Profile data loaded from existing resume");
+      } else {
+        // If candidate data is not available, at least set the resume URL
+        setResumeData({
+          first_name: "",
+          last_name: "",
+          email: session.user.email || "",
+          phone: "",
+          address: "",
+          current_position: "",
+          years_experience: 0,
+          stack: [],
+          skills: [],
+          linkedin_url: "",
+          summary: "",
+          expected_salary: "",
+          last_education: "",
+          joining_availability: "1 month",
+          resume_url: existingResumeUrl || "",
+        });
+      }
+      
       router.push("/onboarding/profile-completion");
       return;
     }
@@ -115,10 +198,12 @@ export default function ResumeUploadScreen() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-blue-950 mb-1">
-            Upload your resume
+            {hasExistingResume ? "Your Resume" : "Upload your resume"}
           </h1>
           <p className="text-sm text-gray-700">
-            We&apos;ll extract your details to speed up your profile setup
+            {hasExistingResume 
+              ? "Your resume is already uploaded. You can continue with it or upload a new one."
+              : "We'll extract your details to speed up your profile setup"}
           </p>
         </div>
 
@@ -129,14 +214,14 @@ export default function ResumeUploadScreen() {
           <CardContent>
             <div className="space-y-6">
               {/* Loading state */}
-              {isLoadingCandidate && (
+              {isLoading && (
                 <div className="text-center py-4 text-gray-500">
                   Checking for existing resume...
                 </div>
               )}
 
               {/* Show existing resume if available - Make it very clear */}
-              {!isLoadingCandidate && hasExistingResume && !resume && (
+              {!isLoading && hasExistingResume && !resume && (
                 <div className="border-2 border-green-300 bg-green-50 rounded-lg p-6 shadow-sm">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
@@ -145,7 +230,7 @@ export default function ResumeUploadScreen() {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <p className="font-semibold text-gray-900 text-lg">
                           Resume Already Uploaded
                         </p>
@@ -153,48 +238,71 @@ export default function ResumeUploadScreen() {
                           Current
                         </Badge>
                       </div>
-                      <div className="bg-white rounded-md p-3 border border-green-200 mb-3">
-                        <div className="flex items-center gap-3">
-                          <FileText className="size-5 text-green-600" />
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">
-                              {existingResumeUrl ? getResumeFileName(existingResumeUrl) : 'Resume File'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Your resume is ready to use
-                            </p>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-green-200 mb-4 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="rounded-lg bg-green-100 p-2">
+                              <FileText className="size-6 text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">
+                                {existingResumeUrl ? getResumeFileName(existingResumeUrl) : 'Resume File'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Your resume is ready to use for applications
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
                         {existingResumeUrl && (
-                          <a
-                            href={existingResumeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium"
-                          >
-                            📄 View Resume →
-                          </a>
+                          <>
+                            <a
+                              href={existingResumeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              <EyeIcon className="size-4" />
+                              View Resume
+                            </a>
+                            <a
+                              href={existingResumeUrl}
+                              download
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                            >
+                              <FileText className="size-4" />
+                              Download
+                            </a>
+                          </>
                         )}
-                        <span className="text-sm text-gray-500">|</span>
+                      </div>
+
+                      <div className="border-t border-green-200 pt-3">
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
+                          className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline font-medium"
                         >
-                          📤 Upload New Resume
+                          <UploadIcon className="size-4" />
+                          Upload a new resume to replace current one
                         </button>
                       </div>
-                      <p className="text-sm text-gray-600 mt-3">
-                        You can continue with your current resume or upload a new one to replace it.
-                      </p>
+
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm text-blue-800">
+                          <strong>Note:</strong> Uploading a new resume is <strong>optional</strong>. You can continue with your current resume or upload a new one to replace it.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Show error if fetch failed (only for actual errors, not 404/not found) */}
-              {!isLoadingCandidate && candidateError && candidateError.message !== "Candidate not found" && !hasExistingResume && (
+              {!isLoading && candidateError && candidateError.message !== "Candidate not found" && !hasExistingResume && (
                 <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 text-sm text-yellow-800">
                   Could not check for existing resume. Please try refreshing the page.
                 </div>
@@ -298,7 +406,7 @@ export default function ResumeUploadScreen() {
                 {hasExistingResume && !resume && (
                   <Button
                     onClick={handleContinue}
-                    disabled={isParsing || isUploading || isLoadingCandidate}
+                    disabled={isParsing || isUploading || isLoading}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     Continue with Current Resume
@@ -306,10 +414,10 @@ export default function ResumeUploadScreen() {
                 )}
                 
                 {/* Show Continue/Upload button if resume is selected or if no existing resume (mandatory) */}
-                {(resume || (!hasExistingResume && !isLoadingCandidate)) && (
+                {(resume || (!hasExistingResume && !isLoading)) && (
                   <Button
                     onClick={handleContinue}
-                    disabled={(!resume && !hasExistingResume) || isParsing || isUploading || isLoadingCandidate}
+                    disabled={(!resume && !hasExistingResume) || isParsing || isUploading || isLoading}
                   >
                     {isParsing || isUploading 
                       ? "Uploading..." 
@@ -325,7 +433,7 @@ export default function ResumeUploadScreen() {
 
         <p className="text-xs text-gray-500 mt-4 text-center">
           {hasExistingResume 
-            ? "You can update your resume anytime. Your current resume will be used if you continue."
+            ? "✅ You already have a resume uploaded. Uploading a new one is optional - you can continue with your current resume."
             : "⚠️ Resume upload is required to complete your profile."}
         </p>
       </div>

@@ -2,8 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ClockIcon, MapPinIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { useCreateApplicationMutation } from "~/apis/applications/queries"
 import { CreateApplicationSchema, TCreateApplication } from "~/apis/applications/schemas"
@@ -37,10 +39,21 @@ export const ApplyJobModal = ({ job, triggerLabel = "Apply", trigger }: ApplyJob
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   const [selectedResumeFile, setSelectedResumeFile] = useState<File | null>(null)
+  const router = useRouter()
+  const { data: session } = useSession()
 
   const { data: userProfile } = useGetAuthUserProfileQuery();
   const userId = userProfile?.data?.id;
   const hasResume = !!userProfile?.data?.candidate_profile?.resume_url;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && !session?.isAuthenticated) {
+      toast.error("Please login to apply for this job");
+      router.push(`/login?redirect=/jobs/${job.id}`);
+      return;
+    }
+    setOpen(newOpen);
+  };
 
   const form = useForm<TCreateApplication>({
     resolver: zodResolver(CreateApplicationSchema),
@@ -134,7 +147,7 @@ export const ApplyJobModal = ({ job, triggerLabel = "Apply", trigger }: ApplyJob
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || <Button variant="outline">{triggerLabel || "Apply"}</Button>}
       </DialogTrigger>

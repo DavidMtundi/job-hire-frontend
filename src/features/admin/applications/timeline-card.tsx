@@ -193,6 +193,10 @@ export const TimelineCard = ({ applicationId, application }: TimelineCardProps) 
             <div className="text-center text-sm text-gray-500 py-4">
               Loading timeline...
             </div>
+          ) : !statusHistory || statusHistory.length === 0 ? (
+            <div className="text-center text-sm text-gray-500 py-4">
+              No status history available for this application
+            </div>
           ) : (
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>

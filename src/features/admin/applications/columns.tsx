@@ -232,7 +232,7 @@ const RecommendationModal = ({ recommendation }: { recommendation: string }) => 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <button className="underline text-blue-600 hover:text-blue-800 text-sm">
           View
         </button>

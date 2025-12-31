@@ -14,8 +14,10 @@ export async function PUT(
     const body = await request.json();
     const { id: interviewId } = await params;
 
+    // Server-side: Use Docker service name or BACKEND_URL env var
+    const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API_URL}/interviews/${interviewId}`,
+      `${backendBaseUrl}/interviews/${interviewId}`,
       {
         method: "PUT",
         headers: {

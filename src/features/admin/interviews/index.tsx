@@ -105,10 +105,19 @@ export default function InterviewsScreen() {
     const jobsMap = new Map(jobsData?.data?.map((j) => [j.id, j]) || []);
     
     const applicationsMap = new Map<string, string>();
-    applicationsData?.data?.forEach((app) => {
-      const key = `${app.candidate_id}-${app.job_id}`;
-      applicationsMap.set(key, app.id);
-    });
+    // Handle different response structures: data.items (paginated) or data (array)
+    const applicationsList = Array.isArray(applicationsData?.data) 
+      ? applicationsData.data 
+      : (applicationsData?.data?.items || []);
+    
+    if (Array.isArray(applicationsList)) {
+      applicationsList.forEach((app: any) => {
+        if (app.candidate_id && app.job_id) {
+          const key = `${app.candidate_id}-${app.job_id}`;
+          applicationsMap.set(key, app.id);
+        }
+      });
+    }
 
     return interviewsData.map((interview) => {
       const candidate = interview.candidate_id ? candidatesMap.get(interview.candidate_id) : undefined;

@@ -5,8 +5,6 @@ const adminRoutes = ["/admin"];
 const userRoutes = ["/user"];
 const authPages = ["/login", "/signup", "/verify-email"];
 const onboardingPage = "/onboarding";
-// Public routes that should be accessible without authentication
-const publicAdminRoutes = ["/admin/companies/register"];
 
 export default proxy(async (req) => {
   const { pathname } = req.nextUrl;
@@ -19,22 +17,16 @@ export default proxy(async (req) => {
   const isProfileComplete = user?.is_profile_complete;
 
   // 🔐 ADMIN ROUTES
-  // Allow public access to company registration
+  // All admin routes require authentication
   if (adminRoutes.some((route) => pathname.startsWith(route))) {
-    // Check if this is a public admin route
-    const isPublicRoute = publicAdminRoutes.some((route) => pathname.startsWith(route));
-    
-    if (!isPublicRoute) {
-      // Only require authentication for non-public admin routes
-      if (!isAuthenticated) {
-        const loginUrl = new URL("/login", req.url);
-        loginUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(loginUrl);
-      }
+    if (!isAuthenticated) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
 
-      if (userRole !== "admin" && userRole !== "hr") {
-        return NextResponse.redirect(new URL("/", req.url));
-      }
+    if (userRole !== "admin" && userRole !== "hr") {
+      return NextResponse.redirect(new URL("/", req.url));
     }
   }
 

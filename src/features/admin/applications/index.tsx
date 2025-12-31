@@ -70,11 +70,29 @@ export default function Applications() {
 
   const { data: hiringFunnelData } = useGetHiringFunnelQuery();
 
-  // Ensure applications is always an array - handle different response structures
-  const applications = Array.isArray(applicationsData?.data) 
-    ? applicationsData.data 
-    : [];
-  const pagination = applicationsData?.pagination;
+  // Handle backend response structure: { data: { items: [...], total_count, page, page_size } }
+  // OR legacy structure: { data: [...] }
+  let applications: any[] = [];
+  let pagination: any = null;
+
+  if (applicationsData?.data) {
+    if (Array.isArray(applicationsData.data)) {
+      // Legacy structure: data is directly an array
+      applications = applicationsData.data;
+      pagination = applicationsData.pagination;
+    } else if (applicationsData.data.items && Array.isArray(applicationsData.data.items)) {
+      // New structure: data.items contains the array
+      applications = applicationsData.data.items;
+      // Extract pagination from data object
+      pagination = {
+        page: applicationsData.data.page || currentPage,
+        page_size: applicationsData.data.page_size || pageSize,
+        total_counts: applicationsData.data.total_count || 0,
+        total_pages: Math.ceil((applicationsData.data.total_count || 0) / (applicationsData.data.page_size || pageSize)),
+      };
+    }
+  }
+
   const hiringFunnel = hiringFunnelData?.data ?? [];
 
   useEffect(() => {
@@ -182,16 +200,23 @@ export default function Applications() {
     rejected: 0, 
   };
 
+  // Filter applications - handle missing/null fields gracefully
   const filteredApplications = applications.filter((application) => {
+    // Department filter - handle missing job or department field
     const matchesDepartment =
       filters.department === "all" ||
       !filters.department ||
-      application.job.department === filters.department;
+      !application.job || // If no job object, don't filter by department
+      !application.job.department || // If no department field, don't filter by department
+      application.job.department === filters.department ||
+      application.job.department_id === filters.department; // Also check department_id as fallback
 
+    // Priority filter - handle missing/null priority field
     const matchesPriority =
       filters.priority === "all" ||
       !filters.priority ||
-      application.priority === filters.priority;
+      !application.priority || // If no priority, only match when filter is "all"
+      application.priority?.toLowerCase() === filters.priority?.toLowerCase();
 
     return matchesDepartment && matchesPriority;
   });
@@ -283,7 +308,16 @@ export default function Applications() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500">No applications found</p>
+          <p className="text-gray-500">
+            {applications.length > 0
+              ? "No applications match the current filters. Try adjusting your search or filter criteria."
+              : "No applications found"}
+          </p>
+          {applications.length > 0 && (
+            <p className="text-sm text-gray-400 mt-2">
+              Showing {filteredApplications.length} of {applications.length} applications
+            </p>
+          )}
         </div>
       )}
 

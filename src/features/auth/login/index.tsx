@@ -22,22 +22,29 @@ const LoginScreen = () => {
           </CardContent>
           <CardFooter className="flex flex-col items-center gap-3">
             <BackButton label="Don&apos;t have an account? Signup" href="/signup" />
-            <div className="text-center text-sm text-gray-600">
-              <p>New to the platform?</p>
-              <div className="flex gap-4 justify-center mt-2">
-                <Link 
-                  href="/signup" 
-                  className="text-blue-600 hover:text-blue-700 font-medium underline"
-                >
-                  Sign up as Candidate
-                </Link>
-                <span className="text-gray-400">•</span>
-                <Link 
-                  href="/admin/companies/register" 
-                  className="text-blue-600 hover:text-blue-700 font-medium underline"
-                >
-                  Register Company
-                </Link>
+            <div className="text-center text-sm text-gray-600 w-full">
+              <p className="mb-3">New to the platform?</p>
+              <div className="space-y-3">
+                <div>
+                  <Link 
+                    href="/signup?role=candidate" 
+                    className="text-blue-600 hover:text-blue-700 font-medium underline"
+                  >
+                    Sign up as Candidate
+                  </Link>
+                </div>
+                <div className="border-t pt-3">
+                  <p className="text-xs text-gray-500 mb-2">Want to post jobs and manage a company?</p>
+                  <Link 
+                    href="/signup?role=hr&redirect=/admin/companies/register" 
+                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium underline"
+                  >
+                    Create Company Owner Account →
+                  </Link>
+                  <p className="text-xs text-gray-500 mt-1">
+                    (Step 1: Create account → Step 2: Register company)
+                  </p>
+                </div>
               </div>
             </div>
           </CardFooter>

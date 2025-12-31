@@ -28,107 +28,200 @@ export const CreateCandidateForm = () => {
 
   const form = useForm<TCreateCandidate>({
     resolver: zodResolver(CreateCandidateSchema),
+    mode: "onChange", // Enable validation on change for better UX
     defaultValues: {
       first_name: resumeData?.first_name || "",
       last_name: resumeData?.last_name || "",
-      email: resumeData?.email || "",
+      email: resumeData?.email || session?.user?.email || "",
       phone: resumeData?.phone || "",
       address: resumeData?.address || "",
       current_position: resumeData?.current_position || "",
-      years_experience: resumeData?.years_experience,
-      stack: resumeData?.stack || [],
-      skills: resumeData?.skills || [],
+      years_experience: resumeData?.years_experience ?? 0,
+      stack: resumeData?.stack && resumeData.stack.length > 0 ? resumeData.stack : [],
+      skills: resumeData?.skills && resumeData.skills.length > 0 ? resumeData.skills : [],
       linkedin_url: resumeData?.linkedin_url || "",
       summary: resumeData?.summary || "",
       expected_salary: resumeData?.expected_salary || "",
       last_education: resumeData?.last_education || "",
-      joining_availability: "1 month",
+      joining_availability: resumeData?.joining_availability || "1 month",
       resume_url: resumeData?.resume_url || "",
-      // metadata: {},
     },
   })
 
   const { mutate: createCandidate, isPending } = useCreateCandidateMutation();
 
-  // Update form when resumeData changes (e.g., after CV upload)
+  // Update form when resumeData changes (e.g., after CV upload) - REMOVED DUPLICATE
   useEffect(() => {
     if (resumeData) {
       form.reset({
         first_name: resumeData.first_name || "",
         last_name: resumeData.last_name || "",
-        email: resumeData.email || "",
+        email: resumeData.email || session?.user?.email || "",
         phone: resumeData.phone || "",
         address: resumeData.address || "",
         current_position: resumeData.current_position || "",
-        years_experience: resumeData.years_experience,
-        stack: resumeData.stack || [],
-        skills: resumeData.skills || [],
+        years_experience: resumeData.years_experience ?? 0,
+        stack: resumeData.stack && resumeData.stack.length > 0 ? resumeData.stack : [],
+        skills: resumeData.skills && resumeData.skills.length > 0 ? resumeData.skills : [],
         linkedin_url: resumeData.linkedin_url || "",
         summary: resumeData.summary || "",
         expected_salary: resumeData.expected_salary || "",
         last_education: resumeData.last_education || "",
-        joining_availability: "1 month",
+        joining_availability: resumeData.joining_availability || "1 month",
         resume_url: resumeData.resume_url || "",
       });
     }
-  }, [resumeData, form]);
-
-  // Update form when resumeData changes (e.g., after CV upload)
-  useEffect(() => {
-    if (resumeData) {
-      form.reset({
-        first_name: resumeData.first_name || "",
-        last_name: resumeData.last_name || "",
-        email: resumeData.email || "",
-        phone: resumeData.phone || "",
-        address: resumeData.address || "",
-        current_position: resumeData.current_position || "",
-        years_experience: resumeData.years_experience,
-        stack: resumeData.stack || [],
-        skills: resumeData.skills || [],
-        linkedin_url: resumeData.linkedin_url || "",
-        summary: resumeData.summary || "",
-        expected_salary: resumeData.expected_salary || "",
-        last_education: resumeData.last_education || "",
-        joining_availability: "1 month",
-        resume_url: resumeData.resume_url || "",
-      });
-    }
-  }, [resumeData, form]);
+  }, [resumeData, form, session?.user?.email]);
 
   const onSubmit = async (values: TCreateCandidate) => {
-    // return console.log("values", values);
+    console.log("Form submitted with values:", values);
+    console.log("Form state:", {
+      isValid: form.formState.isValid,
+      errors: form.formState.errors,
+      isSubmitting: form.formState.isSubmitting
+    });
 
-    createCandidate(values, {
-      onSuccess: async () => {
-        toast.success("Profile completed successfully.");
+    // Validate session first
+    if (!session?.user?.id) {
+      toast.error("Session expired. Please login again.");
+      router.push("/login");
+      return;
+    }
+
+    // Ensure required arrays have at least one item (schema requirement)
+    // If empty, validation will catch it, but we can provide better UX
+    if (!values.stack || values.stack.length === 0) {
+      form.setError("stack", { 
+        type: "manual", 
+        message: "At least one stack is required" 
+      });
+      toast.error("Please add at least one stack");
+      return;
+    }
+
+    if (!values.skills || values.skills.length === 0) {
+      form.setError("skills", { 
+        type: "manual", 
+        message: "At least one skill is required" 
+      });
+      toast.error("Please add at least one skill");
+      return;
+    }
+
+    // Ensure resume_url is provided (schema requirement)
+    if (!values.resume_url || values.resume_url.trim() === "") {
+      form.setError("resume_url", { 
+        type: "manual", 
+        message: "Resume URL is required" 
+      });
+      toast.error("Resume URL is required. Please go back and upload your resume.");
+      return;
+    }
+
+    // Clean up empty strings in arrays (filter out empty stack/skill entries)
+    const cleanedValues = {
+      ...values,
+      stack: values.stack.filter(s => s && s.trim() !== ""),
+      skills: values.skills.filter(s => s && s.trim() !== ""),
+      years_experience: values.years_experience ?? 0,
+    };
+
+    // Validate again after cleaning
+    if (cleanedValues.stack.length === 0) {
+      form.setError("stack", { 
+        type: "manual", 
+        message: "At least one stack is required" 
+      });
+      toast.error("Please add at least one stack (remove empty entries)");
+      return;
+    }
+
+    if (cleanedValues.skills.length === 0) {
+      form.setError("skills", { 
+        type: "manual", 
+        message: "At least one skill is required" 
+      });
+      toast.error("Please add at least one skill (remove empty entries)");
+      return;
+    }
+
+    console.log("Submitting candidate data:", cleanedValues);
+
+    createCandidate(cleanedValues, {
+      onSuccess: async (response) => {
+        console.log("Candidate created successfully:", response);
+        toast.success("Profile completed successfully!");
         form.reset();
         clearResume();
         clearResumeData();
-        // update session and set isProfileCompleted to true
+        
+        // Update session and set isProfileCompleted to true
         if (session) {
-          await updateSession({
-            ...session,
-            user: {
-              ...session.user,
-              is_profile_complete: true
-            },
-          });
-          router.push("/user/dashboard");
+          try {
+            await updateSession({
+              ...session,
+              user: {
+                ...session.user,
+                is_profile_complete: true
+              },
+            });
+            router.push("/user/dashboard");
+          } catch (sessionError) {
+            console.error("Session update error:", sessionError);
+            // Even if session update fails, redirect to dashboard
+            router.push("/user/dashboard");
+          }
         } else {
           toast.error("Session not found");
           router.push("/login");
         }
       },
-      onError: (error) => {
-        toast.error(error.message || "Something went wrong");
+      onError: (error: any) => {
+        console.error("Error creating candidate:", error);
+        
+        // Extract error message from various possible error structures
+        const errorMessage = 
+          error?.response?.data?.message ||
+          error?.response?.data?.detail ||
+          error?.message ||
+          error?.error?.message ||
+          "Failed to create profile. Please check all fields and try again.";
+        
+        toast.error(errorMessage);
+        
+        // If it's a validation error, try to set form errors
+        if (error?.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          Object.keys(errors).forEach((key) => {
+            form.setError(key as any, {
+              type: "server",
+              message: errors[key]
+            });
+          });
+        }
       }
-    })
+    });
   }
+
+  // Handle form submission errors (validation failures)
+  const onError = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    const errorMessages = Object.values(errors).flatMap((error: any) => {
+      if (error?.message) return error.message;
+      if (Array.isArray(error)) return error.map((e: any) => e?.message).filter(Boolean);
+      return [];
+    });
+    
+    if (errorMessages.length > 0) {
+      toast.error(`Please fix the following errors: ${errorMessages.slice(0, 3).join(", ")}`);
+    } else {
+      toast.error("Please check all required fields and try again");
+    }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Personal information</CardTitle>
@@ -510,15 +603,33 @@ export const CreateCandidateForm = () => {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" type="button" disabled={isPending}>
             <Link href="/onboarding/resume-upload">
               <ArrowLeftIcon /> Back
             </Link>
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button 
+            type="submit" 
+            disabled={isPending}
+          >
             {isPending ? "Saving..." : "Save and continue"}
           </Button>
         </div>
+        {/* Show form validation errors summary */}
+        {Object.keys(form.formState.errors).length > 0 && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-800 mb-2">
+              Please fix the following errors:
+            </p>
+            <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <li key={field}>
+                  <strong>{field.replace(/_/g, " ")}</strong>: {error?.message || "Invalid value"}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </form>
     </Form>
   );

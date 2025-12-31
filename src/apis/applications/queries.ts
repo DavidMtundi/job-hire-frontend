@@ -68,7 +68,7 @@ export const useCreateApplicationMutation = () => {
             status_id: 1,
           });
 
-          const postResponse = await apiClient.post(`/${applicationId}/status`, {
+          const postResponse = await apiClient.post(`/applications/${applicationId}/status`, {
             status_id: 1, 
             remark: "Application Received",
           });
@@ -223,7 +223,7 @@ export const useGetApplicationStatusQuery = (applicationId: string) => {
     queryKey: ["application-status", applicationId],
     enabled: !!applicationId,
     queryFn: async () => {
-      const response = await apiClient.get(`/${applicationId}/status`);
+      const response = await apiClient.get(`/applications/${applicationId}/status-history`);
       return response.data;
     },
   });
@@ -235,7 +235,7 @@ export const useGetApplicationStatusHistoryQuery = (applicationId: string) => {
     enabled: !!applicationId,
     queryFn: async () => {
       const response = await apiClient.get<IApplicationStatus[]>(
-        `/${applicationId}/status-history`
+        `/applications/${applicationId}/status-history`
       );
       return response.data;
     },
@@ -303,7 +303,7 @@ export const useUpdateApplicationStatusByIdMutation = () => {
       status_id: number;
     }) => {
       const response = await apiClient.post<{ message: string }>(
-        `/${applicationId}/status`,
+        `/applications/${applicationId}/status`,
         {
           remark,
           status_id,

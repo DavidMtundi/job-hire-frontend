@@ -12,19 +12,18 @@ const SignupScreen = () => {
         <Card className="w-full max-w-md lg:bg-transparent lg:border-none lg:shadow-none">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-gray-700">
-              Create Candidate Account
+              Create Account
             </CardTitle>
             <CardDescription className="space-y-3">
-              <p className="text-base">Sign up as a job seeker to find and apply for opportunities</p>
-              <div className="pt-3 border-t">
-                <p className="text-sm text-gray-600 mb-2 font-medium">Looking to post jobs instead?</p>
-                <Link 
-                  href="/admin/companies/register" 
-                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium underline transition-colors"
-                >
-                  <Building2 className="h-4 w-4" />
-                  Register your company →
-                </Link>
+              <p className="text-base">Create your account to get started</p>
+              <div className="pt-3 border-t bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-700 mb-2 font-semibold">For Company Owners & HR:</p>
+                <p className="text-xs text-gray-600 mb-2">
+                  Select <strong>"HR"</strong> role below. After creating your account and logging in, you&apos;ll be able to register your company.
+                </p>
+                <p className="text-xs text-gray-500 italic">
+                  Step 1: Create Account (this page) → Step 2: Login → Step 3: Register Company
+                </p>
               </div>
             </CardDescription>
           </CardHeader>

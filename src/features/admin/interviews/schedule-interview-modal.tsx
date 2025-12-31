@@ -106,18 +106,35 @@ export function ScheduleInterviewModal({
         return;
       }
 
-      const interviewType = values.interview_type
-        ? values.interview_type.charAt(0).toUpperCase() + values.interview_type.slice(1)
-        : "Hr";
+      // Backend expects lowercase interview_type: "technical" or "hr"
+      const interviewType = values.interview_type?.toLowerCase() || "hr";
 
+      // Validate interview_date
+      if (!values.interview_date) {
+        toast.error("Interview date is required");
+        return;
+      }
+
+      // Prepare interview data according to backend schema
+      // Backend expects: application_id, interview_date (datetime), duration, meeting_link (optional), hr_remarks (optional), interview_type
       const interviewData: any = {
         application_id: applicationId,
-        interview_date: new Date(values.interview_date).toISOString(),
-        duration: Number(values.duration),
-        meeting_link: values.meeting_link || "string", // API expects a string, use default if empty
-        hr_remarks: values.hr_remarks || "string", // API expects a string, use default if empty
-        interview_type: interviewType,
+        interview_date: new Date(values.interview_date).toISOString(), // Backend will parse ISO string to datetime
+        duration: Number(values.duration) || 45, // Default to 45 minutes if not provided
+        meeting_link: values.meeting_link || null, // Use null instead of "string" for optional fields
+        hr_remarks: values.hr_remarks || null, // Use null instead of "string" for optional fields
+        interview_type: interviewType, // Lowercase: "technical" or "hr"
       };
+
+      // Remove null/empty values if they're truly optional
+      if (!interviewData.meeting_link) {
+        delete interviewData.meeting_link;
+      }
+      if (!interviewData.hr_remarks) {
+        delete interviewData.hr_remarks;
+      }
+
+      console.log("Submitting interview data:", interviewData);
 
       const createdInterview = await createMutation.mutateAsync(interviewData);
 
@@ -125,7 +142,13 @@ export function ScheduleInterviewModal({
       form.reset();
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to schedule interview");
+      console.error("Error scheduling interview:", error);
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.response?.data?.detail ||
+        error?.message || 
+        "Failed to schedule interview. Please check all fields and try again.";
+      toast.error(errorMessage);
     }
   };
 

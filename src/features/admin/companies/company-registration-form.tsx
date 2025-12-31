@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -32,11 +31,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { toast } from "sonner";
-import { usePublicRegisterCompanyMutation, useRegisterCompanyMutation } from "~/apis/companies/queries";
+import { useRegisterCompanyMutation } from "~/apis/companies/queries";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 
-// Company registration schema - owner fields are optional (required only for public registration)
+// Company registration schema - only company fields (authentication required)
 const companySchema = z.object({
   company_name: z.string().min(1, "Company name is required").max(255),
   company_domain: z
@@ -47,28 +47,21 @@ const companySchema = z.object({
   description: z.string().optional(),
   industry: z.string().optional(),
   size: z.enum(["startup", "small", "medium", "large", "enterprise"]).optional(),
-  owner_email: z.string().email("Invalid email address").optional(),
-  owner_username: z.string().min(3, "Username must be at least 3 characters").max(50).optional(),
-  owner_password: z.string().min(8, "Password must be at least 8 characters").optional(),
-}).refine((data) => {
-  // If owner_email is provided, all owner fields must be provided
-  if (data.owner_email || data.owner_username || data.owner_password) {
-    return !!(data.owner_email && data.owner_username && data.owner_password);
-  }
-  return true;
-}, {
-  message: "All owner account fields are required for public registration",
-  path: ["owner_email"],
 });
 
 type CompanyFormValues = z.infer<typeof companySchema>;
 
 export function CompanyRegistrationForm() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const publicRegisterCompany = usePublicRegisterCompanyMutation();
-  const registerCompany = useRegisterCompanyMutation();
+  const { data: session, status } = useSession();
+  const { mutate: registerCompanyMutate, isPending: isSubmitting } = useRegisterCompanyMutation();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push(`/login?redirect=${encodeURIComponent("/admin/companies/register")}`);
+    }
+  }, [status, router]);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -79,72 +72,38 @@ export function CompanyRegistrationForm() {
       description: "",
       industry: "",
       size: undefined,
-      owner_email: "",
-      owner_username: "",
-      owner_password: "",
     },
   });
 
   const onSubmit = async (data: CompanyFormValues) => {
-    setIsSubmitting(true);
-    try {
-      // If user is logged in, use authenticated endpoint
-      // Otherwise, use public registration endpoint
-      if (session) {
-        const result = await registerCompany.mutateAsync({
-          name: data.company_name,
-          domain: data.company_domain.replace("@", "").toLowerCase(),
-          website: data.website || undefined,
-          description: data.description || undefined,
-          industry: data.industry || undefined,
-          size: data.size,
-        });
+    // User must be authenticated (handled by useEffect redirect)
+    if (!session) {
+      toast.error("Please login first to register a company");
+      router.push(`/login?redirect=${encodeURIComponent("/admin/companies/register")}`);
+      return;
+    }
 
+    registerCompanyMutate({
+      name: data.company_name,
+      domain: data.company_domain.replace("@", "").toLowerCase(),
+      website: data.website || undefined,
+      description: data.description || undefined,
+      industry: data.industry || undefined,
+      size: data.size,
+    }, {
+      onSuccess: (result) => {
         if (result.success) {
           toast.success("Company registered successfully!");
           router.push("/admin/companies");
         } else {
           toast.error(result.message || "Failed to register company");
         }
-      } else {
-        // Public registration - creates company + owner account
-        // Validate owner fields are provided
-        if (!data.owner_email || !data.owner_username || !data.owner_password) {
-          toast.error("Owner account details are required for public registration");
-          setIsSubmitting(false);
-          return;
-        }
-
-        const result = await publicRegisterCompany.mutateAsync({
-          company_name: data.company_name,
-          company_domain: data.company_domain.replace("@", "").toLowerCase(),
-          website: data.website || undefined,
-          description: data.description || undefined,
-          industry: data.industry || undefined,
-          size: data.size,
-          owner_email: data.owner_email,
-          owner_username: data.owner_username,
-          owner_password: data.owner_password,
-        });
-
-        if (result.success) {
-          toast.success("Company and account created successfully!", {
-            description: "You can now login with your owner email and password.",
-            duration: 5000,
-          });
-          // Small delay to show success message
-          setTimeout(() => {
-            router.push("/login?registered=true");
-          }, 1500);
-        } else {
-          toast.error(result.message || "Failed to register company");
-        }
+      },
+      onError: (error: any) => {
+        console.error("Company registration error:", error);
+        toast.error(error?.message || "Failed to register company");
       }
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to register company");
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (
@@ -159,7 +118,6 @@ export function CompanyRegistrationForm() {
         </div>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Create your company profile to start posting jobs, managing applications, and finding the best talent.
-          {!session && " We'll also create your owner account so you can get started immediately."}
         </p>
         {session && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg inline-block">
@@ -168,12 +126,40 @@ export function CompanyRegistrationForm() {
             </p>
           </div>
         )}
+        {status === "unauthenticated" && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
+            <p className="text-sm text-yellow-800 mb-3">
+              <strong>Please login first</strong> to register your company. If you don't have an account, please sign up first.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-sm text-blue-600 hover:text-blue-700 font-medium underline">
+                Login
+              </a>
+              <span className="text-yellow-600">•</span>
+              <a href="/signup" className="text-sm text-blue-600 hover:text-blue-700 font-medium underline">
+                Sign Up
+              </a>
+            </div>
+          </div>
+        )}
       </div>
 
       <Card className="max-w-2xl mx-auto">
         <CardContent className="pt-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form 
+              onSubmit={form.handleSubmit(
+                (data) => {
+                  console.log("✅ Form validation passed, calling onSubmit with:", data);
+                  onSubmit(data);
+                },
+                (errors) => {
+                  console.log("❌ Form validation failed with errors:", errors);
+                  console.log("Form state:", form.formState);
+                }
+              )} 
+              className="space-y-6"
+            >
               {/* Company Information Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
@@ -292,103 +278,36 @@ export function CompanyRegistrationForm() {
                 />
               </div>
 
-              {/* Owner Account Section (only shown if not logged in) */}
-              {!session && (
-                <>
-                  <div className="border-t my-6" />
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2">
-                      <Building2 className="h-5 w-5 text-green-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Owner Account</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      We'll create your company owner account so you can start managing your company immediately after registration.
-                    </p>
-                    
-                    <FormField
-                      control={form.control}
-                      name="owner_email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Owner Email *</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="owner@acme.com" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This will be your login email. Use an email from your company domain if possible.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="owner_username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="johndoe" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              At least 3 characters
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="owner_password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password *</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Minimum 8 characters
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t">
                 <div className="text-sm text-gray-600">
-                  {session ? (
+                  {session && (
                     <p>Your account <strong>{session.user?.email}</strong> will be set as the company owner.</p>
-                  ) : (
-                    <p>By registering, you agree to create a company account and become the owner.</p>
                   )}
                 </div>
                 <div className="flex gap-3">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push(session ? "/admin/companies" : "/")}
-                    disabled={isSubmitting}
+                    onClick={() => router.push("/admin/companies")}
+                    disabled={isSubmitting || !session}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSubmitting} className="min-w-[160px]">
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting || !session || status !== "authenticated"} 
+                    className="min-w-[160px]"
+                  >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {session ? "Registering..." : "Creating..."}
+                        Registering...
                       </>
                     ) : (
                       <>
                         <Building2 className="h-4 w-4 mr-2" />
-                        {session ? "Register Company" : "Create Company & Account"}
+                        Register Company
                       </>
                     )}
                   </Button>
@@ -400,18 +319,21 @@ export function CompanyRegistrationForm() {
       </Card>
 
       {/* Help Section */}
-      <div className="mt-8 text-center">
-        <p className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium underline">
-            Login here
-          </a>
-          {" "}or{" "}
-          <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
-            sign up as a candidate
-          </a>
-        </p>
-      </div>
+      {!session && status !== "loading" && (
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
+              Sign up
+            </a>
+            {" "}or{" "}
+            <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-blue-600 hover:text-blue-700 font-medium underline">
+              login
+            </a>
+            {" "}to register your company.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

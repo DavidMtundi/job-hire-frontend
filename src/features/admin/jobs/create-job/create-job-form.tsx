@@ -44,6 +44,7 @@ import {
 } from "~/components/ui/dialog";
 import { TCreateCategory, CreateCategorySchema } from "~/apis/categories/schemas";
 import { TCreateDepartment, CreateDepartmentSchema } from "~/apis/departments/schemas";
+import { Combobox } from "~/components/ui/combobox";
 
 const jobTypes = [
   { label: "Full-time", value: "full_time" },
@@ -64,7 +65,49 @@ const experienceLevels = [
   { label: "Senior", value: "senior" },
 ];
 
-const salaryCurrencies = ["USD", "EUR", "GBP", "INR"];
+// Common currencies with labels (ISO 4217)
+const salaryCurrencies = [
+  { value: "USD", label: "USD - US Dollar" },
+  { value: "EUR", label: "EUR - Euro" },
+  { value: "GBP", label: "GBP - British Pound" },
+  { value: "JPY", label: "JPY - Japanese Yen" },
+  { value: "AUD", label: "AUD - Australian Dollar" },
+  { value: "CAD", label: "CAD - Canadian Dollar" },
+  { value: "CHF", label: "CHF - Swiss Franc" },
+  { value: "CNY", label: "CNY - Chinese Yuan" },
+  { value: "INR", label: "INR - Indian Rupee" },
+  { value: "NZD", label: "NZD - New Zealand Dollar" },
+  { value: "SGD", label: "SGD - Singapore Dollar" },
+  { value: "HKD", label: "HKD - Hong Kong Dollar" },
+  { value: "SEK", label: "SEK - Swedish Krona" },
+  { value: "NOK", label: "NOK - Norwegian Krone" },
+  { value: "DKK", label: "DKK - Danish Krone" },
+  { value: "PLN", label: "PLN - Polish Zloty" },
+  { value: "MXN", label: "MXN - Mexican Peso" },
+  { value: "BRL", label: "BRL - Brazilian Real" },
+  { value: "ZAR", label: "ZAR - South African Rand" },
+  { value: "KRW", label: "KRW - South Korean Won" },
+  { value: "TRY", label: "TRY - Turkish Lira" },
+  { value: "RUB", label: "RUB - Russian Ruble" },
+  { value: "AED", label: "AED - UAE Dirham" },
+  { value: "SAR", label: "SAR - Saudi Riyal" },
+  { value: "ILS", label: "ILS - Israeli Shekel" },
+  { value: "EGP", label: "EGP - Egyptian Pound" },
+  { value: "NGN", label: "NGN - Nigerian Naira" },
+  { value: "KES", label: "KES - Kenyan Shilling" },
+  { value: "GHS", label: "GHS - Ghanaian Cedi" },
+  { value: "TZS", label: "TZS - Tanzanian Shilling" },
+  { value: "UGX", label: "UGX - Ugandan Shilling" },
+  { value: "ETB", label: "ETB - Ethiopian Birr" },
+  { value: "PKR", label: "PKR - Pakistani Rupee" },
+  { value: "BDT", label: "BDT - Bangladeshi Taka" },
+  { value: "LKR", label: "LKR - Sri Lankan Rupee" },
+  { value: "THB", label: "THB - Thai Baht" },
+  { value: "VND", label: "VND - Vietnamese Dong" },
+  { value: "IDR", label: "IDR - Indonesian Rupiah" },
+  { value: "MYR", label: "MYR - Malaysian Ringgit" },
+  { value: "PHP", label: "PHP - Philippine Peso" },
+];
 
 interface CreateJobFormProps {
   aiGeneratedData?: IAIGeneratedJobData | null;
@@ -786,15 +829,18 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                       <Label htmlFor={field.name}>Salary Min</Label>
                       <FormControl>
                         <Input
-                          {...field}
                           id={field.name}
+                          name={field.name}
                           disabled={isPending}
                           placeholder="Enter min salary"
                           type="number"
-                          value={Number.isNaN(field.value) ? "" : field.value}
-                          onChange={(e) =>
-                            field.onChange(e.target.valueAsNumber)
-                          }
+                          value={field.value ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            field.onChange(val === "" ? undefined : Number(val));
+                          }}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
                         />
                       </FormControl>
                       <FormMessage />
@@ -809,15 +855,18 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                       <Label htmlFor={field.name}>Salary Max</Label>
                       <FormControl>
                         <Input
-                          {...field}
                           id={field.name}
+                          name={field.name}
                           disabled={isPending}
                           placeholder="Enter max salary"
                           type="number"
-                          value={Number.isNaN(field.value) ? "" : field.value}
-                          onChange={(e) =>
-                            field.onChange(e.target.valueAsNumber)
-                          }
+                          value={field.value ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            field.onChange(val === "" ? undefined : Number(val));
+                          }}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
                         />
                       </FormControl>
                       <FormMessage />
@@ -831,25 +880,16 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                     <FormItem>
                       <Label htmlFor={field.name}>Salary Currency</Label>
                       <FormControl>
-                        <Select
-                          {...field}
+                        <Combobox
+                          options={salaryCurrencies}
+                          value={field.value}
+                          onChange={(value) => field.onChange(value)}
+                          placeholder="Select or enter currency code"
+                          searchPlaceholder="Search currency..."
+                          emptyText="No currency found. Type to add custom code."
                           disabled={isPending}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {salaryCurrencies.map((salaryCurrency) => (
-                              <SelectItem
-                                key={salaryCurrency}
-                                value={salaryCurrency}
-                              >
-                                {salaryCurrency}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          allowCustom={true}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -892,13 +932,18 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                     <Label htmlFor={field.name}>Max Applications</Label>
                     <FormControl>
                       <Input
-                        {...field}
                         id={field.name}
+                        name={field.name}
                         disabled={isPending}
                         placeholder="Enter max no of applications"
                         type="number"
-                        value={Number.isNaN(field.value) ? "" : field.value}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.onChange(val === "" ? undefined : Number(val));
+                        }}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
                       />
                     </FormControl>
                     <FormMessage className="absolute -bottom-4 text-xs" />

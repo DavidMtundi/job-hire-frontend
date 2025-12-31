@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import Axios from "axios";
 import apiClient from "~/lib/axios";
-import { siteConfig } from "~/config/site";
 import { IGetInterviewsParams, IInterviewRemark, IAIInterviewScoresResponse } from "./dto";
 import { TCreateInterview, TInterview, TUpdateInterview } from "./schemas";
 
@@ -84,22 +82,25 @@ export const useCreateInterviewMutation = () => {
 
   return useMutation({
     mutationKey: ["create-interview"],
-    mutationFn: async (body: TCreateInterview) => {
-      const res = await fetch("/api/auth/session");
-      const sessionData = await res.json();
-      const token = sessionData?.tokens?.accessToken;
+    mutationFn: async (body: any) => {
+      // Use Next.js API route to avoid CORS issues
+      // This proxies the request to the backend through the server
+      const response = await fetch("/api/interviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
 
-      const response = await Axios.post<any>(
-        `${siteConfig.apiBaseUrl}/interviews`,
-        body,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      return (response.data?.interview || response.data) as TInterview;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.error || "Failed to create interview");
+      }
+
+      const data = await response.json();
+      // Backend returns: { interview: InterviewOut } or { data: { interview: InterviewOut } }
+      return (data?.interview || data?.data?.interview || data?.data || data) as TInterview;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });

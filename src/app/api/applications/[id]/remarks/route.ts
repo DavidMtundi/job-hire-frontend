@@ -17,7 +17,9 @@ export async function GET(
       return NextResponse.json({ error: "Application ID is required" }, { status: 400 });
     }
 
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_API_URL}/${applicationId}/remarks`;
+    // Server-side: Use Docker service name or BACKEND_URL env var
+    const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
+    const apiUrl = `${backendBaseUrl}/${applicationId}/remarks`;
     
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -99,7 +101,9 @@ export async function POST(
       );
     }
 
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_API_URL}/${applicationId}/remarks`;
+    // Server-side: Use Docker service name or BACKEND_URL env var
+    const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
+    const apiUrl = `${backendBaseUrl}/${applicationId}/remarks`;
     
     const response = await fetch(apiUrl, {
       method: "POST",

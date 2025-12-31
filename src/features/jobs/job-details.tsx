@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { BsCheck2Square } from "react-icons/bs";
 import { useGetJobQuery } from "~/apis/jobs/queries";
 import { Spinner } from "~/components/spinner";
@@ -41,7 +42,8 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
 
   const handleApply = () => {
     if (!session?.isAuthenticated) {
-      router.push(`/login?redirect=/user/jobs/${jobId}`);
+      toast.error("Please login to apply for this job");
+      router.push(`/login?redirect=/jobs/${jobId}`);
     } else {
       router.push(`/user/jobs/${jobId}`);
     }
