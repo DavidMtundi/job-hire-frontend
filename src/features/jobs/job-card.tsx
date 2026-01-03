@@ -34,9 +34,28 @@ export const JobCard = ({ job }: JobCardProps) => {
     <Card className="border-2 hover:shadow-lg transition-shadow gap-1">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-2xl">{job.title}</CardTitle>
-            <CardDescription className="text-base">{job.category?.name}</CardDescription>
+          <div className="flex-1">
+            <CardTitle className="text-2xl mb-2">{job.title}</CardTitle>
+            <div className="flex items-center gap-2 mb-1">
+              {job.company?.logo_url ? (
+                <img 
+                  src={job.company.logo_url} 
+                  alt={job.company.name || "Company logo"}
+                  className="h-5 w-5 rounded object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : null}
+              <CardDescription className="text-base font-medium">
+                {job.company?.name || job.category?.name || "Company"}
+              </CardDescription>
+            </div>
+            {job.category && job.company && (
+              <CardDescription className="text-sm text-muted-foreground">
+                {job.category.name}
+              </CardDescription>
+            )}
           </div>
           <Button asChild>
             <Link href={`/jobs/${job.id}`}>View Details</Link>

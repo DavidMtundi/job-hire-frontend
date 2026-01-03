@@ -2,7 +2,6 @@
 
 import { ArrowRightIcon, LogOutIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { Container } from "~/components/container";
 import { Button } from "~/components/ui/button";
@@ -15,12 +14,12 @@ export const Header = () => {
       <Container className="h-full flex justify-between items-center">
         <Link href="/">
           <div className="flex items-center gap-2">
-            <Image 
+            <img 
               src="/logo.svg" 
               alt="Job Hire" 
               width={32} 
               height={32} 
-              className="size-8" 
+              className="size-8"
             />
             <span className="text-xl font-bold text-blue-950">
               Job Hire

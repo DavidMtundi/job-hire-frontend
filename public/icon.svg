@@ -1,20 +1,16 @@
-<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="jobHireIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#2563eb;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="briefcaseIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="iconElementGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
     </linearGradient>
-    <radialGradient id="glowGradient" cx="50%" cy="50%">
-      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.4" />
-      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:0" />
-    </radialGradient>
     <filter id="iconShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
       <feOffset dx="0" dy="4" result="offsetblur"/>
       <feComponentTransfer>
         <feFuncA type="linear" slope="0.3"/>
@@ -26,65 +22,47 @@
     </filter>
   </defs>
   
-  <!-- Background circle with gradient -->
-  <circle cx="96" cy="96" r="92" fill="url(#jobHireIconGradient)"/>
+  <!-- Background: Rounded square with gradient -->
+  <rect x="10" y="10" width="160" height="160" rx="36" fill="url(#iconGradient)"/>
   
-  <!-- Glow effect -->
-  <circle cx="96" cy="96" r="88" fill="url(#glowGradient)"/>
+  <!-- Inner glow effect -->
+  <rect x="10" y="10" width="160" height="160" rx="36" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
   
-  <!-- Inner highlight circles -->
-  <circle cx="96" cy="96" r="88" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
-  <circle cx="96" cy="96" r="82" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <!-- Briefcase body (left side) -->
+  <rect x="40" y="85" width="45" height="36" rx="6" fill="url(#iconElementGradient)" filter="url(#iconShadow)"/>
   
-  <!-- Briefcase body -->
-  <rect x="52" y="82" width="88" height="58" rx="10" fill="url(#briefcaseIconGradient)" filter="url(#iconShadow)"/>
-  
-  <!-- Briefcase handle with depth -->
-  <path d="M 62 82 Q 62 62 78 62 L 114 62 Q 130 62 130 82" 
-        stroke="url(#briefcaseIconGradient)" 
-        stroke-width="12" 
+  <!-- Briefcase handle (left) -->
+  <path d="M 42 85 Q 42 70 57 70 L 68 70 Q 83 70 83 85" 
+        stroke="url(#iconElementGradient)" 
+        stroke-width="8" 
         fill="none" 
         stroke-linecap="round"
         filter="url(#iconShadow)"/>
   
-  <!-- Briefcase handle highlight -->
-  <path d="M 62 82 Q 62 62 78 62 L 114 62 Q 130 62 130 82" 
-        stroke="rgba(255,255,255,0.6)" 
-        stroke-width="4" 
+  <!-- Briefcase lock (left) -->
+  <rect x="52" y="95" width="13" height="11" rx="2" fill="#3b82f6" opacity="0.9"/>
+  
+  <!-- Connection link/chain element -->
+  <circle cx="90" cy="100" r="9" fill="white" opacity="0.95" filter="url(#iconShadow)"/>
+  <path d="M 81 100 L 99 100" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.95"/>
+  
+  <!-- Briefcase body (right side) -->
+  <rect x="95" y="85" width="45" height="36" rx="6" fill="url(#iconElementGradient)" filter="url(#iconShadow)"/>
+  
+  <!-- Briefcase handle (right) -->
+  <path d="M 97 85 Q 97 70 112 70 L 123 70 Q 138 70 138 85" 
+        stroke="url(#iconElementGradient)" 
+        stroke-width="8" 
         fill="none" 
         stroke-linecap="round"
-        opacity="0.8"/>
-  
-  <!-- Briefcase lock/clasp -->
-  <rect x="86" y="96" width="20" height="14" rx="2" fill="#2563eb" opacity="0.85"/>
-  <rect x="90" y="100" width="12" height="6" rx="1" fill="white" opacity="0.3"/>
-  
-  <!-- Briefcase detail lines -->
-  <line x1="64" y1="110" x2="128" y2="110" stroke="rgba(37,99,235,0.15)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="64" y1="120" x2="128" y2="120" stroke="rgba(37,99,235,0.15)" stroke-width="2" stroke-linecap="round"/>
-  
-  <!-- Search magnifying glass -->
-  <circle cx="124" cy="114" r="26" 
-          stroke="white" 
-          stroke-width="12" 
-          fill="none" 
-          opacity="0.95"
-          filter="url(#iconShadow)"/>
-  <line x1="144" y1="134" x2="160" y2="150" 
-        stroke="white" 
-        stroke-width="12" 
-        stroke-linecap="round"
-        opacity="0.95"
         filter="url(#iconShadow)"/>
   
-  <!-- Magnifying glass inner highlight -->
-  <circle cx="124" cy="114" r="20" 
-          stroke="rgba(255,255,255,0.3)" 
-          stroke-width="2" 
-          fill="none"/>
+  <!-- Briefcase lock (right) -->
+  <rect x="107" y="95" width="13" height="11" rx="2" fill="#06b6d4" opacity="0.9"/>
   
-  <!-- Decorative accent dots -->
-  <circle cx="62" cy="62" r="7" fill="white" opacity="0.9"/>
-  <circle cx="138" cy="54" r="5" fill="white" opacity="0.7"/>
-  <circle cx="54" cy="124" r="4" fill="white" opacity="0.6"/>
+  <!-- Sparkle/star accent (top) -->
+  <path d="M 90 40 L 92.5 45 L 98 47.5 L 92.5 50 L 90 55 L 87.5 50 L 82 47.5 L 87.5 45 Z" 
+        fill="white" 
+        opacity="0.9"
+        filter="url(#iconShadow)"/>
 </svg>

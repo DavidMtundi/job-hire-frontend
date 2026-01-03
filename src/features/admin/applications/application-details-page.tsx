@@ -61,18 +61,19 @@ export default function ApplicationDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+      <div className="w-full max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 sm:py-8 lg:py-10">
+        {/* Header Section */}
+        <div className="mb-6 lg:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <Button
               variant="ghost"
               onClick={() => router.push("/admin/applications")}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-gray-600 hover:text-gray-900 w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Applications
             </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <EmailDraftModal
                 applicationId={applicationId || application?.id || ""}
                 candidateName={
@@ -85,7 +86,7 @@ export default function ApplicationDetailsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-sm px-3 py-1.5"
+                    className="text-sm px-3 py-1.5 flex-1 sm:flex-initial"
                   >
                     <Mail className="h-3.5 w-3.5 mr-1.5" />
                     Send Email
@@ -101,7 +102,7 @@ export default function ApplicationDetailsPage() {
                   setIsScheduleModalOpen(true);
                 }}
                 size="sm"
-                className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 text-white text-sm px-3 py-1.5"
+                className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
               >
                 <Calendar className="h-3.5 w-3.5 mr-1.5" />
                 Schedule Interview
@@ -110,25 +111,42 @@ export default function ApplicationDetailsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3 space-y-6">
-            <CandidateDetailsCard application={application} />
-            <CandidateSummaryCard 
-              summary={application?.metadata?.ai_summary} 
-              candidateName={application?.first_name && application?.last_name 
-                ? `${application.first_name} ${application.last_name}` 
-                : undefined}
-            />
-            <ResumeMatchingCard application={application} />
-            <AIInterviewAssessmentCard application={application} />
-            <JobDetailsCard application={application} />
+        {/* Main Content Grid - Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-12 2xl:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-3 xl:col-span-7 2xl:col-span-8 space-y-4 sm:space-y-6">
+            <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
+              <CandidateDetailsCard application={application} />
+            </div>
+            <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
+              <CandidateSummaryCard 
+                summary={application?.metadata?.ai_summary} 
+                candidateName={application?.first_name && application?.last_name 
+                  ? `${application.first_name} ${application.last_name}` 
+                  : undefined}
+              />
+            </div>
+            <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
+              <ResumeMatchingCard application={application} />
+            </div>
+            <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
+              <AIInterviewAssessmentCard application={application} />
+            </div>
+            <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
+              <JobDetailsCard application={application} />
+            </div>
           </div>
-          <div className="lg:col-span-2">
-            <TimelineCard applicationId={applicationId} application={application} />
+
+          {/* Right Column - Timeline Sidebar */}
+          <div className="lg:col-span-2 xl:col-span-5 2xl:col-span-4">
+            <div className="sticky top-6">
+              <TimelineCard applicationId={applicationId} application={application} />
+            </div>
           </div>
         </div>
 
-        <div className="mt-6">
+        {/* Interviews Section - Full Width */}
+        <div className="mt-6 lg:mt-8">
           <InterviewsSection applicationId={applicationId} application={application} />
         </div>
 

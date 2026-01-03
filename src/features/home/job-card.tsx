@@ -22,10 +22,26 @@ const JobCard = ({ job }: JobCardProps) => {
     >
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-xl mb-2">
               {job.title}
             </CardTitle>
+            
+            <div className="flex items-center gap-2 mb-2">
+              {job.company?.logo_url ? (
+                <img 
+                  src={job.company.logo_url} 
+                  alt={job.company.name || "Company logo"}
+                  className="h-5 w-5 rounded object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : null}
+              <span className="text-sm font-medium text-gray-700">
+                {job.company?.name || "Company"}
+              </span>
+            </div>
 
             <div className="flex items-center text-gray-600 mb-2">
               <MapPinIcon className="h-4 w-4 mr-1" />

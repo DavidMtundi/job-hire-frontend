@@ -246,14 +246,28 @@ const TrendingJobCard = ({ job, idx }: { job: TJob, idx: number }) => {
             <h3 className="text-lg font-bold text-gray-800 mb-1">
               {job.title}
             </h3>
-            <p className="flex items-center gap-1 text-gray-700 text-sm font-medium ">
-              Must Company
-              <FaCircleCheck className="text-green-600 size-3.5" />
-            </p>
+            <div className="flex items-center gap-2">
+              {job.company?.logo_url ? (
+                <img 
+                  src={job.company.logo_url} 
+                  alt={job.company.name || "Company logo"}
+                  className="h-6 w-6 rounded object-contain"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="h-6 w-6 rounded bg-gray-200 flex items-center justify-center">
+                  <BriefcaseIcon className="size-4 text-gray-500" />
+                </div>
+              )}
+              <p className="flex items-center gap-1 text-gray-700 text-sm font-medium">
+                {job.company?.name || "Company"}
+                {job.company && <FaCircleCheck className="text-green-600 size-3.5" />}
+              </p>
+            </div>
           </div>
-          {/* <div className={`${job.badgeColor} rounded-lg p-2 text-xl`}>
-                    {job.logo}
-                  </div> */}
         </div>
 
         <p className="text-sm text-gray-700 mb-4 line-clamp-2">

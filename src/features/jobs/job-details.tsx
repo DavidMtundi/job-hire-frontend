@@ -82,14 +82,40 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex gap-3">
-                <div className="size-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <BriefcaseIcon className="size-8 text-primary" />
-                </div>
+                {job.company?.logo_url ? (
+                  <div className="size-16 rounded-lg bg-white border-2 border-gray-200 flex items-center justify-center p-2">
+                    <img 
+                      src={job.company.logo_url} 
+                      alt={job.company.name || "Company logo"}
+                      className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        // Fallback to icon if image fails
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<svg class="size-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>';
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="size-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BriefcaseIcon className="size-8 text-primary" />
+                  </div>
+                )}
                 <div className="">
                   <h1 className="text-3xl font-bold text-gray-900">
                     {job.title}
                   </h1>
-                  <p className="text-lg text-muted-foreground">{job.category?.name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-lg font-medium text-gray-700">
+                      {job.company?.name || "Company"}
+                    </p>
+                    {job.company && (
+                      <span className="text-sm text-muted-foreground">•</span>
+                    )}
+                    <p className="text-lg text-muted-foreground">{job.category?.name}</p>
+                  </div>
                 </div>
               </div>
 

@@ -39,6 +39,13 @@ export const JobSchema = z.object({
     name: z.string(),
     description: z.string(),
   }).optional(),
+  company: z.object({
+    id: z.string(),
+    name: z.string(),
+    logo_url: z.string().nullable().optional(),
+    domain: z.string().optional(),
+    website: z.string().nullable().optional(),
+  }).nullable().optional(),
 
   location: z
     .string()

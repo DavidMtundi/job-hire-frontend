@@ -73,42 +73,113 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    // Handle different error structures
+    // Handle network errors (no response) vs HTTP errors (with response)
+    const isNetworkError = !error?.response;
     const response = error?.response || {};
     const { data, status } = response;
-    const message = data?.message || data?.detail || error?.message || "Something went wrong";
-    const code = data?.status_code || status || (error?.code ? String(error.code) : 500);
+    
+    // Determine error message based on error type
+    let message = "Something went wrong";
+    if (isNetworkError) {
+      if (error?.code === "ECONNABORTED" || error?.message?.includes("timeout")) {
+        message = "Request timeout - please try again";
+      } else if (error?.code === "ERR_NETWORK" || error?.message?.includes("Network Error")) {
+        message = "Network error - please check your connection";
+      } else {
+        message = error?.message || "Network request failed";
+      }
+    } else {
+      message = data?.message || data?.detail || error?.message || "Something went wrong";
+    }
+    
+    const code = data?.status_code || status || (error?.code ? String(error.code) : (isNetworkError ? "NETWORK_ERROR" : 500));
 
     // Don't log 404 errors - they're often handled gracefully by queries
     // (e.g., checking if a resource exists)
-    const shouldLogError = status !== 404;
+    // Don't log 403 errors - they're permission errors that should be handled by UI
+    const shouldLogError = status !== 404 && status !== 403;
 
     if (shouldLogError && error) {
       // Log detailed error for debugging
       // Build error info object with only defined values
       const errorInfo: Record<string, any> = {};
       
-      if (message) errorInfo.message = message;
-      if (status) errorInfo.status = status;
-      if (response?.statusText) errorInfo.statusText = response.statusText;
-      if (data && Object.keys(data).length > 0) errorInfo.data = data;
+      // Always include message if it's meaningful
+      if (message && message !== "Something went wrong") {
+        errorInfo.message = message;
+      }
+      
+      // Include error type for network errors
+      if (isNetworkError) {
+        errorInfo.type = "Network Error";
+        if (error?.code) errorInfo.code = error.code;
+      } else {
+        if (status) errorInfo.status = status;
+        if (response?.statusText) errorInfo.statusText = response.statusText;
+        if (data && Object.keys(data).length > 0) errorInfo.data = data;
+      }
+      
+      // Include request details if available
       if (error?.config?.url) errorInfo.url = error.config.url;
       if (error?.config?.method) errorInfo.method = error.config.method;
       if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
+      
+      // Include additional error details
       if (error?.message && error.message !== message) errorInfo.errorMessage = error.message;
-      if (error?.code) errorInfo.code = error.code;
-      if (error?.stack) errorInfo.stack = error.stack;
+      if (error?.code && !isNetworkError) errorInfo.code = error.code;
+      
+      // Only include stack trace in development
+      if (process.env.NODE_ENV === "development" && error?.stack) {
+        errorInfo.stack = error.stack;
+      }
 
       // Only log if we have meaningful error information
-      if (Object.keys(errorInfo).length > 0) {
+      // Check that we have at least one meaningful field (not just empty object)
+      const hasMeaningfulInfo = Object.keys(errorInfo).length > 0 && 
+        (errorInfo.message || errorInfo.status || errorInfo.type || errorInfo.url);
+      
+      if (hasMeaningfulInfo) {
         console.error("Axios Error:", errorInfo);
       } else {
         // If error object is completely empty/malformed, log what we can
-        console.error("Axios Error (malformed):", {
+        const fallbackInfo: Record<string, any> = {
           errorType: typeof error,
-          errorKeys: error ? Object.keys(error) : [],
           errorString: String(error),
-        });
+          hasResponse: !!error?.response,
+          hasRequest: !!error?.request,
+        };
+        
+        if (error && typeof error === 'object') {
+          try {
+            fallbackInfo.errorKeys = Object.keys(error);
+            // Try to stringify the error to see its structure
+            if (error instanceof Error) {
+              fallbackInfo.errorName = error.name;
+              fallbackInfo.errorMessage = error.message;
+            }
+            // Capture response if available
+            if (error.response) {
+              fallbackInfo.responseStatus = error.response.status;
+              fallbackInfo.responseData = error.response.data;
+            }
+            // Capture request if available
+            if (error.config) {
+              fallbackInfo.requestUrl = error.config.url;
+              fallbackInfo.requestMethod = error.config.method;
+            }
+          } catch (e) {
+            fallbackInfo.stringifyError = "Could not stringify error";
+          }
+        }
+        
+        // Always log fallback info if we have any details
+        if (Object.keys(fallbackInfo).length > 4 || 
+          (fallbackInfo.errorString && fallbackInfo.errorString !== "[object Object]")) {
+          console.error("Axios Error (malformed):", fallbackInfo);
+        } else {
+          // Last resort: log the raw error
+          console.error("Axios Error (raw):", error);
+        }
       }
     }
 
@@ -116,6 +187,11 @@ apiClient.interceptors.response.use(
     if (status === 401 && typeof window !== "undefined") {
       window.location.href = "/login";
       return Promise.reject(new ApiError("Unauthorized", 401));
+    }
+
+    // Handle 403 Forbidden - permission denied
+    if (status === 403) {
+      return Promise.reject(new ApiError(message || "You do not have permission to perform this action", 403));
     }
 
     // Handle 404 Not Found - return a proper error

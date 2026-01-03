@@ -121,7 +121,9 @@ export const useUpdateApplicationMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       // console.log("Job updated:", data);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.response?.data?.message || error?.response?.data?.detail || "Failed to update application";
+      toast.error(errorMessage);
       console.error("Error updating application:", error);
     },
   });

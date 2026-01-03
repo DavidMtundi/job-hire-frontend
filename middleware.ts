@@ -20,6 +20,7 @@ const publicRoutes = [
   "/privacy",
   "/terms",
   "/admin/companies/register", // Allow public company registration
+  "/jobs", // Allow public access to jobs listing and details
 ];
 
 const authRoutes = ["/login", "/signup"];
