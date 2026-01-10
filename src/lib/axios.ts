@@ -47,13 +47,47 @@ const getAccessToken = async () => {
       const session = await authSession();
       return session?.tokens?.accessToken;
     } else {
-      // client-side
-      const res = await fetch("/api/auth/session");
-      if (!res.ok) return null;
-      const session = await res.json();
-      return session?.tokens?.accessToken ?? null;
-      // const session = await getSession();
-      // return session?.tokens?.accessToken;
+      // client-side - Use getSession from next-auth/react (more reliable than fetch)
+      try {
+        const session = await getSession();
+        
+        // Debug logging to help diagnose "Not Authenticated" errors
+        if (process.env.NODE_ENV === "development") {
+          console.log("[getAccessToken] Session data:", {
+            hasSession: !!session,
+            hasTokens: !!session?.tokens,
+            tokensKeys: session?.tokens ? Object.keys(session.tokens) : [],
+            accessTokenPresent: !!session?.tokens?.accessToken,
+            isAuthenticated: session?.isAuthenticated,
+          });
+        }
+        
+        const token = session?.tokens?.accessToken ?? null;
+        if (!token) {
+          console.error("[getAccessToken] No access token found in session!", {
+            sessionKeys: session ? Object.keys(session) : [],
+            tokens: session?.tokens,
+            isAuthenticated: session?.isAuthenticated,
+            user: session?.user,
+          });
+        }
+        return token;
+      } catch (sessionError) {
+        console.error("[getAccessToken] Error getting session:", sessionError);
+        // Fallback to fetch if getSession fails
+        try {
+          const res = await fetch("/api/auth/session");
+          if (!res.ok) {
+            console.warn("Fallback fetch failed:", res.status, res.statusText);
+            return null;
+          }
+          const session = await res.json();
+          return session?.tokens?.accessToken ?? null;
+        } catch (fetchError) {
+          console.error("[getAccessToken] Fallback fetch also failed:", fetchError);
+          return null;
+        }
+      }
     }
   } catch (error) {
     console.error("Error getting access token:", error);
@@ -71,6 +105,12 @@ apiClient.interceptors.request.use(
       const token = await getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - Token attached`);
+        }
+      } else {
+        console.error(`[API Request] ${config.method?.toUpperCase()} ${config.url} - No token available!`);
+        // Still proceed with request - let backend return 401 if needed
       }
     }
     return config;

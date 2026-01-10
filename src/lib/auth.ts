@@ -145,10 +145,33 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
         }
       }
 
+      // On first login (when user object is provided)
       if (user) {
         const { tokens, ...restUser } = user;
         token.user = restUser as IUser;
-        token.tokens = tokens;
+        // Ensure tokens are properly stored - tokens should come from user object returned by authorize callback
+        if (tokens) {
+          token.tokens = tokens;
+          if (process.env.NODE_ENV === "development") {
+            console.log("[JWT Callback] Tokens stored for user:", token.user.email);
+          }
+        } else {
+          console.error("[JWT Callback] User object does not contain tokens!", { user });
+        }
+      }
+      
+      // Preserve existing tokens on subsequent requests (when user is undefined)
+      // This is important because NextAuth reuses the token object
+      if (!user && token.tokens) {
+        // Tokens already exist from previous request - keep them
+        if (process.env.NODE_ENV === "development") {
+          console.log("[JWT Callback] Preserving existing tokens for:", token.user?.email);
+        }
+      }
+      
+      // Warn if tokens are missing but user exists (shouldn't happen)
+      if (token.user && !token.tokens) {
+        console.warn("[JWT Callback] User exists but no tokens found - session may be invalid");
       }
 
       // Ensure token always has required structure
