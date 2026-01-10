@@ -36,7 +36,9 @@ export const useForgotPasswordMutation = () => {
   return useMutation({
     mutationKey: ["forgot-password"],
     mutationFn: async (params: IForgotPasswordInput) => {
-      const { data } = await apiClient.post("/auth/forgot-password", {}, { params });
+      const { data } = await apiClient.post("/auth/forgot-password", null, { 
+        params: { email: params.email } 
+      });
       return data;
     },
   });
@@ -46,7 +48,12 @@ export const useResetPasswordMutation = () => {
   return useMutation({
     mutationKey: ["reset-password"],
     mutationFn: async (params: IResetPasswordInput) => {
-      const { data } = await apiClient.post("/auth/reset-password", {}, { params });
+      const { data } = await apiClient.post("/auth/reset-password", null, { 
+        params: { 
+          token: params.token,
+          new_password: params.new_password 
+        } 
+      });
       return data;
     },
   });

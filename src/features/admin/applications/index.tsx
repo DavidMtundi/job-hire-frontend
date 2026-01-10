@@ -30,6 +30,7 @@ import { columns } from "./columns";
 import { DataTable } from "~/components/data-table";
 import { Spinner } from "~/components/spinner";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { BulkActionsToolbar } from "./bulk-actions-toolbar";
 
 
 interface ApplicationsFilters {
@@ -291,8 +292,11 @@ export default function Applications() {
       ) : isLoading ? (
         <Spinner />
       ) : filteredApplications.length > 0 ? (
-        <div>
-          <DataTable columns={columns} data={filteredApplications} disablePagination />
+        <div className="space-y-4">
+          <DataTableWithBulkActions 
+            columns={columns} 
+            data={filteredApplications} 
+          />
           {pagination && (
             <DataTablePagination
               currentPage={currentPage}
@@ -322,6 +326,23 @@ export default function Applications() {
       )}
 
       <ApplicationDetailsModal />
+    </div>
+  );
+}
+
+// Wrapper component that integrates bulk actions with DataTable
+function DataTableWithBulkActions({ columns, data }: { columns: any[]; data: any[] }) {
+  const [tableInstance, setTableInstance] = useState<any>(null);
+
+  return (
+    <div className="space-y-4">
+      {tableInstance && <BulkActionsToolbar table={tableInstance} />}
+      <DataTable 
+        columns={columns} 
+        data={data} 
+        disablePagination 
+        onTableReady={setTableInstance}
+      />
     </div>
   );
 }

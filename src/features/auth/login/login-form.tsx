@@ -37,6 +37,7 @@ export const LoginForm = () => {
 
   const form = useForm<TLogin>({
     resolver: zodResolver(LoginSchema),
+    mode: "onBlur", // Change from default "onSubmit" to "onBlur" to avoid premature validation
     defaultValues: {
       email: "",
       password: "",

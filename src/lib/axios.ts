@@ -73,6 +73,19 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
+    // First, log the raw error structure for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log("Raw Axios Error Object:", {
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+        hasResponse: !!error?.response,
+        hasRequest: !!error?.request,
+        hasConfig: !!error?.config,
+        errorString: String(error),
+      });
+    }
+
     // Handle network errors (no response) vs HTTP errors (with response)
     const isNetworkError = !error?.response;
     const response = error?.response || {};
@@ -114,9 +127,9 @@ apiClient.interceptors.response.use(
         errorInfo.type = "Network Error";
         if (error?.code) errorInfo.code = error.code;
       } else {
-        if (status) errorInfo.status = status;
-        if (response?.statusText) errorInfo.statusText = response.statusText;
-        if (data && Object.keys(data).length > 0) errorInfo.data = data;
+      if (status) errorInfo.status = status;
+      if (response?.statusText) errorInfo.statusText = response.statusText;
+      if (data && Object.keys(data).length > 0) errorInfo.data = data;
       }
       
       // Include request details if available
@@ -133,25 +146,93 @@ apiClient.interceptors.response.use(
         errorInfo.stack = error.stack;
       }
 
-      // Only log if we have meaningful error information
-      // Check that we have at least one meaningful field (not just empty object)
-      const hasMeaningfulInfo = Object.keys(errorInfo).length > 0 && 
-        (errorInfo.message || errorInfo.status || errorInfo.type || errorInfo.url);
+      // Always capture response and request details first
+      const detailedError: Record<string, any> = {};
       
-      if (hasMeaningfulInfo) {
-        console.error("Axios Error:", errorInfo);
-      } else {
+      // Add basic error info (always add message and status if available)
+      if (message) detailedError.message = message;
+      if (code) detailedError.code = code;
+      if (status) detailedError.status = status;
+      if (isNetworkError) detailedError.type = "Network Error";
+      
+      // Add all errorInfo properties
+      Object.assign(detailedError, errorInfo);
+      
+      // Add response details (check if response exists, not just if it has data)
+      if (error?.response || response) {
+        const resp = error?.response || response;
+        detailedError.response = {
+          status: resp?.status || status || null,
+          statusText: resp?.statusText || null,
+          data: resp?.data || data || null,
+          headers: resp?.headers ? (typeof resp.headers === 'object' ? Object.keys(resp.headers) : resp.headers) : [],
+        };
+      }
+      
+      // Add request details if available
+      if (error?.config) {
+        detailedError.request = {
+          url: error.config.url || null,
+          method: error.config.method || null,
+          baseURL: error.config.baseURL || null,
+          params: error.config.params || null,
+          data: error.config.data || null,
+        };
+      }
+      
+      // Add error instance details (always try to capture)
+      detailedError.errorInstance = {
+        type: typeof error,
+        constructor: error?.constructor?.name || null,
+        isError: error instanceof Error,
+        name: error instanceof Error ? error.name : (error?.name || null),
+        message: error instanceof Error ? error.message : (error?.message || null),
+        stack: (process.env.NODE_ENV === "development" && error instanceof Error) ? error.stack : undefined,
+      };
+      
+      // Add network error details
+      if (isNetworkError) {
+        detailedError.networkError = {
+          code: error?.code || null,
+          message: error?.message || null,
+        };
+      }
+      
+      // Add raw error properties (always try)
+      if (error) {
+        try {
+          if (typeof error === 'object') {
+            const errorKeys = Object.keys(error);
+            detailedError.rawErrorKeys = errorKeys;
+            // Try to get some common properties safely
+            if ('code' in error) detailedError.rawCode = (error as any).code;
+            if ('message' in error) detailedError.rawMessage = (error as any).message;
+            if ('response' in error) detailedError.hasResponseProperty = true;
+            if ('request' in error) detailedError.hasRequestProperty = true;
+            if ('config' in error) detailedError.hasConfigProperty = true;
+          }
+          detailedError.rawErrorString = String(error);
+        } catch (e) {
+          detailedError.rawErrorParseError = String(e);
+        }
+      }
+      
+      // Always log - we should have at least message or code by now
+      console.error("Axios Error:", detailedError);
+      
+      // Also log fallback if detailedError is still empty (shouldn't happen)
+      if (Object.keys(detailedError).length === 0) {
         // If error object is completely empty/malformed, log what we can
         const fallbackInfo: Record<string, any> = {
           errorType: typeof error,
           errorString: String(error),
           hasResponse: !!error?.response,
           hasRequest: !!error?.request,
+          errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
         };
         
         if (error && typeof error === 'object') {
           try {
-            fallbackInfo.errorKeys = Object.keys(error);
             // Try to stringify the error to see its structure
             if (error instanceof Error) {
               fallbackInfo.errorName = error.name;

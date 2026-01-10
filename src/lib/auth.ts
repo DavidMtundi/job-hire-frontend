@@ -44,37 +44,56 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
           password: credentials.password,
         };
 
-        const response = await credentialLogin(payload);
-        console.log("API Response:", JSON.stringify(response, null, 2));
+        try {
+          const response = await credentialLogin(payload);
+          console.log("API Response:", JSON.stringify(response, null, 2));
 
-        if (!response.success) {
-          console.error("Login failed:", response.message);
-          throw new Error(response.message || "Invalid credentials");
+          if (!response || !response.success) {
+            console.error("Login failed:", response?.message || "No response from server");
+            throw new Error(response?.message || "Invalid credentials");
+          }
+
+          // The response.data contains the actual login data (access_token, refresh_token, user)
+          const loginData = response.data;
+          console.log("Login data:", JSON.stringify(loginData, null, 2));
+          
+          if (!loginData) {
+            console.error("Invalid response format - missing data");
+            throw new Error("Invalid response format from server");
+          }
+
+          if (!loginData.access_token || !loginData.user) {
+            console.error("Invalid response format - missing access_token or user", {
+              hasAccessToken: !!loginData.access_token,
+              hasUser: !!loginData.user,
+              loginDataKeys: Object.keys(loginData || {})
+            });
+            throw new Error("Invalid response format from server");
+          }
+
+          return {
+            id: loginData.user.id,
+            email: loginData.user.email,
+            username: loginData.user.username,
+            role: loginData.user.role,
+            is_active: loginData.user.is_active,
+            is_email_verified: loginData.user.is_email_verified,
+            is_profile_complete: loginData.user.is_profile_complete,
+            tokens: {
+              accessToken: loginData.access_token,
+              refreshToken: loginData.refresh_token,
+              userId: loginData.user.id,
+            },
+          };
+        } catch (error: any) {
+          console.error("Error in authorize:", error);
+          console.error("Error details:", {
+            message: error?.message,
+            response: error?.response?.data,
+            stack: error?.stack
+          });
+          throw error;
         }
-
-        // The response.data contains the actual login data (access_token, refresh_token, user)
-        const loginData = response.data;
-        console.log("Login data:", JSON.stringify(loginData, null, 2));
-        
-        if (!loginData?.access_token || !loginData?.user) {
-          console.error("Invalid response format - missing access_token or user");
-          throw new Error("Invalid response format from server");
-        }
-
-        return {
-          id: loginData.user.id,
-          email: loginData.user.email,
-          username: loginData.user.username,
-          role: loginData.user.role,
-          is_active: loginData.user.is_active,
-          is_email_verified: loginData.user.is_email_verified,
-          is_profile_complete: loginData.user.is_profile_complete,
-          tokens: {
-            accessToken: loginData.access_token,
-            refreshToken: loginData.refresh_token,
-            userId: loginData.user.id,
-          },
-        };
       },
         async (e: any) => {
           console.error("Auth error caught:", e);

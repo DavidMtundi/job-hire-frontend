@@ -12,6 +12,8 @@ import { AIInterviewAssessmentCard } from "./ai-interview-assessment-card";
 import { JobDetailsCard } from "./job-details-card";
 import { CandidateSummaryCard } from "./candidate-summary-card";
 import { EmailDraftModal } from "./email-draft-modal";
+import { EnhancedEmailModal } from "./enhanced-email-modal";
+import { CommunicationTimelineCard } from "./communication-timeline-card";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Loader } from "~/components/loader";
@@ -74,7 +76,7 @@ export default function ApplicationDetailsPage() {
               Back to Applications
             </Button>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <EmailDraftModal
+              <EnhancedEmailModal
                 applicationId={applicationId || application?.id || ""}
                 candidateName={
                   application?.first_name && application?.last_name
@@ -148,6 +150,11 @@ export default function ApplicationDetailsPage() {
         {/* Interviews Section - Full Width */}
         <div className="mt-6 lg:mt-8">
           <InterviewsSection applicationId={applicationId} application={application} />
+        </div>
+
+        {/* Communication Timeline Section - Full Width */}
+        <div className="mt-6 lg:mt-8">
+          <CommunicationTimelineCard applicationId={applicationId || application?.id || ""} />
         </div>
 
         <ScheduleInterviewModal

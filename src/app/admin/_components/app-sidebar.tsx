@@ -63,6 +63,21 @@ const data = {
       icon: TbBuilding,
     },
     {
+      title: "Analytics",
+      url: "/admin/analytics",
+      icon: TbChartBar,
+    },
+    {
+      title: "Calendar",
+      url: "/admin/calendar",
+      icon: TbCalendar,
+    },
+    {
+      title: "Compliance",
+      url: "/admin/compliance",
+      icon: TbListDetails,
+    },
+    {
       title: "Audit Logs",
       url: "/admin/audit-logs",
       icon: TbListDetails,
