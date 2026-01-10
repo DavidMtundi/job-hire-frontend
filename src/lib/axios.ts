@@ -13,15 +13,24 @@ const API_CONFIG = {
 };
 
 // Determine the correct API base URL
-// Server-side (in Docker): use Docker service name
-// Client-side (browser): use localhost
+// Priority order:
+// 1. NEXT_PUBLIC_BASE_API_URL (set via environment variable - works for both client and server)
+// 2. BACKEND_URL (server-side fallback for Docker)
+// 3. siteConfig.apiBaseUrl (client-side fallback)
+// 4. Default to localhost for local development
 const getApiBaseUrl = () => {
-  if (typeof window === "undefined") {
-    // Server-side: use Docker service name
-    return process.env.BACKEND_URL || "http://backend:8002";
+  // First check if NEXT_PUBLIC_BASE_API_URL is set (works for both client and server)
+  if (process.env.NEXT_PUBLIC_BASE_API_URL) {
+    return process.env.NEXT_PUBLIC_BASE_API_URL;
   }
-  // Client-side: use configured URL (localhost:8002)
-  return siteConfig.apiBaseUrl;
+  
+  if (typeof window === "undefined") {
+    // Server-side: use BACKEND_URL (Docker service name) or fallback
+    return process.env.BACKEND_URL || siteConfig.apiBaseUrl || "http://backend:8002";
+  }
+  
+  // Client-side: use configured URL from site config
+  return siteConfig.apiBaseUrl || "http://localhost:8002";
 };
 
 // Create an Axios instance

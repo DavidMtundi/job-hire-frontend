@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
 
     // Server-side (API route): Use Docker service name when in Docker
     // In Docker, use service name "backend", otherwise use localhost
-    // BACKEND_URL env var takes precedence, then try Docker service name, then fallback to localhost
-    const backendBaseUrl = process.env.BACKEND_URL || "http://backend:8002";
+    // Priority: NEXT_PUBLIC_BASE_API_URL > BACKEND_URL > Docker service name > localhost
+    const backendBaseUrl = process.env.NEXT_PUBLIC_BASE_API_URL || process.env.BACKEND_URL || "http://backend:8002";
     const backendUrl = `${backendBaseUrl}/interviews`;
     console.log("Proxying interview creation to:", backendUrl);
     console.log("Request body:", JSON.stringify(body, null, 2));
