@@ -72,27 +72,13 @@ export default function Applications() {
   const { data: hiringFunnelData } = useGetHiringFunnelQuery();
 
   // Handle backend response structure: { data: { items: [...], total_count, page, page_size } }
-  // OR legacy structure: { data: [...] }
-  let applications: any[] = [];
-  let pagination: any = null;
-
-  if (applicationsData?.data) {
-    if (Array.isArray(applicationsData.data)) {
-      // Legacy structure: data is directly an array
-      applications = applicationsData.data;
-      pagination = applicationsData.pagination;
-    } else if (applicationsData.data.items && Array.isArray(applicationsData.data.items)) {
-      // New structure: data.items contains the array
-      applications = applicationsData.data.items;
-      // Extract pagination from data object
-      pagination = {
-        page: applicationsData.data.page || currentPage,
-        page_size: applicationsData.data.page_size || pageSize,
-        total_counts: applicationsData.data.total_count || 0,
-        total_pages: Math.ceil((applicationsData.data.total_count || 0) / (applicationsData.data.page_size || pageSize)),
-      };
-    }
-  }
+  const applications = applicationsData?.data?.items || [];
+  const pagination = applicationsData?.data ? {
+    page: applicationsData.data.page || currentPage,
+    page_size: applicationsData.data.page_size || pageSize,
+    total_counts: applicationsData.data.total_count || 0,
+    total_pages: Math.ceil((applicationsData.data.total_count || 0) / (applicationsData.data.page_size || pageSize)),
+  } : null;
 
   const hiringFunnel = hiringFunnelData?.data ?? [];
 
@@ -209,8 +195,7 @@ export default function Applications() {
       !filters.department ||
       !application.job || // If no job object, don't filter by department
       !application.job.department || // If no department field, don't filter by department
-      application.job.department === filters.department ||
-      application.job.department_id === filters.department; // Also check department_id as fallback
+      application.job.department === filters.department;
 
     // Priority filter - handle missing/null priority field
     const matchesPriority =

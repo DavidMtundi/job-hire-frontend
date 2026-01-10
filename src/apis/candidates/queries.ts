@@ -58,7 +58,7 @@ export const useGetCandidateByUserIdQuery = (userId: string) => {
             success: false,
             message: "Candidate not found",
             data: null
-          } as ICandidateResponse;
+          } as unknown as ICandidateResponse;
         }
         throw error;
       }

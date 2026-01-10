@@ -54,8 +54,8 @@ export default function AuditLogsPage() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const logs = logsData?.data?.items || [];
-  const totalCount = logsData?.data?.total_count || 0;
+  const logs = logsData?.items || [];
+  const totalCount = logsData?.total_count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   const handleFilterChange = (key: string, value: any) => {

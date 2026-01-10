@@ -3,9 +3,9 @@ import { authSession } from "~/lib/auth";
 import { redirect } from "next/navigation";
 
 interface CompanyEditPageProps {
-  params: {
+  params: Promise<{
     companyId: string;
-  };
+  }>;
 }
 
 export default async function CompanyEditPage({ params }: CompanyEditPageProps) {
@@ -15,9 +15,11 @@ export default async function CompanyEditPage({ params }: CompanyEditPageProps) 
     redirect("/login");
   }
 
+  const { companyId } = await params;
+
   return (
     <div className="container mx-auto py-8 px-4">
-      <CompanyEditForm companyId={params.companyId} />
+      <CompanyEditForm companyId={companyId} />
     </div>
   );
 }

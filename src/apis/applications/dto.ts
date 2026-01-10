@@ -17,7 +17,12 @@ export interface IPagination {
 export interface IApplicationsResponse {
   success: boolean;
   message: string;
-  data: TApplication[];
+  data: {
+    items: TApplication[];
+    total_count: number;
+    page: number;
+    page_size: number;
+  };
   pagination?: IPagination;
 }
 

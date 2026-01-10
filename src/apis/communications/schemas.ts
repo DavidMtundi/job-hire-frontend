@@ -61,7 +61,7 @@ export const CommunicationTimelineSchema = z.object({
   opened_at: z.string().nullable().optional(),
   clicked_at: z.string().nullable().optional(),
   template_id: z.string().nullable().optional(),
-  metadata: z.record(z.any()),
+  metadata: z.record(z.string(), z.any()),
   created_by: z.string(),
   created_at: z.string(),
   template_name: z.string().nullable().optional(),
@@ -73,8 +73,8 @@ export const CreateEmailTemplateSchema = z.object({
   category: EmailTemplateCategorySchema,
   subject: z.string().min(1).max(500),
   body: z.string().min(1),
-  variables: z.array(z.string()).default([]),
-  is_default: z.boolean().default(false),
+  variables: z.array(z.string()),
+  is_default: z.boolean(),
   company_id: z.string().nullable().optional(),
 });
 
@@ -92,7 +92,7 @@ export const SendEmailRequestSchema = z.object({
   template_id: z.string().nullable().optional(),
   subject: z.string().nullable().optional(),
   body: z.string().nullable().optional(),
-  variables: z.record(z.any()).default({}),
+  variables: z.record(z.string(), z.any()).default({}),
   custom_template: z.boolean().default(false),
 });
 

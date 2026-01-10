@@ -35,7 +35,7 @@ import { useInviteRecruiterMutation } from "~/apis/companies/queries";
 
 const inviteSchema = z.object({
   email: z.string().email("Invalid email address"),
-  role: z.enum(["recruiter", "admin"]).default("recruiter"),
+  role: z.enum(["recruiter", "admin"]),
 });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;

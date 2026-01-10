@@ -96,6 +96,7 @@ export function EnhancedEmailModal({
         application_id: applicationId,
         template_id: selectedTemplateId,
         variables: customVariables,
+        custom_template: false,
       });
 
       if (result.success) {
@@ -161,6 +162,7 @@ export function EnhancedEmailModal({
         subject: customSubject,
         body: customBody,
         custom_template: true,
+        variables: {},
       });
 
       if (result.success) {

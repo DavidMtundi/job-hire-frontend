@@ -624,7 +624,7 @@ export const CreateCandidateForm = () => {
             <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
               {Object.entries(form.formState.errors).map(([field, error]) => (
                 <li key={field}>
-                  <strong>{field.replace(/_/g, " ")}</strong>: {error?.message || "Invalid value"}
+                  <strong>{field.replace(/_/g, " ")}</strong>: {error && typeof error === 'object' && 'message' in error ? String(error.message) : "Invalid value"}
                 </li>
               ))}
             </ul>

@@ -17,7 +17,7 @@ export const BulkAssignRecruiterSchema = z.object({
 export const BulkSendEmailSchema = z.object({
   application_ids: z.array(z.string()).min(1),
   template_id: z.string(),
-  variables: z.record(z.any()).default({}),
+  variables: z.record(z.string(), z.any()).default({}),
 });
 
 export type TBulkUpdateStatus = z.infer<typeof BulkUpdateStatusSchema>;

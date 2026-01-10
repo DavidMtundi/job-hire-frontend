@@ -41,7 +41,7 @@ export const ComplianceReportSchema = z.object({
   report_period_end: z.string(),
   generated_by: z.string(),
   file_url: z.string().nullable().optional(),
-  report_data: z.record(z.any()).nullable().optional(),
+  report_data: z.record(z.string(), z.any()).nullable().optional(),
   status: z.string(),
   created_at: z.string(),
 });
