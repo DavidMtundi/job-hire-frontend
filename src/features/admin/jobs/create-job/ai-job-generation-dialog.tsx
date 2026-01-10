@@ -69,8 +69,21 @@ export function AIJobGenerationDialog({
           setPrompt("");
           setLanguage("en");
         },
-        onError: (error) => {
-          toast.error(error.message || "Failed to generate job");
+        onError: (error: any) => {
+          // Extract detailed error message from API response
+          const errorMessage = 
+            error?.response?.data?.detail ||
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to generate job";
+          toast.error(errorMessage);
+          console.error("AI Job Generation Error:", {
+            message: errorMessage,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data,
+            fullError: error
+          });
         },
       }
     );

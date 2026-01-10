@@ -275,8 +275,11 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - redirect to login
     if (status === 401 && typeof window !== "undefined") {
-      window.location.href = "/login";
-      return Promise.reject(new ApiError("Unauthorized", 401));
+      // Don't redirect if already on login page to avoid redirect loop
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+      return Promise.reject(new ApiError(message || "Unauthorized - please login again", 401));
     }
 
     // Handle 403 Forbidden - permission denied
