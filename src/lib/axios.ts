@@ -265,17 +265,26 @@ apiClient.interceptors.request.use(
     
     // Helper function to check if URL matches endpoint pattern
     const urlMatchesEndpoint = (url: string, endpoint: string): boolean => {
-      const urlWithoutQuery = url.split("?")[0];
-      // Exact match
-      if (urlWithoutQuery === endpoint) return true;
+      if (!url || !endpoint) return false;
+      const urlWithoutQuery = url.split("?")[0].trim();
+      const endpointTrimmed = endpoint.trim();
+      
+      // Normalize both URLs (remove trailing slashes for comparison, but preserve for exact match)
+      const urlNormalized = urlWithoutQuery.replace(/\/$/, '');
+      const endpointNormalized = endpointTrimmed.replace(/\/$/, '');
+      
+      // Exact match (with or without trailing slash)
+      if (urlNormalized === endpointNormalized) return true;
+      
       // Check if URL starts with endpoint (for endpoints that have sub-paths)
-      if (endpoint.endsWith("/")) {
-        return urlWithoutQuery.startsWith(endpoint);
+      if (endpointTrimmed.endsWith("/")) {
+        return urlWithoutQuery.startsWith(endpointTrimmed);
       }
+      
       // For non-trailing-slash endpoints, check exact match or followed by / or ?
-      return urlWithoutQuery === endpoint || 
-             urlWithoutQuery.startsWith(endpoint + "/") || 
-             urlWithoutQuery.startsWith(endpoint + "?");
+      return urlNormalized === endpointNormalized || 
+             urlWithoutQuery.startsWith(endpointTrimmed + "/") || 
+             urlWithoutQuery.startsWith(endpointTrimmed + "?");
     };
     
     // Check if this is a protected endpoint first (should never be public)
@@ -296,7 +305,13 @@ apiClient.interceptors.request.use(
     // Check if this is a public endpoint (no auth required)
     const isPublicEndpoint = !isProtectedEndpoint && config.url && (
       // Check explicit public endpoints
-      publicEndpoints.some((endpoint) => urlMatchesEndpoint(config.url || "", endpoint)) ||
+      publicEndpoints.some((endpoint) => {
+        const matches = urlMatchesEndpoint(config.url || "", endpoint);
+        if (matches && process.env.NODE_ENV === "development") {
+          console.log(`[API Request] ✅ Matched public endpoint: ${config.url} matches ${endpoint}`);
+        }
+        return matches;
+      }) ||
       // GET requests to /jobs/{job_id} are public (no auth required in backend)
       // But exclude protected paths like /jobs/ai-generate
       (config.method?.toUpperCase() === "GET" && 
@@ -304,7 +319,18 @@ apiClient.interceptors.request.use(
        !config.url.includes("/jobs/ai-generate"))
     );
     
+    // Debug logging for endpoint classification
+    if (process.env.NODE_ENV === "development" && config.url) {
+      console.log(`[API Request] Endpoint classification for ${config.method?.toUpperCase()} ${config.url}:`, {
+        isProtected: isProtectedEndpoint,
+        isPublic: isPublicEndpoint,
+        matchedPublicEndpoints: publicEndpoints.filter(e => urlMatchesEndpoint(config.url || "", e)),
+        matchedProtectedEndpoints: protectedEndpoints.filter(e => urlMatchesEndpoint(config.url || "", e)),
+      });
+    }
+    
     // For non-public endpoints, ALWAYS try to attach token with retry logic
+    // IMPORTANT: Public endpoints should NEVER try to get a token to avoid timeouts
     if (!isPublicEndpoint) {
       if (config.url?.includes("/jobs/ai-generate")) {
         console.log("[Axios Interceptor] 🔑 Starting token retrieval for AI endpoint...");

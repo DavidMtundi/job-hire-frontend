@@ -22,6 +22,8 @@ export const publicEndpoints = [
   "/jobs/search", // Public job search endpoint
   "/jobs/status/", // Public job status endpoint
   // Note: /jobs/{job_id} GET is public, but we handle it via method-based logic in interceptor
+  // Public category endpoints (GET is public, POST/PUT/DELETE require auth)
+  "/categories", // GET /categories is public (no auth required)
 ];
 
 // Protected endpoints that should never be public (even if they match a public prefix)
