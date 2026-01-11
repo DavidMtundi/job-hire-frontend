@@ -1,4 +1,15 @@
 export const publicEndpoints = [
+  // Auth endpoints (backend uses /auth prefix)
+  "/auth/register",
+  "/auth/login",
+  "/auth/login/social",
+  "/auth/refresh_token",
+  "/auth/send-verification-email",
+  "/auth/verify-email",
+  "/auth/reset/generate",
+  "/auth/reset-password/verify",
+  "/auth/direct-login/verify",
+  // Legacy user endpoints (for backward compatibility)
   "/users/login",
   "/users/login/social",
   "/users/register",
@@ -6,6 +17,7 @@ export const publicEndpoints = [
   "/users/refresh_token",
   "/users/direct-login/verify",
   "/users/reset-password/verify",
+  // Public job endpoints
   "/jobs/get-jobs", // Public jobs listing endpoint
   "/jobs/search", // Public job search endpoint
   "/jobs/status/", // Public job status endpoint
