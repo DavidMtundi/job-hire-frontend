@@ -332,6 +332,18 @@ apiClient.interceptors.request.use(
     // For non-public endpoints, ALWAYS try to attach token with retry logic
     // IMPORTANT: Public endpoints should NEVER try to get a token to avoid timeouts
     if (!isPublicEndpoint) {
+      // Special logging for auth endpoints to debug timeout issues
+      if (config.url?.includes("/auth/register") || config.url?.includes("/auth/login")) {
+        console.warn(`[API Request] ⚠️ WARNING: ${config.url} is NOT recognized as public endpoint!`);
+        console.warn(`[API Request] This will cause token retrieval which may timeout.`);
+        console.warn(`[API Request] Endpoint classification:`, {
+          url: config.url,
+          isProtected: isProtectedEndpoint,
+          isPublic: isPublicEndpoint,
+          publicEndpoints: publicEndpoints.filter(e => config.url?.includes(e.split('/').pop() || '')),
+        });
+      }
+      
       if (config.url?.includes("/jobs/ai-generate")) {
         console.log("[Axios Interceptor] 🔑 Starting token retrieval for AI endpoint...");
         debugger; // BREAKPOINT 23: Before token retrieval for AI endpoint
@@ -468,7 +480,10 @@ apiClient.interceptors.request.use(
       }
     } else {
       // Public endpoint - no token needed, but log for debugging
-      if (process.env.NODE_ENV === "development") {
+      if (config.url?.includes("/auth/register") || config.url?.includes("/auth/login")) {
+        console.log(`[API Request] ✅ ${config.method?.toUpperCase()} ${config.url} - Public endpoint (no token required)`);
+        console.log(`[API Request] Request will proceed without authentication token`);
+      } else if (process.env.NODE_ENV === "development") {
         console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - Public endpoint (no token required)`);
       }
     }
