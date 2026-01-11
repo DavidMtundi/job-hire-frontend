@@ -43,6 +43,13 @@ const normalizeBaseUrl = (url: string): string => {
     }
   }
   
+  // CRITICAL: If we're in browser and page is HTTPS, ALWAYS use HTTPS for API calls
+  // This prevents Mixed Content errors where HTTPS pages try to make HTTP requests
+  if (typeof window !== "undefined" && window.location.protocol === "https:" && url.startsWith("http://")) {
+    url = url.replace(/^http:\/\//, "https://");
+    console.warn(`[BaseURL Normalization] CRITICAL: Forced HTTPS for browser HTTPS page: ${url}`);
+  }
+  
   return url;
 };
 
