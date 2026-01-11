@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authSession } from "~/lib/auth";
+import { serverAuthenticatedFetch } from "~/lib/api-helpers";
 
 export async function GET(
   request: NextRequest,
@@ -21,12 +22,8 @@ export async function GET(
     const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
     const apiUrl = `${backendBaseUrl}/applications/${applicationId}/status-history`;
     
-    const response = await fetch(apiUrl, {
+    const response = await serverAuthenticatedFetch(apiUrl, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.tokens.accessToken}`,
-      },
     });
 
     let responseData;
@@ -113,12 +110,8 @@ export async function POST(
     const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
     const apiUrl = `${backendBaseUrl}/applications/${applicationId}/status`;
     
-    const response = await fetch(apiUrl, {
+    const response = await serverAuthenticatedFetch(apiUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.tokens.accessToken}`,
-      },
       body: JSON.stringify({
         remark: body.remark,
         status_id: statusId,

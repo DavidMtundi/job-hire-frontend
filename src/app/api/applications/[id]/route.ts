@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authSession } from "~/lib/auth";
+import { serverAuthenticatedFetch } from "~/lib/api-helpers";
 
 export async function GET(
   request: NextRequest,
@@ -15,15 +16,9 @@ export async function GET(
 
     // Server-side: Use Docker service name or BACKEND_URL env var
     const backendBaseUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BASE_API_URL || "http://backend:8002";
-    const response = await fetch(
+    const response = await serverAuthenticatedFetch(
       `${backendBaseUrl}/applications/${applicationId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.tokens.accessToken}`,
-        },
-      }
+      { method: "GET" }
     );
 
     const contentType = response.headers.get("content-type");

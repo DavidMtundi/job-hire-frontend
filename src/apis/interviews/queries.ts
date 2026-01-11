@@ -83,24 +83,31 @@ export const useCreateInterviewMutation = () => {
   return useMutation({
     mutationKey: ["create-interview"],
     mutationFn: async (body: any) => {
-      // Use Next.js API route to avoid CORS issues
-      // This proxies the request to the backend through the server
-      const response = await fetch("/api/interviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || error.error || "Failed to create interview");
+      // Use apiClient to directly call backend - token is automatically attached
+      // If CORS issues occur, use the Next.js API route proxy instead
+      try {
+        const response = await apiClient.post<TInterview>("/interviews", body);
+        // Handle different response structures
+        return (response.data?.interview || response.data?.data?.interview || response.data?.data || response.data) as TInterview;
+      } catch (error: any) {
+        // If direct call fails (e.g., CORS), fallback to Next.js API route
+        if (error?.code === "ERR_NETWORK" || error?.response?.status === 0) {
+          const { authenticatedFetch } = await import("~/lib/api-helpers");
+          const response = await authenticatedFetch("/api/interviews", {
+            method: "POST",
+            body: JSON.stringify(body),
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || error.error || "Failed to create interview");
+          }
+          
+          const data = await response.json();
+          return (data?.interview || data?.data?.interview || data?.data || data) as TInterview;
+        }
+        throw error;
       }
-
-      const data = await response.json();
-      // Backend returns: { interview: InterviewOut } or { data: { interview: InterviewOut } }
-      return (data?.interview || data?.data?.interview || data?.data || data) as TInterview;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });
@@ -118,21 +125,29 @@ export const useUpdateInterviewMutation = () => {
   return useMutation({
     mutationKey: ["update-interview"],
     mutationFn: async ({ id, ...patch }: TUpdateInterview & { id: string }) => {
-      const response = await fetch(`/api/interviews/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(patch),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || error.error || "Failed to update interview");
+      // Use apiClient to directly call backend - token is automatically attached
+      try {
+        const response = await apiClient.put(`/interviews/${id}`, patch);
+        return response.data;
+      } catch (error: any) {
+        // If direct call fails (e.g., CORS), fallback to Next.js API route
+        if (error?.code === "ERR_NETWORK" || error?.response?.status === 0) {
+          const { authenticatedFetch } = await import("~/lib/api-helpers");
+          const response = await authenticatedFetch(`/api/interviews/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(patch),
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || error.error || "Failed to update interview");
+          }
+          
+          const data = await response.json();
+          return data;
+        }
+        throw error;
       }
-
-      const data = await response.json();
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });
@@ -186,21 +201,12 @@ export const useUpdateInterviewStatusMutation = () => {
         status: status,
       };
 
-      const response = await fetch(`/api/applications/${applicationId}/remarks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || error.error || "Failed to update interview status");
-      }
-
-      const data = await response.json();
-      return data;
+      // Use apiClient to ensure token is attached
+      const response = await apiClient.post(
+        `/applications/${applicationId}/remarks`,
+        requestBody
+      );
+      return response.data;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });

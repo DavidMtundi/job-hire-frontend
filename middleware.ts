@@ -34,8 +34,27 @@ export async function middleware(request: NextRequest) {
   });
 
   const isAuthenticated = !!token;
-  const userRole = token?.user?.role as string | undefined;
-  const isProfileComplete = token?.user?.is_profile_complete as boolean | undefined;
+  // CRITICAL: getToken returns the JWT token structure from the jwt callback
+  // The structure should be: { user: { role, ... }, tokens: {...} }
+  // Handle both possible token structures for robustness
+  const tokenUser = token?.user as any;
+  const userRole = tokenUser?.role as string | undefined;
+  const isProfileComplete = tokenUser?.is_profile_complete as boolean | undefined;
+
+  // Debug logging in development to help diagnose authentication issues
+  if (process.env.NODE_ENV === "development" && (pathname.includes("/admin/jobs/create") || pathname.includes("/admin/jobs"))) {
+    console.log("[Middleware] Admin route check:", {
+      pathname,
+      hasToken: !!token,
+      tokenKeys: token ? Object.keys(token) : [],
+      userRole,
+      isProfileComplete,
+      isAuthenticated,
+      userExists: !!tokenUser,
+      userKeys: tokenUser ? Object.keys(tokenUser) : [],
+      tokenUserType: typeof tokenUser,
+    });
+  }
 
   if (publicRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
     return NextResponse.next();

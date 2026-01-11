@@ -143,8 +143,34 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
     },
   });
 
-  const { data: departmentsData } = useGetDepartmentsQuery();
-  const { data: categoriesData } = useGetCategoriesQuery();
+  // These queries run automatically on component mount
+  // If they fail with 401, it will trigger a redirect to /login via axios interceptor
+  console.log("[CreateJobForm] Component mounted - initializing queries");
+  const { data: departmentsData, error: departmentsError, isLoading: departmentsLoading } = useGetDepartmentsQuery();
+  const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useGetCategoriesQuery();
+  
+  useEffect(() => {
+    console.log("[CreateJobForm] Query status:", {
+      departmentsLoading,
+      departmentsError: departmentsError ? {
+        status: (departmentsError as any)?.response?.status,
+        message: (departmentsError as any)?.message,
+      } : null,
+      categoriesLoading,
+      categoriesError: categoriesError ? {
+        status: (categoriesError as any)?.response?.status,
+        message: (categoriesError as any)?.message,
+      } : null,
+    });
+    
+    if (departmentsError || categoriesError) {
+      const error = departmentsError || categoriesError;
+      const status = (error as any)?.response?.status;
+      if (status === 401) {
+        console.error("[CreateJobForm] ⚠️ 401 error detected in queries - redirect will happen via axios interceptor");
+      }
+    }
+  }, [departmentsLoading, departmentsError, categoriesLoading, categoriesError]);
 
   const departments = departmentsData?.data || [];
   const categories = categoriesData?.data || [];

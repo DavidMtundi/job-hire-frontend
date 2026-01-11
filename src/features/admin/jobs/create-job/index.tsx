@@ -2,7 +2,7 @@
 
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { AdminHeading } from "~/features/admin/_components/heading";
 import { CreateJobForm } from "./create-job-form";
@@ -15,8 +15,22 @@ export default function CreateJobScreen() {
     useState<IAIGeneratedJobData | null>(null);
 
   const handleJobGenerated = (data: IAIGeneratedJobData) => {
+    console.log("[CreateJobScreen] AI job generated successfully:", data);
     setAiGeneratedData(data);
   };
+
+  // Log when dialog opens/closes
+  useEffect(() => {
+    if (dialogOpen) {
+      console.log("========================================");
+      console.log("[CreateJobScreen] 🔵 AI Job Generation Dialog OPENED");
+      console.log("[CreateJobScreen] User navigated to /admin/jobs/create and clicked 'Create Job via AI'");
+      console.log("[CreateJobScreen] Dialog state: open =", dialogOpen);
+      console.log("========================================");
+    } else {
+      console.log("[CreateJobScreen] AI Job Generation Dialog CLOSED");
+    }
+  }, [dialogOpen]);
 
   return (
     <div>
@@ -29,7 +43,11 @@ export default function CreateJobScreen() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => setDialogOpen(true)}
+            onClick={() => {
+              console.log("[CreateJobScreen] 🔵 'Create Job via AI' button clicked");
+              console.log("[CreateJobScreen] Opening AI generation dialog...");
+              setDialogOpen(true);
+            }}
           >
             Create Job via AI
           </Button>

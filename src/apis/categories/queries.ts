@@ -7,8 +7,27 @@ export const useGetCategoriesQuery = () => {
   return useQuery<ICategoriesResponse, Error>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const response = await apiClient.get<ICategoriesResponse>("/categories");
-      return response.data;
+      console.log("[useGetCategoriesQuery] 📡 Fetching categories from /categories");
+      console.log("[useGetCategoriesQuery] This query runs automatically when CreateJobForm mounts");
+      try {
+        const response = await apiClient.get<ICategoriesResponse>("/categories");
+        console.log("[useGetCategoriesQuery] ✅ Categories fetched successfully:", response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error("[useGetCategoriesQuery] ❌ Failed to fetch categories:", {
+          status: error?.response?.status,
+          message: error?.message,
+          url: "/categories",
+        });
+        throw error;
+      }
+    },
+    onError: (error: any) => {
+      console.error("[useGetCategoriesQuery] Query error handler:", {
+        status: error?.response?.status,
+        message: error?.message,
+        is401: error?.response?.status === 401,
+      });
     },
   });
 };
@@ -29,7 +48,7 @@ export const useCreateCategoryMutation = () => {
   return useMutation({
     mutationKey: ["create-category"],
     mutationFn: async (body: TCreateCategory) => {
-      const response = await apiClient.post<ICategoryResponse>("/categories/", body);
+      const response = await apiClient.post<ICategoryResponse>("/categories", body);
       return response.data;
     },
     onSuccess: (data) => {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authSession } from "~/lib/auth";
+import { serverAuthenticatedFetch } from "~/lib/api-helpers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,12 +21,9 @@ export async function POST(request: NextRequest) {
 
     let response: Response;
     try {
-      response = await fetch(backendUrl, {
+      // Use serverAuthenticatedFetch to ensure token is always attached
+      response = await serverAuthenticatedFetch(backendUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.tokens.accessToken}`,
-        },
         body: JSON.stringify(body),
       });
     } catch (fetchError: any) {

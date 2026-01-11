@@ -7,8 +7,27 @@ export const useGetDepartmentsQuery = () => {
   return useQuery<IDepartmentsResponse, Error>({
     queryKey: ["departments"],
     queryFn: async () => {
-      const response = await apiClient.get<IDepartmentsResponse>("/departments");
-      return response.data;
+      console.log("[useGetDepartmentsQuery] 📡 Fetching departments from /departments");
+      console.log("[useGetDepartmentsQuery] This query runs automatically when CreateJobForm mounts");
+      try {
+        const response = await apiClient.get<IDepartmentsResponse>("/departments");
+        console.log("[useGetDepartmentsQuery] ✅ Departments fetched successfully:", response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error("[useGetDepartmentsQuery] ❌ Failed to fetch departments:", {
+          status: error?.response?.status,
+          message: error?.message,
+          url: "/departments",
+        });
+        throw error;
+      }
+    },
+    onError: (error: any) => {
+      console.error("[useGetDepartmentsQuery] Query error handler:", {
+        status: error?.response?.status,
+        message: error?.message,
+        is401: error?.response?.status === 401,
+      });
     },
   });
 };

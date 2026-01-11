@@ -203,19 +203,11 @@ export const useGetApplicationRemarksQuery = (applicationId: string) => {
     queryKey: ["application-remarks", applicationId],
     enabled: !!applicationId,
     queryFn: async () => {
-      const response = await fetch(`/api/applications/${applicationId}/remarks`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch application remarks");
-      }
-
-      const data = await response.json();
-      return data;
+      // Use apiClient instead of fetch to ensure token is attached
+      const response = await apiClient.get<IApplicationRemark[]>(
+        `/applications/${applicationId}/remarks`
+      );
+      return response.data;
     },
   });
 };
@@ -260,24 +252,15 @@ export const useCreateApplicationStatusMutation = () => {
       remark: string; 
       status_id: number;
     }) => {
-      const response = await fetch(`/api/applications/${applicationId}/status`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Use apiClient instead of fetch to ensure token is attached
+      const response = await apiClient.post(
+        `/applications/${applicationId}/status`,
+        {
           remark,
           status_id,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || error.error || "Failed to create application status");
-      }
-
-      const data = await response.json();
-      return data;
+        }
+      );
+      return response.data;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["application-status", variables.applicationId] });
