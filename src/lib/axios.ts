@@ -197,6 +197,15 @@ apiClient.interceptors.request.use(
       // Normalize baseURL: ensure HTTPS for production and remove trailing slash
       config.baseURL = normalizeBaseUrl(config.baseURL);
       
+      // CRITICAL FIX: If we're in browser (HTTPS page) and baseURL is still HTTP, force HTTPS
+      // This prevents Mixed Content errors where HTTPS pages try to make HTTP requests
+      if (typeof window !== "undefined" && window.location.protocol === "https:") {
+        if (config.baseURL.startsWith("http://")) {
+          config.baseURL = config.baseURL.replace(/^http:\/\//, "https://");
+          console.warn(`[Axios Interceptor] CRITICAL: Fixed HTTP->HTTPS to prevent Mixed Content error: ${originalBaseURL} -> ${config.baseURL}`);
+        }
+      }
+      
       // Log if we changed the baseURL (in development)
       if (process.env.NODE_ENV === "development" && originalBaseURL !== config.baseURL) {
         console.log(`[Axios Interceptor] BaseURL normalized: ${originalBaseURL} -> ${config.baseURL}`);
