@@ -18,16 +18,10 @@ export const useGetCategoriesQuery = () => {
           status: error?.response?.status,
           message: error?.message,
           url: "/categories",
+          is401: error?.response?.status === 401,
         });
         throw error;
       }
-    },
-    onError: (error: any) => {
-      console.error("[useGetCategoriesQuery] Query error handler:", {
-        status: error?.response?.status,
-        message: error?.message,
-        is401: error?.response?.status === 401,
-      });
     },
   });
 };

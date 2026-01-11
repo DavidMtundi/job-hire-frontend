@@ -93,8 +93,8 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
       // client-side - Use getSession from next-auth/react (more reliable than fetch)
       try {
         // Force a fresh session fetch if retrying
-        const sessionOptions = retryCount > 0 ? { trigger: "getSession" as const } : undefined;
-        const session = await getSession(sessionOptions);
+        // Note: getSession doesn't accept options in newer versions of next-auth
+        const session = await getSession();
         
         debugger; // BREAKPOINT 34: Session retrieved, inspect session object
         // Debug logging to help diagnose "Not Authenticated" errors
@@ -224,7 +224,7 @@ apiClient.interceptors.request.use(
     
     // Ensure headers object exists first
     if (!config.headers) {
-      config.headers = {};
+      config.headers = {} as any;
     }
     
     // Add breakpoint for AI job generation endpoint specifically
@@ -240,7 +240,9 @@ apiClient.interceptors.request.use(
         data: config.data,
         existingHeaders: Object.keys(config.headers || {}),
         existingAuthHeader: !!config.headers?.Authorization,
-        authHeaderValue: config.headers?.Authorization ? config.headers.Authorization.substring(0, 50) + "..." : "NONE",
+        authHeaderValue: config.headers?.Authorization && typeof config.headers.Authorization === 'string' 
+          ? config.headers.Authorization.substring(0, 50) + "..." 
+          : "NONE",
       });
       debugger; // BREAKPOINT 22: Axios request interceptor for AI endpoint
     }
@@ -271,7 +273,7 @@ apiClient.interceptors.request.use(
                  (config.url === "/jobs" || config.url === "/jobs/");
         }
         // For other protected endpoints, use exact or prefix matching
-        return urlMatchesEndpoint(config.url, endpoint);
+        return urlMatchesEndpoint(config.url || '', endpoint);
       })
     );
     
@@ -341,7 +343,9 @@ apiClient.interceptors.request.use(
           console.log("[Axios Interceptor] Authorization header details:", {
             headerExists: !!config.headers.Authorization,
             headerLength: config.headers.Authorization?.length || 0,
-            headerPrefix: config.headers.Authorization?.substring(0, 20),
+            headerPrefix: config.headers.Authorization && typeof config.headers.Authorization === 'string' 
+              ? config.headers.Authorization.substring(0, 20) 
+              : undefined,
             headerFull: config.headers.Authorization ? "Bearer [TOKEN]" : "MISSING",
             allHeaderKeys: Object.keys(config.headers || {}),
           });
@@ -395,7 +399,7 @@ apiClient.interceptors.request.use(
               // Try to trigger a session refresh if session exists but no tokens
               if (lastAttemptSession && !lastAttemptSession.tokens?.accessToken) {
                 console.warn("[Axios Interceptor] Session exists but no tokens - attempting session refresh");
-                await nextAuthReact.getSession({ trigger: "getSession" });
+                await nextAuthReact.getSession();
               }
             } catch (e) {
               console.error("[Axios Interceptor] Failed to check session in error handler:", e);
@@ -437,7 +441,9 @@ apiClient.interceptors.request.use(
         hasAuthHeader,
         authHeaderExists: !!config.headers.Authorization,
         authHeaderMethod: typeof config.headers.get === 'function' ? config.headers.get('Authorization') : 'N/A',
-        authHeaderPreview: config.headers.Authorization ? config.headers.Authorization.substring(0, 30) + "..." : "MISSING",
+        authHeaderPreview: config.headers.Authorization && typeof config.headers.Authorization === 'string' 
+          ? config.headers.Authorization.substring(0, 30) + "..." 
+          : "MISSING",
         allHeaders: Object.keys(config.headers),
         data: config.data,
       });
@@ -710,7 +716,9 @@ apiClient.interceptors.response.use(
             method: error?.config?.method,
             currentPath,
             hasAuthHeader: !!error?.config?.headers?.Authorization,
-            authHeaderPreview: error?.config?.headers?.Authorization?.substring(0, 30) + "...",
+            authHeaderPreview: error?.config?.headers?.Authorization && typeof error.config.headers.Authorization === 'string'
+              ? error.config.headers.Authorization.substring(0, 30) + "..."
+              : "N/A",
             authHeaderFull: error?.config?.headers?.Authorization ? "Present" : "MISSING",
             responseMessage: message,
             responseData: data,
@@ -742,7 +750,9 @@ apiClient.interceptors.response.use(
           baseURL: error?.config?.baseURL,
           fullUrl: `${error?.config?.baseURL || ''}${error?.config?.url}`,
           hasAuthHeader: !!error?.config?.headers?.Authorization,
-          authHeaderPreview: error?.config?.headers?.Authorization?.substring(0, 50) || "MISSING",
+          authHeaderPreview: error?.config?.headers?.Authorization && typeof error.config.headers.Authorization === 'string'
+            ? error.config.headers.Authorization.substring(0, 50)
+            : "MISSING",
           requestData: error?.config?.data,
           currentPath: window.location.pathname,
           responseStatus: status,

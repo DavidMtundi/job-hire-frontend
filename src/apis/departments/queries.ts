@@ -18,16 +18,10 @@ export const useGetDepartmentsQuery = () => {
           status: error?.response?.status,
           message: error?.message,
           url: "/departments",
+          is401: error?.response?.status === 401,
         });
         throw error;
       }
-    },
-    onError: (error: any) => {
-      console.error("[useGetDepartmentsQuery] Query error handler:", {
-        status: error?.response?.status,
-        message: error?.message,
-        is401: error?.response?.status === 401,
-      });
     },
   });
 };

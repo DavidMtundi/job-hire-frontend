@@ -86,9 +86,10 @@ export const useCreateInterviewMutation = () => {
       // Use apiClient to directly call backend - token is automatically attached
       // If CORS issues occur, use the Next.js API route proxy instead
       try {
-        const response = await apiClient.post<TInterview>("/interviews", body);
-        // Handle different response structures
-        return (response.data?.interview || response.data?.data?.interview || response.data?.data || response.data) as TInterview;
+        const response = await apiClient.post<any>("/interviews", body);
+        // Handle different response structures - API may return { data: { interview: ... } } or { data: { data: ... } } or { data: ... }
+        const interviewData = response.data?.data?.interview || response.data?.data || response.data?.interview || response.data;
+        return interviewData as TInterview;
       } catch (error: any) {
         // If direct call fails (e.g., CORS), fallback to Next.js API route
         if (error?.code === "ERR_NETWORK" || error?.response?.status === 0) {
