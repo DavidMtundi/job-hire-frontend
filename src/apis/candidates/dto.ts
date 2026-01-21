@@ -12,7 +12,12 @@ export interface IGetCandidatesParams {
 export interface ICandidatesResponse {
   success: boolean;
   message: string;
-  data: TCandidate[];
+  data: {
+    items: TCandidate[];
+    total_count: number;
+    page: number;
+    page_size: number;
+  };
 }
 
 export interface ICandidateResponse {

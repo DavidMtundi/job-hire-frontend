@@ -14,6 +14,10 @@ import {
   TbSearch,
   TbSettings,
   TbBuilding,
+  TbCalendarEvent,
+  TbUsers,
+  TbShare,
+  TbRocket,
 } from "react-icons/tb"
 import {
   Sidebar,
@@ -26,6 +30,7 @@ import {
 } from "~/components/ui/sidebar"
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
+import { NavUpcoming } from "./nav-upcoming"
 import { NavUser } from "./nav-user"
 
 const data = {
@@ -98,6 +103,26 @@ const data = {
       icon: TbSearch,
     },
   ],
+  navUpcoming: [
+    {
+      title: "Calendar Integration",
+      url: "/admin/calendar-integration",
+      icon: TbCalendarEvent,
+      badge: "Coming Soon",
+    },
+    {
+      title: "Referral Management",
+      url: "/admin/referrals",
+      icon: TbUsers,
+      badge: "Coming Soon",
+    },
+    {
+      title: "Multi-Channel Posting",
+      url: "/admin/multi-channel-posting",
+      icon: TbShare,
+      badge: "Coming Soon",
+    },
+  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -127,7 +152,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSecondary items={data.navSecondary} />
+        <NavUpcoming items={data.navUpcoming} className="mt-auto border-t pt-4" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

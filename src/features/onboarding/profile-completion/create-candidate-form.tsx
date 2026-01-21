@@ -22,7 +22,7 @@ import { CreateCandidateSchema, TCreateCandidate } from "~/apis/candidates/schem
 export const CreateCandidateForm = () => {
   const { resumeData, clearResume, clearResumeData } = useOnboardingStore();
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
 
   // console.log("resumeData", resumeData);
 
@@ -40,11 +40,14 @@ export const CreateCandidateForm = () => {
       stack: resumeData?.stack && resumeData.stack.length > 0 ? resumeData.stack : [],
       skills: resumeData?.skills && resumeData.skills.length > 0 ? resumeData.skills : [],
       linkedin_url: resumeData?.linkedin_url || "",
+      portfolio_url: resumeData?.portfolio_url || "",
       summary: resumeData?.summary || "",
       expected_salary: resumeData?.expected_salary || "",
       last_education: resumeData?.last_education || "",
       joining_availability: resumeData?.joining_availability || "1 month",
       resume_url: resumeData?.resume_url || "",
+      job_history: resumeData?.job_history || [],
+      links: resumeData?.links || [],
     },
   })
 
@@ -64,11 +67,14 @@ export const CreateCandidateForm = () => {
         stack: resumeData.stack && resumeData.stack.length > 0 ? resumeData.stack : [],
         skills: resumeData.skills && resumeData.skills.length > 0 ? resumeData.skills : [],
         linkedin_url: resumeData.linkedin_url || "",
+        portfolio_url: resumeData.portfolio_url || "",
         summary: resumeData.summary || "",
         expected_salary: resumeData.expected_salary || "",
         last_education: resumeData.last_education || "",
         joining_availability: resumeData.joining_availability || "1 month",
         resume_url: resumeData.resume_url || "",
+        job_history: resumeData.job_history || [],
+        links: resumeData.links || [],
       });
     }
   }, [resumeData, form, session?.user?.email]);
@@ -81,8 +87,9 @@ export const CreateCandidateForm = () => {
       isSubmitting: form.formState.isSubmitting
     });
 
-    // Validate session first
-    if (!session?.user?.id) {
+    // Validate session first (avoid false redirects while NextAuth session is still loading)
+    if (status === "loading") return;
+    if (status === "unauthenticated" || !session?.user?.id) {
       toast.error("Session expired. Please login again.");
       router.push("/login");
       return;
@@ -467,24 +474,44 @@ export const CreateCandidateForm = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="linkedin_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor={field.name}>LinkedIn URL</Label>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id={field.name}
-                        disabled={isPending}
-                        placeholder="Enter your LinkedIn Profile URL"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="linkedin_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label htmlFor={field.name}>LinkedIn URL</Label>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          disabled={isPending}
+                          placeholder="https://linkedin.com/in/yourprofile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="portfolio_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label htmlFor={field.name}>Portfolio/Website URL</Label>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          disabled={isPending}
+                          placeholder="https://yourportfolio.com"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="summary"
@@ -599,6 +626,200 @@ export const CreateCandidateForm = () => {
                 )}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Work Experience</CardTitle>
+            <CardDescription>Add your previous work experience (this will be auto-filled from your resume if available)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="job_history"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="space-y-4">
+                    {field.value && field.value.length > 0 ? (
+                      field.value.map((job, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-medium">Experience {index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newHistory = field.value.filter((_, i) => i !== index);
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                            >
+                              <XCircleIcon className="size-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <Input
+                              placeholder="Company name"
+                              value={job.company || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, company: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                            />
+                            <Input
+                              placeholder="Position/Job title"
+                              value={job.position || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, position: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                            />
+                            <Input
+                              placeholder="Start date (e.g., 2020-01)"
+                              value={job.start_date || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, start_date: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                            />
+                            <Input
+                              placeholder="End date (e.g., 2022-12 or 'Present')"
+                              value={job.end_date || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, end_date: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                            />
+                            <Input
+                              placeholder="Location (optional)"
+                              value={job.location || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, location: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                              className="md:col-span-2"
+                            />
+                            <Textarea
+                              placeholder="Job description/responsibilities"
+                              value={job.description || ""}
+                              onChange={(e) => {
+                                const newHistory = [...field.value];
+                                newHistory[index] = { ...job, description: e.target.value };
+                                field.onChange(newHistory);
+                              }}
+                              disabled={isPending}
+                              className="md:col-span-2"
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No work experience added yet. Click "Add Experience" to add one.</p>
+                    )}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        field.onChange([...field.value, { company: "", position: "", start_date: "", end_date: "", description: "", location: "" }]);
+                      }}
+                      disabled={isPending}
+                    >
+                      Add Experience
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Links</CardTitle>
+            <CardDescription>Add links to your publications, GitHub, portfolio, or other professional profiles</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="links"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="space-y-4">
+                    {field.value && field.value.length > 0 ? (
+                      field.value.map((link, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-medium">Link {index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newLinks = field.value.filter((_, i) => i !== index);
+                                field.onChange(newLinks);
+                              }}
+                              disabled={isPending}
+                            >
+                              <XCircleIcon className="size-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <Input
+                              placeholder="Label (e.g., GitHub, Publication, Portfolio)"
+                              value={link.label || ""}
+                              onChange={(e) => {
+                                const newLinks = [...field.value];
+                                newLinks[index] = { ...link, label: e.target.value };
+                                field.onChange(newLinks);
+                              }}
+                              disabled={isPending}
+                            />
+                            <Input
+                              placeholder="URL"
+                              value={link.url || ""}
+                              onChange={(e) => {
+                                const newLinks = [...field.value];
+                                newLinks[index] = { ...link, url: e.target.value };
+                                field.onChange(newLinks);
+                              }}
+                              disabled={isPending}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No links added yet. Click "Add Link" to add one.</p>
+                    )}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        field.onChange([...field.value, { label: "", url: "" }]);
+                      }}
+                      disabled={isPending}
+                    >
+                      Add Link
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 

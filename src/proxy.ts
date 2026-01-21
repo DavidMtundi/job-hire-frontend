@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
 import { authSession as proxy } from "~/lib/auth"; // import your NextAuth handler
+/**
+ * DEMO MODE (presentation): bypass auth + role-based route restrictions.
+ *
+ * Enable by setting environment variable:
+ * - DEMO_MODE=true   (recommended)
+ *
+ * This is intentionally opt-in so production deployments keep enforcing
+ * authentication + authorization by default.
+ */
+const isDemoModeEnabled = () => {
+  const v = process.env.DEMO_MODE || process.env.NEXT_PUBLIC_DEMO_MODE;
+  return typeof v === "string" && ["1", "true", "yes", "on"].includes(v.toLowerCase());
+};
 
 const adminRoutes = ["/admin"];
 const userRoutes = ["/user"];
 const authPages = ["/login", "/signup", "/verify-email"];
 const onboardingPage = "/onboarding";
-
 export default proxy(async (req) => {
   const { pathname } = req.nextUrl;
 
@@ -25,7 +37,7 @@ export default proxy(async (req) => {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (userRole !== "admin" && userRole !== "hr") {
+    if (userRole !== "admin" && userRole !== "hr" && userRole !== "manager") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
@@ -54,7 +66,7 @@ export default proxy(async (req) => {
   // AUTH PAGES
   if (authPages.includes(pathname) && isAuthenticated) {
     const redirectUrl =
-      userRole === "admin" || userRole === "hr"
+      userRole === "admin" || userRole === "hr" || userRole === "manager"
         ? "/admin/dashboard"
         : userRole === "candidate"
         ? "/user/dashboard"

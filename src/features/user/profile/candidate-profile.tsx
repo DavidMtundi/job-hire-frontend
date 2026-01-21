@@ -134,11 +134,14 @@ export const CandidateProfile = () => {
       stack: candidateProfile.stack || [],
       skills: candidateProfile.skills || [],
       linkedin_url: candidateProfile.linkedin_url || '',
+      portfolio_url: candidateProfile.portfolio_url || '',
       summary: candidateProfile.summary || '',
       expected_salary: candidateProfile.expected_salary || '',
       last_education: candidateProfile.last_education || '',
       joining_availability: candidateProfile.joining_availability || 'immediately',
       resume_url: candidateProfile.resume_url || '',
+      job_history: candidateProfile.job_history || [],
+      links: candidateProfile.links || [],
       metadata: candidateProfile.metadata || {},
     });
     setIsEditMode(true);

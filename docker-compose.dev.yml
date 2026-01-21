@@ -54,14 +54,16 @@ services:
       dockerfile: Dockerfile.dev
     container_name: job-hire-frontend-dev
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3001
       - NEXT_PUBLIC_BASE_API_URL=http://localhost:8002
       - BACKEND_URL=http://backend:8002
-      - AUTH_URL=http://localhost:3000
+      - AUTH_URL=http://localhost:3001
       - AUTH_SECRET=${AUTH_SECRET:-dev-auth-secret-change-in-production}
+      - DEMO_MODE=true
+      - NEXT_PUBLIC_DEMO_MODE=true
     volumes:
       # Mount source code for hot reload
       - .:/app

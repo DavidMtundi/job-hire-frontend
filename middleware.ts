@@ -2,8 +2,22 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+/**
+ * DEMO MODE (presentation): bypass auth + role-based route restrictions.
+ *
+ * Enable by setting environment variable:
+ * - DEMO_MODE=true   (recommended)
+ *
+ * This is intentionally opt-in so production deployments keep enforcing
+ * authentication + authorization by default.
+ */
+const isDemoModeEnabled = () => {
+  const v = process.env.DEMO_MODE || process.env.NEXT_PUBLIC_DEMO_MODE;
+  return typeof v === "string" && ["1", "true", "yes", "on"].includes(v.toLowerCase());
+};
+
 const roleBasedRoutes: Record<string, string[]> = {
-  "/admin": ["admin", "hr"],
+  "/admin": ["admin", "hr", "manager"], // Managers can also access admin routes
   "/manager": ["manager"],
   "/user": ["candidate"],
 };
@@ -27,6 +41,11 @@ const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // 🎭 Demo mode: allow *all* pages for presentation (no role checks, no auth redirects)
+  if (isDemoModeEnabled()) {
+    return NextResponse.next();
+  }
 
   const token = await getToken({
     req: request,

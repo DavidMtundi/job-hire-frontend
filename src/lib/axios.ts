@@ -5,6 +5,7 @@ import { siteConfig } from "~/config/site";
 import { publicEndpoints, protectedEndpoints } from "~/constants";
 import { ApiError } from "~/utils/api-utils";
 
+
 const API_CONFIG = {
   timeout: 30000, // Increased timeout
   retryAttempts: 3,
@@ -86,24 +87,20 @@ const apiClient = Axios.create({
 // Helper: get access token depending on environment
 // CRITICAL: This function MUST reliably retrieve the access token from the NextAuth session
 const getAccessToken = async (retryCount: number = 0): Promise<string | null> => {
-  debugger; // BREAKPOINT 31: Token retrieval function entry
   const maxRetries = 2;
   
   try {
     if (typeof window === "undefined") {
-      debugger; // BREAKPOINT 32: Server-side token retrieval
       // server-side
       const session = await authSession();
       return session?.tokens?.accessToken ?? null;
     } else {
-      debugger; // BREAKPOINT 33: Client-side token retrieval
       // client-side - Use getSession from next-auth/react (more reliable than fetch)
       try {
         // Force a fresh session fetch if retrying
         // Note: getSession doesn't accept options in newer versions of next-auth
         const session = await getSession();
         
-        debugger; // BREAKPOINT 34: Session retrieved, inspect session object
         // Debug logging to help diagnose "Not Authenticated" errors
         if (process.env.NODE_ENV === "development") {
           console.log(`[getAccessToken] Session data (attempt ${retryCount + 1}):`, {
@@ -125,9 +122,7 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
         
         const token = session?.tokens?.accessToken ?? null;
         
-        debugger; // BREAKPOINT 35: Token extracted from session
         if (!token) {
-          debugger; // BREAKPOINT 36: No token found - investigate why
           console.error(`[getAccessToken] No access token found in session (attempt ${retryCount + 1})!`, {
             sessionKeys: session ? Object.keys(session) : [],
             tokens: session?.tokens,
@@ -260,7 +255,6 @@ apiClient.interceptors.request.use(
           ? config.headers.Authorization.substring(0, 50) + "..." 
           : "NONE",
       });
-      debugger; // BREAKPOINT 22: Axios request interceptor for AI endpoint
     }
     
     // Helper function to check if URL matches endpoint pattern
@@ -346,7 +340,6 @@ apiClient.interceptors.request.use(
       
       if (config.url?.includes("/jobs/ai-generate")) {
         console.log("[Axios Interceptor] 🔑 Starting token retrieval for AI endpoint...");
-        debugger; // BREAKPOINT 23: Before token retrieval for AI endpoint
       }
       
       // Call getAccessToken which has its own internal retry logic
@@ -356,7 +349,6 @@ apiClient.interceptors.request.use(
       const tokenRetrievalDuration = Date.now() - tokenStartTime;
       
       if (config.url?.includes("/jobs/ai-generate")) {
-        debugger; // BREAKPOINT 24: After token retrieval for AI endpoint
         console.log("[Axios Interceptor] 🔑 Token retrieval completed");
         console.log("[Axios Interceptor] Token retrieval duration:", tokenRetrievalDuration, "ms");
         console.log("[Axios Interceptor] Token retrieval result:", {
@@ -392,7 +384,6 @@ apiClient.interceptors.request.use(
         }
         
         if (config.url?.includes("/jobs/ai-generate")) {
-          debugger; // BREAKPOINT 25: Token attached successfully
           console.log("[Axios Interceptor] ✅ TOKEN ATTACHED TO REQUEST");
           console.log("[Axios Interceptor] Authorization header details:", {
             headerExists: !!config.headers.Authorization,
@@ -426,7 +417,6 @@ apiClient.interceptors.request.use(
         }
         
         if (config.url?.includes("/jobs/ai-generate")) {
-          debugger; // BREAKPOINT 26: No token available for AI endpoint - CRITICAL
           console.error("[Axios Interceptor] ❌ CRITICAL: NO TOKEN AVAILABLE for AI endpoint after all retries!");
           console.error("[Axios Interceptor] This will cause a 401 Unauthorized error. Check:");
           console.error("  1. Is user logged in?");
@@ -490,7 +480,6 @@ apiClient.interceptors.request.use(
     
     // Final verification: For authenticated endpoints, ensure Authorization header exists
     if (!isPublicEndpoint && config.url?.includes("/jobs/ai-generate")) {
-      debugger; // BREAKPOINT 27: Request config finalized, ready to send
       const hasAuthHeader = !!(config.headers.Authorization || config.headers.get?.('Authorization'));
       console.log("[Axios Interceptor] Final request config verification:", {
         url: config.url,
@@ -514,7 +503,6 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     if (error?.config?.url?.includes("/jobs/ai-generate")) {
-      debugger; // BREAKPOINT 28: Request interceptor error
     }
     console.error("[API Request] Request interceptor error:", error);
     return Promise.reject(error);
@@ -541,7 +529,6 @@ apiClient.interceptors.response.use(
         hasData: !!res.data,
         dataPreview: res.data ? JSON.stringify(res.data).substring(0, 300) + "..." : "NONE",
       });
-      debugger; // BREAKPOINT 29: Successful response from AI endpoint
       console.log("[Axios Response Interceptor] Full response data:", JSON.stringify(res.data, null, 2));
       console.log("========================================");
     }
@@ -550,7 +537,6 @@ apiClient.interceptors.response.use(
   (error) => {
     // Add breakpoint for AI job generation errors
     if (error?.config?.url?.includes("/jobs/ai-generate")) {
-      debugger; // BREAKPOINT 30: Error response from AI endpoint
       console.error("[Axios Response] ❌ AI job generation error:", {
         status: error?.response?.status,
         statusText: error?.response?.statusText,
@@ -750,82 +736,11 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 401 Unauthorized - redirect to login
-    // CRITICAL: Only redirect for actual 401 errors, not for requests we prevented
-    if (status === 401 && typeof window !== "undefined") {
-      // Don't redirect if already on login page to avoid redirect loop
-      const currentPath = window.location.pathname;
-      
-      // Check if this was a request we prevented (shouldn't happen, but safety check)
-      const wasPrevented = error?.isAuthError === true || error?.code === "AUTH_REQUIRED";
-      
-      if (wasPrevented) {
-        // This shouldn't reach here, but if it does, don't redirect
-        console.warn("[401 Handler] Request was prevented but still reached error handler");
-        return Promise.reject(new ApiError(message || "Authentication required", 401));
-      }
-      
-      if (!currentPath.includes("/login")) {
-        // Log detailed information before redirecting (in development)
-        if (process.env.NODE_ENV === "development") {
-          console.error("[401 Redirect] Unauthorized request - redirecting to login", {
-            url: error?.config?.url,
-            method: error?.config?.method,
-            currentPath,
-            hasAuthHeader: !!error?.config?.headers?.Authorization,
-            authHeaderPreview: error?.config?.headers?.Authorization && typeof error.config.headers.Authorization === 'string'
-              ? error.config.headers.Authorization.substring(0, 30) + "..."
-              : "N/A",
-            authHeaderFull: error?.config?.headers?.Authorization ? "Present" : "MISSING",
-            responseMessage: message,
-            responseData: data,
-            statusCode: status,
-          });
-        }
-        
-        // For AI job generation endpoint, add more context
-        if (error?.config?.url?.includes("/jobs/ai-generate")) {
-          debugger; // BREAKPOINT 30: 401 error for AI endpoint - redirecting
-          console.error("[401 Redirect] AI Job Generation failed with 401:", {
-            requestUrl: error?.config?.url,
-            requestMethod: error?.config?.method,
-            requestHeaders: error?.config?.headers ? Object.keys(error?.config?.headers) : [],
-            authHeaderPresent: !!error?.config?.headers?.Authorization,
-            authHeaderValue: error?.config?.headers?.Authorization || "MISSING",
-            responseStatus: status,
-            responseMessage: message,
-            responseData: data,
-          });
-        }
-        
-        // Log ALL 401 redirects with full context
-        console.error("========================================");
-        console.error("[401 Redirect] 🔒 UNAUTHORIZED - Redirecting to login");
-        console.error("[401 Redirect] Failed request details:", {
-          url: error?.config?.url,
-          method: error?.config?.method,
-          baseURL: error?.config?.baseURL,
-          fullUrl: `${error?.config?.baseURL || ''}${error?.config?.url}`,
-          hasAuthHeader: !!error?.config?.headers?.Authorization,
-          authHeaderPreview: error?.config?.headers?.Authorization && typeof error.config.headers.Authorization === 'string'
-            ? error.config.headers.Authorization.substring(0, 50)
-            : "MISSING",
-          requestData: error?.config?.data,
-          currentPath: window.location.pathname,
-          responseStatus: status,
-          responseMessage: message,
-          responseData: data,
-          timestamp: new Date().toISOString(),
-        });
-        console.error("[401 Redirect] This redirect is happening because of the above failed request");
-        console.error("========================================");
-        
-        // Small delay to allow error toast to show before redirect
-        setTimeout(() => {
-          console.error("[401 Redirect] Executing redirect to /login now...");
-          window.location.href = "/login";
-        }, 100);
-      }
+    // Handle 401 Unauthorized
+    // IMPORTANT: Do NOT hard-redirect to /login here.
+    // A single failing API call (expired token, temporary backend issues, CORS, etc.)
+    // should not bounce the user away from the page they are viewing.
+    if (status === 401) {
       return Promise.reject(new ApiError(message || "Unauthorized - please login again", 401));
     }
 

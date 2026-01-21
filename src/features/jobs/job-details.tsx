@@ -32,7 +32,7 @@ interface JobDetailsScreenProps {
 }
 
 export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const router = useRouter();
 
@@ -41,7 +41,10 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
   // console.log("job details", job);
 
   const handleApply = () => {
-    if (!session?.isAuthenticated) {
+    // Don't force-login redirect while session is still being resolved.
+    if (status === "loading") return;
+
+    if (status === "unauthenticated" || !session?.user) {
       toast.error("Please login to apply for this job");
       router.push(`/login?redirect=/jobs/${jobId}`);
     } else {

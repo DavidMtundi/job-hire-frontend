@@ -40,14 +40,17 @@ export const ApplyJobModal = ({ job, triggerLabel = "Apply", trigger }: ApplyJob
   const [loading, setLoading] = useState(false)
   const [selectedResumeFile, setSelectedResumeFile] = useState<File | null>(null)
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   const { data: userProfile } = useGetAuthUserProfileQuery();
   const userId = userProfile?.data?.id;
   const hasResume = !!userProfile?.data?.candidate_profile?.resume_url;
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && !session?.isAuthenticated) {
+    // Don't redirect while session is still loading; wait for a real unauthenticated state.
+    if (newOpen && status === "loading") return;
+
+    if (newOpen && (status === "unauthenticated" || !session?.user)) {
       toast.error("Please login to apply for this job");
       router.push(`/login?redirect=/jobs/${job.id}`);
       return;

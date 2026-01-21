@@ -75,7 +75,8 @@ export default function CandidatesScreen() {
   });
 
   const { data, isLoading, isError } = useGetCandidatesQuery();
-  const candidatesData = data?.data ?? [];
+  // Backend now returns paginated response: { items: [], total_count: ..., page: ..., page_size: ... }
+  const candidatesData = data?.data?.items ?? [];
 
   const filteredCandidates = candidatesData.filter((candidate) => {
     const search = filters.search?.trim()?.toLowerCase();

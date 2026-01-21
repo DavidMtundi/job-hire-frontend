@@ -23,11 +23,14 @@ export default function Apply() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const params = useParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!session?.isAuthenticated) {
+    // Wait for NextAuth to resolve session state; don't redirect while loading.
+    if (status === "loading") return;
+
+    // Redirect only when we are sure user is unauthenticated.
+    if (status === "unauthenticated" || !session?.user) {
       toast.error("Please login to apply for this job");
       router.push(`/login?redirect=/apply/${params.id}`);
       return;
@@ -55,7 +58,7 @@ export default function Apply() {
           );
       } catch {}
     }
-  }, [session, router, params.id]);
+  }, [session, status, router, params.id]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -21,7 +21,7 @@ import { useOnboardingStore } from "~/hooks/use-onboarding-store";
 export const CreateCandidateForm = () => {
   const { resumeData, clearResume, clearResumeData } = useOnboardingStore();
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
 
   // console.log("resumeData", resumeData);
 
@@ -51,6 +51,14 @@ export const CreateCandidateForm = () => {
 
   const onSubmit = async (values: TCreateCandidate) => {
     // return console.log("values", values);
+
+    // Avoid false redirects while session is still loading.
+    if (status === "loading") return;
+    if (status === "unauthenticated" || !session?.user?.id) {
+      toast.error("Session expired. Please login again.");
+      router.push("/login");
+      return;
+    }
 
     createCandidate(values, {
       onSuccess: async () => {

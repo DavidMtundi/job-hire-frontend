@@ -15,8 +15,8 @@ export const useGetCandidatesQuery = (filters: IGetCandidatesParams = {}) => {
     queryFn: async () => {
       const response = await apiClient.get<ICandidatesResponse>("/candidates/", {
         params: {
-          // skip: filters.skip ?? 0,
-          // limit: filters.limit ?? 10,
+          page: 1,
+          page_size: 100, // Get all candidates for now (frontend handles filtering)
           ...(filters.search ? { search: filters.search } : {}),
         },
       });

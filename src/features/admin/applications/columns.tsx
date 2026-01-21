@@ -133,7 +133,7 @@ export const columns: ColumnDef<TApplication>[] = [
   
   {
     accessorKey: "score",
-    header: "Score",
+    header: "Match %",
     cell: ({ row }) => {
       const score = row.original.score;
       const matchLevel = row.original.match_level;
@@ -141,7 +141,7 @@ export const columns: ColumnDef<TApplication>[] = [
         <div className="font-medium text-gray-600">
           <p>
             {typeof score === "number"
-              ? `${Math.floor(score ?? 0)}`
+              ? `${Math.floor(score ?? 0)}%`
               : "N/A"}
           </p>
           <p className="text-xs text-gray-500">

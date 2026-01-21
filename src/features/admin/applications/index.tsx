@@ -44,6 +44,7 @@ interface ApplicationsFilters {
 export default function Applications() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortByAiMatch, setSortByAiMatch] = useState(false);
   const [filters, setFilters] = useState<ApplicationsFilters>({
     search: "",
     stage: "all",
@@ -207,6 +208,12 @@ export default function Applications() {
     return matchesDepartment && matchesPriority;
   });
 
+  // AI match score (score + match_level) is computed server-side on the application record.
+  // This toggle simply sorts candidates so HR can review best matches first.
+  const displayedApplications = sortByAiMatch
+    ? [...filteredApplications].sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0))
+    : filteredApplications;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -259,6 +266,16 @@ export default function Applications() {
                 />
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={sortByAiMatch ? "default" : "outline"}
+                onClick={() => setSortByAiMatch((v) => !v)}
+                title="Sort applications by AI match score (highest first)"
+              >
+                AI Match {sortByAiMatch ? "On" : "Off"}
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-4 ">
               <FilterGroup filters={filterConfigs} />
             </div>
@@ -280,7 +297,7 @@ export default function Applications() {
         <div className="space-y-4">
           <DataTableWithBulkActions 
             columns={columns} 
-            data={filteredApplications} 
+            data={displayedApplications} 
           />
           {pagination && (
             <DataTablePagination

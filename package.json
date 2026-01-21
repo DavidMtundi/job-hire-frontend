@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
+    "dev:demo": "DEMO_MODE=true NEXT_PUBLIC_DEMO_MODE=true next dev -p 3001",
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "node scripts/start-backend.js",
-    "dev:frontend": "next dev",
+    "dev:frontend": "next dev -p 3001",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"

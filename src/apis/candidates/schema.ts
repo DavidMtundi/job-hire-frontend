@@ -18,6 +18,7 @@ export const CandidateSchema = z.object({
     .min(1, "At least one required skill is required"),
 
   linkedin_url: z.string().optional(),
+  portfolio_url: z.string().url("Invalid URL").optional().or(z.literal("")),
   summary: z.string().optional(),
   expected_salary: z.string().optional(),
   last_education: z.string().optional(),
@@ -29,6 +30,18 @@ export const CandidateSchema = z.object({
     "more than 1 month",
   ]),
   resume_url: z.string().nonempty({ message: "Resume URL is required" }),
+  job_history: z.array(z.object({
+    company: z.string(),
+    position: z.string(),
+    start_date: z.string(),
+    end_date: z.string().optional(),
+    description: z.string().optional(),
+    location: z.string().optional(),
+  })).optional(),
+  links: z.array(z.object({
+    label: z.string(),
+    url: z.string().url("Invalid URL"),
+  })).optional(),
   metadata: z.record(z.string(), z.any()).optional(),
   user_id: z.string().optional(),
   user_email: z.string().optional(),

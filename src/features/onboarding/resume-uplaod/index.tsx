@@ -114,6 +114,11 @@ export default function ResumeUploadScreen() {
               : yearsExpRaw)
           : 0;
 
+        // Extract job_history and links from raw extraction or candidate data
+        const jobHistory = rawExtraction?.job_history || rawExtraction?.jobHistory || (candidateData as any).job_history || [];
+        const links = rawExtraction?.links || (candidateData as any).links || [];
+        const portfolioUrl = getFieldValue("portfolio_url", "portfolioUrl") || "";
+
         const resumeDataFromCandidate = {
           first_name: getFieldValue("first_name") || "",
           last_name: getFieldValue("last_name") || "",
@@ -130,6 +135,9 @@ export default function ResumeUploadScreen() {
             : [],
           // CRITICAL: Check raw_extraction for these fields as they might not be in the main table
           linkedin_url: getFieldValue("linkedin_url", "linkedinUrl") || "",
+          portfolio_url: portfolioUrl,
+          job_history: Array.isArray(jobHistory) ? jobHistory : [],
+          links: Array.isArray(links) ? links : [],
           summary: getFieldValue("summary") || "",
           last_education: getFieldValue("last_education") || "",
           expected_salary: getFieldValue("expected_salary", "expectationSalary") || "",
