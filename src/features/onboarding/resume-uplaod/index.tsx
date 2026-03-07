@@ -3,7 +3,7 @@
 import { EyeIcon, FileText, UploadIcon, XIcon, CheckCircle2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -19,11 +19,16 @@ export default function ResumeUploadScreen() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const userId = session?.user?.id;
 
   // Check if user already has a resume uploaded - use user profile first (more efficient)
-  const { data: userProfile, isLoading: isLoadingUserProfile } = useGetAuthUserProfileQuery();
+  // Only fetch if session is loaded and user is authenticated
+  const { 
+    data: userProfile, 
+    isLoading: isLoadingUserProfile,
+    error: userProfileError 
+  } = useGetAuthUserProfileQuery();
   const { 
     data: existingCandidate, 
     isLoading: isLoadingCandidate,
@@ -35,6 +40,86 @@ export default function ResumeUploadScreen() {
   const existingResumeUrl = userProfile?.data?.candidate_profile?.resume_url || existingCandidate?.data?.resume_url;
   const hasExistingResume = !!existingResumeUrl;
   const isLoading = isLoadingUserProfile || isLoadingCandidate;
+
+  // Load resume data from backend on mount/refresh if not already in store
+  // Use a ref to track the last candidate ID we loaded to prevent infinite loops
+  const lastLoadedCandidateIdRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    // Early returns to prevent unnecessary processing
+    if (!userId || isLoading || !existingCandidate?.data) return;
+    
+    const candidateId = existingCandidate.data.id;
+    const candidateData = existingCandidate.data;
+    
+    // Only load if:
+    // 1. We haven't loaded for this candidate yet, OR
+    // 2. The candidate data has changed (different ID)
+    // 3. AND resumeData doesn't already have a resume_url (to avoid overwriting fresh uploads)
+    const hasLoadedForThisCandidate = lastLoadedCandidateIdRef.current === candidateId;
+    const shouldLoad = !hasLoadedForThisCandidate && (!resumeData || !resumeData.resume_url);
+    
+    if (!shouldLoad) return;
+    
+    // Extract raw extraction data from metadata if available
+    const metadata = candidateData.metadata as any;
+    const rawExtraction = metadata?.raw_extraction || null;
+    
+    // Helper function to safely extract field values
+    const getFieldValue = (fieldName: string, camelCaseField?: string): any => {
+      if (rawExtraction?.[fieldName]) return rawExtraction[fieldName];
+      if (camelCaseField && rawExtraction?.[camelCaseField]) return rawExtraction[camelCaseField];
+      const candidateValue = (candidateData as any)[fieldName];
+      if (candidateValue) return candidateValue;
+      return "";
+    };
+
+    const yearsExpRaw = rawExtraction?.years_experience ?? candidateData.years_experience;
+    const parsedYearsExperience = yearsExpRaw
+      ? (typeof yearsExpRaw === 'string' 
+          ? parseFloat(yearsExpRaw) || 0 
+          : yearsExpRaw)
+      : 0;
+
+    // Extract job_history and links from raw extraction or candidate data
+    const jobHistory = rawExtraction?.job_history || rawExtraction?.jobHistory || (candidateData as any).job_history || [];
+    const links = rawExtraction?.links || (candidateData as any).links || [];
+    const portfolioUrl = getFieldValue("portfolio_url", "portfolioUrl") || "";
+
+    const resumeDataFromCandidate = {
+      first_name: getFieldValue("first_name") || "",
+      last_name: getFieldValue("last_name") || "",
+      email: getFieldValue("email") || session?.user?.email || "",
+      phone: getFieldValue("phone") || "",
+      address: getFieldValue("address") || "",
+      current_position: getFieldValue("current_position") || getFieldValue("currentRole") || "",
+      years_experience: parsedYearsExperience,
+      stack: Array.isArray(rawExtraction?.stack || candidateData.stack) 
+        ? (rawExtraction?.stack || candidateData.stack) 
+        : [],
+      skills: Array.isArray(rawExtraction?.skills || candidateData.skills) 
+        ? (rawExtraction?.skills || candidateData.skills) 
+        : [],
+      linkedin_url: getFieldValue("linkedin_url", "linkedinUrl") || "",
+      portfolio_url: portfolioUrl,
+      job_history: Array.isArray(jobHistory) ? jobHistory : [],
+      links: Array.isArray(links) ? links : [],
+      summary: getFieldValue("summary") || "",
+      last_education: getFieldValue("last_education") || "",
+      expected_salary: getFieldValue("expected_salary", "expectationSalary") || "",
+      joining_availability: getFieldValue("joining_availability", "availability") || candidateData.joining_availability || "1 month",
+      resume_url: existingResumeUrl || "",
+    };
+
+    console.log("[ResumeUpload] Loading resume data from backend on mount/refresh:", {
+      hasResumeUrl: !!existingResumeUrl,
+      jobHistoryCount: Array.isArray(jobHistory) ? jobHistory.length : 0,
+      jobHistory: jobHistory,
+    });
+
+    setResumeData(resumeDataFromCandidate);
+    lastLoadedCandidateIdRef.current = candidateId;
+  }, [userId, isLoading, existingCandidate?.data?.id, existingResumeUrl, session?.user?.email, setResumeData]);
   
   // Extract resume filename from URL if available
   const getResumeFileName = (url: string) => {
@@ -76,7 +161,12 @@ export default function ResumeUploadScreen() {
   };
 
   const handleContinue = async () => {
+    if (sessionStatus === "loading") {
+      return; // Wait for session to load
+    }
+    
     if (!session?.user?.id) {
+      router.push("/login");
       return toast.error("Please login to continue");
     }
 
@@ -184,7 +274,27 @@ export default function ResumeUploadScreen() {
 
       uploadResume({ userId: session?.user?.id, file: resume }, {
         onSuccess: (data) => {
-          setResumeData(data.data);
+          console.log("[ResumeUpload] Upload response received:", {
+            success: data?.success,
+            hasData: !!data?.data,
+            dataKeys: data?.data ? Object.keys(data.data) : [],
+            jobHistory: data?.data?.job_history,
+            jobHistoryLength: Array.isArray(data?.data?.job_history) ? data.data.job_history.length : 0,
+          });
+          
+          // Ensure job_history is included in the resume data
+          const resumeDataWithJobHistory = {
+            ...data.data,
+            job_history: data?.data?.job_history || data?.data?.jobHistory || [],
+          };
+          
+          console.log("[ResumeUpload] Setting resume data with job_history:", {
+            hasJobHistory: !!resumeDataWithJobHistory.job_history,
+            jobHistoryLength: Array.isArray(resumeDataWithJobHistory.job_history) ? resumeDataWithJobHistory.job_history.length : 0,
+            jobHistory: resumeDataWithJobHistory.job_history,
+          });
+          
+          setResumeData(resumeDataWithJobHistory);
           toast.success("Resume Uploaded Successfully");
           // Refetch to update the existing candidate data
           refetchCandidate();
@@ -222,9 +332,9 @@ export default function ResumeUploadScreen() {
           <CardContent>
             <div className="space-y-6">
               {/* Loading state */}
-              {isLoading && (
+              {(isLoading || sessionStatus === "loading") && (
                 <div className="text-center py-4 text-gray-500">
-                  Checking for existing resume...
+                  {sessionStatus === "loading" ? "Loading session..." : "Checking for existing resume..."}
                 </div>
               )}
 
@@ -310,9 +420,14 @@ export default function ResumeUploadScreen() {
               )}
 
               {/* Show error if fetch failed (only for actual errors, not 404/not found) */}
-              {!isLoading && candidateError && candidateError.message !== "Candidate not found" && !hasExistingResume && (
-                <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 text-sm text-yellow-800">
-                  Could not check for existing resume. Please try refreshing the page.
+              {!isLoading && (candidateError || userProfileError) && 
+               candidateError?.message !== "Candidate not found" && 
+               !hasExistingResume && (
+                <div className="border border-red-200 bg-red-50 rounded-lg p-4 text-sm text-red-800">
+                  <p className="font-semibold mb-1">Error loading resume data</p>
+                  <p className="text-xs">
+                    {candidateError?.message || userProfileError?.message || "Could not check for existing resume. Please try refreshing the page or logging in again."}
+                  </p>
                 </div>
               )}
 

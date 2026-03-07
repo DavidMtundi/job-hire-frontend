@@ -3,7 +3,8 @@
 import { Check, DownloadIcon, EditIcon, ExternalLinkIcon, EyeIcon, FileText, MailIcon, MapPinIcon, PhoneIcon, TriangleAlertIcon, UploadIcon, XIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import { toast } from 'sonner';
 import { FaCircleCheck, FaLinkedin } from "react-icons/fa6";
 import { useGetAuthUserProfileQuery } from '~/apis/auth/queries';
@@ -100,6 +101,21 @@ export const CandidateProfile = () => {
   const { mutate: updateCandidate, isPending: isUpdating } = useUpdateCandidateMutation();
 
   const [formData, setFormData] = useState<Partial<TUpdateCandidate>>({});
+
+  // Debug logging
+  useEffect(() => {
+    if (userProfile) {
+      console.log("[CandidateProfile] User profile data:", userProfile);
+      console.log("[CandidateProfile] Candidate profile:", userProfile?.data?.candidate_profile);
+      console.log("[CandidateProfile] Phone:", userProfile?.data?.candidate_profile?.phone);
+      console.log("[CandidateProfile] LinkedIn:", userProfile?.data?.candidate_profile?.linkedin_url);
+      console.log("[CandidateProfile] Resume URL:", userProfile?.data?.candidate_profile?.resume_url);
+      console.log("[CandidateProfile] Last Education:", userProfile?.data?.candidate_profile?.last_education);
+      console.log("[CandidateProfile] Skills:", userProfile?.data?.candidate_profile?.skills);
+      console.log("[CandidateProfile] Job History:", userProfile?.data?.candidate_profile?.job_history);
+      console.log("[CandidateProfile] Links:", userProfile?.data?.candidate_profile?.links);
+    }
+  }, [userProfile]);
 
   if (isLoading) return <Spinner className="size-6" />
   if (isError) return (
@@ -343,7 +359,7 @@ export const CandidateProfile = () => {
                       placeholder="Phone"
                     />
                   ) : (
-                    <p>{candidateProfile.phone}</p>
+                    <p>{candidateProfile.phone || 'Not provided'}</p>
                   )}
                 </div>
                 <div className='space-y-1'>
@@ -368,7 +384,7 @@ export const CandidateProfile = () => {
                     placeholder="LinkedIn URL"
                   />
                 ) : (
-                  candidateProfile.linkedin_url ? (
+                  candidateProfile.linkedin_url && candidateProfile.linkedin_url.trim() !== '' ? (
                     <Button variant='link' size='xs' asChild className='bg-gray-100'>
                       <Link href={candidateProfile.linkedin_url} target='_blank' rel='noopener noreferrer'>
                         <FaLinkedin className='size-3.5' /> LinkedIn <ExternalLinkIcon className='size-3.5' />
@@ -391,6 +407,9 @@ export const CandidateProfile = () => {
                   </div>
                 ) : (
                   <span className='text-sm text-gray-700'>No resume uploaded</span>
+                )}
+                {resumeUrl && resumeUrl.trim() !== '' && (
+                  <p className='text-xs text-gray-500 mt-1'>Resume URL: {resumeUrl}</p>
                 )}
               </div>
               <div className='space-y-2'>
@@ -447,7 +466,7 @@ export const CandidateProfile = () => {
                       className="w-full"
                     />
                   ) : (
-                    <p className='text-gray-900 break-words'>{candidateProfile.last_education}</p>
+                    <p className='text-gray-900 break-words'>{candidateProfile.last_education || 'Not provided'}</p>
                   )}
                 </div>
                 <div className='flex gap-2 flex-shrink-0'>
@@ -525,6 +544,39 @@ export const CandidateProfile = () => {
                       />
                     ) : (
                       <p className='text-gray-900'>{candidateProfile.years_experience} years</p>
+                    )}
+                  </div>
+                  <div className='space-y-2'>
+                    <Label>Work History</Label>
+                    {candidateProfile.job_history && candidateProfile.job_history.length > 0 ? (
+                      <div className='space-y-4'>
+                        {candidateProfile.job_history.map((job: any, index: number) => (
+                          <Card key={index} className='p-4'>
+                            <div className='space-y-2'>
+                              <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2'>
+                                <div className='flex-1'>
+                                  <h4 className='font-semibold text-gray-900'>{job.position || 'N/A'}</h4>
+                                  <p className='text-sm text-gray-600'>{job.company || 'N/A'}</p>
+                                </div>
+                                <div className='text-sm text-gray-500'>
+                                  {job.start_date || 'N/A'} - {job.end_date || 'Present'}
+                                </div>
+                              </div>
+                              {job.location && (
+                                <p className='text-sm text-gray-600 flex items-center gap-1'>
+                                  <MapPinIcon className='h-3 w-3' />
+                                  {job.location}
+                                </p>
+                              )}
+                              {job.description && (
+                                <p className='text-sm text-gray-700 mt-2'>{job.description}</p>
+                              )}
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className='text-sm text-gray-500'>No work history available</p>
                     )}
                   </div>
                 </div>
@@ -707,6 +759,49 @@ export const CandidateProfile = () => {
                       />
                     ) : (
                       <p className='text-gray-900 break-words'>{candidateProfile.joining_availability || 'Not specified'}</p>
+                    )}
+                  </div>
+                  <div className='space-y-1'>
+                    <Label>Portfolio URL</Label>
+                    {isEditMode ? (
+                      <Input
+                        value={formData.portfolio_url || ''}
+                        onChange={(e) => handleInputChange('portfolio_url', e.target.value)}
+                        placeholder="Portfolio URL"
+                        className="w-full"
+                      />
+                    ) : (
+                      candidateProfile.portfolio_url && candidateProfile.portfolio_url.trim() !== '' ? (
+                        <Button variant='link' size='xs' asChild className='bg-gray-100'>
+                          <Link href={candidateProfile.portfolio_url} target='_blank' rel='noopener noreferrer'>
+                            <ExternalLinkIcon className='size-3.5' /> Portfolio <ExternalLinkIcon className='size-3.5' />
+                          </Link>
+                        </Button>
+                      ) : (
+                        <p className='text-gray-900 text-sm'>Not provided</p>
+                      )
+                    )}
+                  </div>
+                  <div className='space-y-2'>
+                    <Label>Links</Label>
+                    {candidateProfile.links && Array.isArray(candidateProfile.links) && candidateProfile.links.length > 0 ? (
+                      <div className='space-y-2'>
+                        {candidateProfile.links.map((link: any, index: number) => (
+                          <div key={index} className='flex items-center gap-2'>
+                            {link.url ? (
+                              <Button variant='link' size='xs' asChild className='bg-gray-100'>
+                                <Link href={link.url} target='_blank' rel='noopener noreferrer'>
+                                  {link.type || 'Link'} <ExternalLinkIcon className='size-3.5' />
+                                </Link>
+                              </Button>
+                            ) : (
+                              <span className='text-sm text-gray-700'>{link.type || 'Link'}: Not available</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className='text-sm text-gray-500'>No links provided</p>
                     )}
                   </div>
                 </div>

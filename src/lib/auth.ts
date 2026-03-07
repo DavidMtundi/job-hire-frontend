@@ -45,12 +45,20 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
         };
 
         try {
+          console.log("[AUTH] Attempting login for:", payload.email);
           const response = await credentialLogin(payload);
-          console.log("API Response:", JSON.stringify(response, null, 2));
+          console.log("[AUTH] API Response received:", {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataKeys: response?.data ? Object.keys(response.data) : [],
+            message: response?.message
+          });
+          console.log("[AUTH] Full API Response:", JSON.stringify(response, null, 2));
 
           if (!response || !response.success) {
-            console.error("Login failed:", response?.message || "No response from server");
-            throw new Error(response?.message || "Invalid credentials");
+            const errorMessage = response?.message || response?.data?.message || "Invalid email or password";
+            console.error("Login failed:", errorMessage);
+            throw new Error(errorMessage);
           }
 
           // The response.data contains the actual login data (access_token, refresh_token, user)
@@ -86,20 +94,66 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
             },
           };
         } catch (error: any) {
-          console.error("Error in authorize:", error);
-          console.error("Error details:", {
+          console.error("[AUTH] Error in authorize callback:", error);
+          console.error("[AUTH] Error type:", error?.constructor?.name);
+          console.error("[AUTH] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+          console.error("[AUTH] Error details:", {
             message: error?.message,
             response: error?.response?.data,
-            stack: error?.stack
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data,
+            code: error?.code,
+            name: error?.name,
+            stack: error?.stack,
+            // Check for ApiError properties
+            isApiError: error?.isApiError,
+            statusCode: error?.statusCode,
           });
-          throw error;
+          
+          // Extract the actual error message from the response
+          let errorMessage = "Invalid email or password";
+          
+          // Check ApiError format first (has status_code property)
+          if (error?.status_code === 401 || error?.statusCode === 401) {
+            errorMessage = "Invalid email or password";
+            console.error("[AUTH] Detected 401/Unauthorized error (status_code:", error?.status_code || error?.statusCode, ")");
+          } else if (error?.response?.status === 401) {
+            errorMessage = "Invalid email or password";
+            console.error("[AUTH] 401 status code detected in response");
+          } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+            console.error("[AUTH] Error message from response.data.message:", errorMessage);
+          } else if (error?.response?.data?.detail) {
+            errorMessage = error.response.data.detail;
+            console.error("[AUTH] Error message from response.data.detail:", errorMessage);
+          } else if (error?.message && error.message !== "Error" && error.message.trim() !== "") {
+            errorMessage = error.message;
+            console.error("[AUTH] Error message from error.message:", errorMessage);
+          } else {
+            // Last resort - check if it's a network error
+            if (error?.code === "ERR_NETWORK" || error?.message?.includes("Network")) {
+              errorMessage = "Network error - please check your connection";
+            } else if (error?.code === "ECONNABORTED" || error?.message?.includes("timeout")) {
+              errorMessage = "Request timeout - please try again";
+            } else {
+              errorMessage = "Login failed - please try again";
+            }
+            console.error("[AUTH] Using fallback error message:", errorMessage);
+          }
+          
+          console.error("[AUTH] Final error message:", errorMessage);
+          throw new Error(errorMessage);
         }
       },
         async (e: any) => {
-          console.error("Auth error caught:", e);
-          console.error("Error message:", e?.message);
-          console.error("Error stack:", e?.stack);
-          const errorMessage = e?.message || e?.toString() || "Invalid credentials";
+          console.error("[AUTH] GraceHandler error callback triggered");
+          console.error("[AUTH] Error caught:", e);
+          console.error("[AUTH] Error type:", e?.constructor?.name);
+          console.error("[AUTH] Error message:", e?.message);
+          console.error("[AUTH] Error stack:", e?.stack);
+          const errorMessage = e?.message || e?.toString() || "Invalid email or password";
+          console.error("[AUTH] Throwing CredentialsSignin with message:", errorMessage);
           throw new CredentialsSignin(errorMessage);
         },
       ),
@@ -136,19 +190,55 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
 
       // Handle session update trigger
       if (trigger === "update" && session) {
-        // Merge the updated session data
+        // Merge the updated session data - prioritize session data over existing token data
+        // Only store essential fields to avoid cookie size issues
         if (session.user) {
-          token.user = { ...(token.user || {}), ...session.user } as IUser;
+          // Only update essential fields, exclude large nested objects
+          token.user = { 
+            ...(token.user || {}),
+            // Only include essential fields
+            id: session.user.id || token.user?.id,
+            email: session.user.email || token.user?.email,
+            username: session.user.username || token.user?.username,
+            role: session.user.role || token.user?.role,
+            is_active: session.user.is_active ?? token.user?.is_active,
+            is_email_verified: session.user.is_email_verified ?? token.user?.is_email_verified,
+            is_profile_complete: session.user.is_profile_complete ?? token.user?.is_profile_complete,
+            // Explicitly exclude candidate_profile and other large objects
+          } as IUser;
+          
+          if (process.env.NODE_ENV === "development") {
+            console.log("[JWT Callback] Updated token.user with essential fields only:", {
+              is_profile_complete: session.user.is_profile_complete,
+              email: session.user.email,
+              previous_is_profile_complete: token.user?.is_profile_complete
+            });
+          }
         }
         if (session.tokens) {
           token.tokens = { ...(token.tokens || {}), ...session.tokens } as ITokenResponse;
         }
+        
+        // Return updated token immediately to ensure middleware gets the new value
+        return token;
       }
 
       // On first login (when user object is provided)
       if (user) {
         const { tokens, ...restUser } = user;
-        token.user = restUser as IUser;
+        // Only store essential fields in JWT token to avoid cookie size issues
+        // Exclude large nested objects like candidate_profile
+        token.user = {
+          id: restUser.id,
+          email: restUser.email,
+          username: restUser.username,
+          role: restUser.role,
+          is_active: restUser.is_active,
+          is_email_verified: restUser.is_email_verified,
+          is_profile_complete: restUser.is_profile_complete,
+          // Don't include candidate_profile or other large objects
+        } as IUser;
+        
         // Ensure tokens are properly stored - tokens should come from user object returned by authorize callback
         if (tokens) {
           token.tokens = tokens;
@@ -163,6 +253,19 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
       // Preserve existing tokens on subsequent requests (when user is undefined)
       // This is important because NextAuth reuses the token object
       if (!user && token.tokens) {
+        // Ensure token.user only contains essential fields (clean up any large objects)
+        if (token.user) {
+          token.user = {
+            id: token.user.id,
+            email: token.user.email,
+            username: token.user.username,
+            role: token.user.role,
+            is_active: token.user.is_active,
+            is_email_verified: token.user.is_email_verified,
+            is_profile_complete: token.user.is_profile_complete,
+            // Explicitly exclude any large nested objects
+          } as IUser;
+        }
         // Tokens already exist from previous request - keep them
         if (process.env.NODE_ENV === "development") {
           console.log("[JWT Callback] Preserving existing tokens for:", token.user?.email);
@@ -174,9 +277,21 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
         console.warn("[JWT Callback] User exists but no tokens found - session may be invalid");
       }
 
-      // Ensure token always has required structure
+      // Ensure token always has required structure and only contains essential fields
       if (!token.user) {
         token.user = {} as IUser;
+      } else {
+        // Final cleanup: ensure token.user only has essential fields (no large objects)
+        token.user = {
+          id: token.user.id,
+          email: token.user.email,
+          username: token.user.username,
+          role: token.user.role,
+          is_active: token.user.is_active,
+          is_email_verified: token.user.is_email_verified,
+          is_profile_complete: token.user.is_profile_complete,
+          // Explicitly exclude candidate_profile, permissions array, or any other large objects
+        } as IUser;
       }
 
       return token;

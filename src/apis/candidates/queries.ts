@@ -117,7 +117,12 @@ export function useUploadResumeMutation() {
       const response = await apiClient.post<IResumeResponse>(
         `/resume/upload-resume?user_id=${userId}`, 
         formData, 
-        {timeout: 30000}
+        {
+          timeout: 120000, // 2 minutes timeout for AI extraction
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
       return response.data;
     },

@@ -16,13 +16,89 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { useOnboardingStore } from "~/hooks/use-onboarding-store";
 import { useSession } from "next-auth/react";
-import { useCreateCandidateMutation } from "~/apis/candidates/queries";
+import { useCreateCandidateMutation, useGetCandidateByUserIdQuery } from "~/apis/candidates/queries";
+import { useGetAuthUserProfileQuery } from "~/apis/auth/queries";
 import { CreateCandidateSchema, TCreateCandidate } from "~/apis/candidates/schema";
+import apiClient from "~/lib/axios";
 
 export const CreateCandidateForm = () => {
-  const { resumeData, clearResume, clearResumeData } = useOnboardingStore();
+  const { resumeData, clearResume, clearResumeData, setResumeData } = useOnboardingStore();
   const router = useRouter();
   const { data: session, status, update: updateSession } = useSession();
+  const userId = session?.user?.id;
+
+  // Load resume data from backend if not in store (e.g., on page refresh)
+  const { data: userProfile, isLoading: isLoadingUserProfile } = useGetAuthUserProfileQuery();
+  const { 
+    data: existingCandidate, 
+    isLoading: isLoadingCandidate,
+  } = useGetCandidateByUserIdQuery(userId || "");
+
+  // Load resume data on mount if not already in store
+  useEffect(() => {
+    if (!userId || isLoadingUserProfile || isLoadingCandidate || !existingCandidate?.data) return;
+    
+    // Only load if resumeData is not already set
+    if (!resumeData || !resumeData.resume_url) {
+      const candidateData = existingCandidate.data;
+      const existingResumeUrl = userProfile?.data?.candidate_profile?.resume_url || candidateData.resume_url;
+      
+      if (existingResumeUrl) {
+        // Extract raw extraction data from metadata
+        const metadata = candidateData.metadata as any;
+        const rawExtraction = metadata?.raw_extraction || null;
+        
+        const getFieldValue = (fieldName: string, camelCaseField?: string): any => {
+          if (rawExtraction?.[fieldName]) return rawExtraction[fieldName];
+          if (camelCaseField && rawExtraction?.[camelCaseField]) return rawExtraction[camelCaseField];
+          const candidateValue = (candidateData as any)[fieldName];
+          if (candidateValue) return candidateValue;
+          return "";
+        };
+
+        const yearsExpRaw = rawExtraction?.years_experience ?? candidateData.years_experience;
+        const parsedYearsExperience = yearsExpRaw
+          ? (typeof yearsExpRaw === 'string' ? parseFloat(yearsExpRaw) || 0 : yearsExpRaw)
+          : 0;
+
+        const jobHistory = rawExtraction?.job_history || rawExtraction?.jobHistory || (candidateData as any).job_history || [];
+        const links = rawExtraction?.links || (candidateData as any).links || [];
+        const portfolioUrl = getFieldValue("portfolio_url", "portfolioUrl") || "";
+
+        const resumeDataFromBackend = {
+          first_name: getFieldValue("first_name") || "",
+          last_name: getFieldValue("last_name") || "",
+          email: getFieldValue("email") || session?.user?.email || "",
+          phone: getFieldValue("phone") || "",
+          address: getFieldValue("address") || "",
+          current_position: getFieldValue("current_position") || getFieldValue("currentRole") || "",
+          years_experience: parsedYearsExperience,
+          stack: Array.isArray(rawExtraction?.stack || candidateData.stack) 
+            ? (rawExtraction?.stack || candidateData.stack) 
+            : [],
+          skills: Array.isArray(rawExtraction?.skills || candidateData.skills) 
+            ? (rawExtraction?.skills || candidateData.skills) 
+            : [],
+          linkedin_url: getFieldValue("linkedin_url", "linkedinUrl") || "",
+          portfolio_url: portfolioUrl,
+          job_history: Array.isArray(jobHistory) ? jobHistory : [],
+          links: Array.isArray(links) ? links : [],
+          summary: getFieldValue("summary") || "",
+          last_education: getFieldValue("last_education") || "",
+          expected_salary: getFieldValue("expected_salary", "expectationSalary") || "",
+          joining_availability: getFieldValue("joining_availability", "availability") || candidateData.joining_availability || "1 month",
+          resume_url: existingResumeUrl || "",
+        };
+
+        console.log("[CreateCandidateForm] Loading resume data from backend on refresh:", {
+          hasResumeUrl: !!existingResumeUrl,
+          jobHistoryCount: Array.isArray(jobHistory) ? jobHistory.length : 0,
+        });
+
+        setResumeData(resumeDataFromBackend);
+      }
+    }
+  }, [userId, isLoadingUserProfile, isLoadingCandidate, existingCandidate?.data, userProfile?.data?.candidate_profile?.resume_url, session?.user?.email, resumeData, setResumeData]);
 
   // console.log("resumeData", resumeData);
 
@@ -46,7 +122,16 @@ export const CreateCandidateForm = () => {
       last_education: resumeData?.last_education || "",
       joining_availability: resumeData?.joining_availability || "1 month",
       resume_url: resumeData?.resume_url || "",
-      job_history: resumeData?.job_history || [],
+      job_history: Array.isArray(resumeData?.job_history) 
+        ? resumeData.job_history.map((job: any) => ({
+            company: job.company || "",
+            position: job.position || "",
+            start_date: job.start_date || "",
+            end_date: job.end_date || null,
+            description: job.description || null,
+            location: job.location || null,
+          }))
+        : [],
       links: resumeData?.links || [],
     },
   })
@@ -56,6 +141,27 @@ export const CreateCandidateForm = () => {
   // Update form when resumeData changes (e.g., after CV upload) - REMOVED DUPLICATE
   useEffect(() => {
     if (resumeData) {
+      // Handle both snake_case and camelCase job_history
+      const jobHistory = resumeData.job_history || resumeData.jobHistory || [];
+      
+      console.log("[CreateCandidateForm] Updating form with resume data:", {
+        hasResumeData: !!resumeData,
+        jobHistory: jobHistory,
+        jobHistoryLength: Array.isArray(jobHistory) ? jobHistory.length : 0,
+        jobHistoryType: typeof jobHistory,
+        resumeDataKeys: Object.keys(resumeData),
+      });
+      
+      // Normalize job_history to handle null values in optional fields
+      const normalizedJobHistory = Array.isArray(jobHistory) ? jobHistory.map((job: any) => ({
+        company: job.company || "",
+        position: job.position || "",
+        start_date: job.start_date || "",
+        end_date: job.end_date || null,
+        description: job.description || null,
+        location: job.location || null,
+      })) : [];
+      
       form.reset({
         first_name: resumeData.first_name || "",
         last_name: resumeData.last_name || "",
@@ -73,14 +179,35 @@ export const CreateCandidateForm = () => {
         last_education: resumeData.last_education || "",
         joining_availability: resumeData.joining_availability || "1 month",
         resume_url: resumeData.resume_url || "",
-        job_history: resumeData.job_history || [],
+        job_history: normalizedJobHistory,
         links: resumeData.links || [],
       });
+      
+      if (Array.isArray(jobHistory) && jobHistory.length > 0) {
+        console.log("[CreateCandidateForm] ✅ Job history populated in form:", jobHistory);
+      } else {
+        console.warn("[CreateCandidateForm] ⚠️ No job history found in resume data");
+      }
     }
   }, [resumeData, form, session?.user?.email]);
 
   const onSubmit = async (values: TCreateCandidate) => {
-    console.log("Form submitted with values:", values);
+    // Normalize job_history to convert null/undefined to empty strings for optional fields
+    // This ensures the schema validation passes (null -> undefined for optional fields)
+    const normalizedValues = {
+      ...values,
+      job_history: values.job_history?.map((job: any) => ({
+        company: job.company || "",
+        position: job.position || "",
+        start_date: job.start_date || "",
+        end_date: job.end_date ?? undefined, // Convert null to undefined
+        description: job.description ?? undefined, // Convert null to undefined
+        location: job.location ?? undefined, // Convert null to undefined
+      })) || [],
+    };
+    
+    console.log("Form submitted with values:", normalizedValues);
+    console.log("Normalized job_history:", normalizedValues.job_history);
     console.log("Form state:", {
       isValid: form.formState.isValid,
       errors: form.formState.errors,
@@ -126,11 +253,12 @@ export const CreateCandidateForm = () => {
     }
 
     // Clean up empty strings in arrays (filter out empty stack/skill entries)
+    // Use normalizedValues which already has job_history with null -> undefined conversion
     const cleanedValues = {
-      ...values,
-      stack: values.stack.filter(s => s && s.trim() !== ""),
-      skills: values.skills.filter(s => s && s.trim() !== ""),
-      years_experience: values.years_experience ?? 0,
+      ...normalizedValues,
+      stack: normalizedValues.stack.filter(s => s && s.trim() !== ""),
+      skills: normalizedValues.skills.filter(s => s && s.trim() !== ""),
+      years_experience: normalizedValues.years_experience ?? 0,
     };
 
     // Validate again after cleaning
@@ -162,21 +290,56 @@ export const CreateCandidateForm = () => {
         clearResume();
         clearResumeData();
         
-        // Update session and set isProfileCompleted to true
+        // Update session with fresh data from database
         if (session) {
           try {
-            await updateSession({
-              ...session,
-              user: {
-                ...session.user,
-                is_profile_complete: true
-              },
-            });
-            router.push("/user/dashboard");
+            // Fetch fresh user data from the database to ensure we have the latest is_profile_complete value
+            const { data: freshUserData } = await apiClient.get("/auth/get-user");
+            
+            if (freshUserData?.success && freshUserData?.data) {
+              // Only update essential fields to avoid cookie size issues
+              // Don't include candidate_profile or other large objects in the JWT token
+              await updateSession({
+                ...session,
+                user: {
+                  ...session.user,
+                  // Only update essential fields that are needed for routing/authorization
+                  is_profile_complete: freshUserData.data.is_profile_complete ?? true,
+                  // Preserve other essential fields but don't include large nested objects
+                  id: freshUserData.data.id || session.user.id,
+                  email: freshUserData.data.email || session.user.email,
+                  username: freshUserData.data.username || session.user.username,
+                  role: freshUserData.data.role || session.user.role,
+                  is_active: freshUserData.data.is_active ?? session.user.is_active,
+                  is_email_verified: freshUserData.data.is_email_verified ?? session.user.is_email_verified,
+                },
+              });
+              
+              console.log("[ProfileCompletion] Updated session with essential fields only:", {
+                is_profile_complete: freshUserData.data.is_profile_complete
+              });
+              
+              // Wait a moment for the session update to propagate
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
+              // Force a page reload to ensure middleware gets the updated JWT token
+              window.location.href = "/";
+            } else {
+              // Fallback: update session with expected value and reload
+              await updateSession({
+                ...session,
+                user: {
+                  ...session.user,
+                  is_profile_complete: true
+                },
+              });
+              await new Promise(resolve => setTimeout(resolve, 300));
+              window.location.href = "/";
+            }
           } catch (sessionError) {
-            console.error("Session update error:", sessionError);
-            // Even if session update fails, redirect to dashboard
-            router.push("/user/dashboard");
+            console.error("[ProfileCompletion] Session update error:", sessionError);
+            // Even if session update fails, reload to get fresh data on next page load
+            window.location.href = "/";
           }
         } else {
           toast.error("Session not found");

@@ -9,7 +9,7 @@ export default async function OnboardingPage() {
     return <RedirectHandler redirectTo="/login" />;
   }
   
-  if (session.user.onboardingCompleted) {
+  if (session.user.is_profile_complete) {
     return <RedirectHandler redirectTo="/user/dashboard" />;
   }
 

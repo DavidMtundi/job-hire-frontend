@@ -34,9 +34,9 @@ export const CandidateSchema = z.object({
     company: z.string(),
     position: z.string(),
     start_date: z.string(),
-    end_date: z.string().optional(),
-    description: z.string().optional(),
-    location: z.string().optional(),
+    end_date: z.string().nullish(), // Accepts string, null, or undefined
+    description: z.string().nullish(), // Accepts string, null, or undefined
+    location: z.string().nullish(), // Accepts string, null, or undefined
   })).optional(),
   links: z.array(z.object({
     label: z.string(),

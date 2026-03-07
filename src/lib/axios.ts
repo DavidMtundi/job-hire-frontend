@@ -55,23 +55,33 @@ const normalizeBaseUrl = (url: string): string => {
 };
 
 // Determine the correct API base URL
-// Priority order:
-// 1. NEXT_PUBLIC_BASE_API_URL (set via environment variable - works for both client and server)
-// 2. BACKEND_URL (server-side fallback for Docker)
-// 3. siteConfig.apiBaseUrl (client-side fallback)
-// 4. Default to localhost for local development
+// CRITICAL: Server-side (Next.js SSR) and client-side need different URLs in Docker
+// - Server-side: Must use Docker service name (backend:8002) 
+// - Client-side: Must use localhost:8002 (accessible from browser)
 const getApiBaseUrl = () => {
   let baseUrl: string;
   
-  // First check if NEXT_PUBLIC_BASE_API_URL is set (works for both client and server)
-  if (process.env.NEXT_PUBLIC_BASE_API_URL) {
-    baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
-  } else if (typeof window === "undefined") {
-    // Server-side: use BACKEND_URL (Docker service name) or fallback
-    baseUrl = process.env.BACKEND_URL || siteConfig.apiBaseUrl || "http://backend:8002";
+  if (typeof window === "undefined") {
+    // Server-side (Next.js SSR/API routes): MUST use Docker service name
+    // NEXT_PUBLIC_BASE_API_URL is for client-side only - ignore it here
+    baseUrl = process.env.BACKEND_URL || "http://backend:8002";
+    
+    // Log for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log("[getApiBaseUrl] Server-side base URL:", baseUrl, {
+        hasBackendUrl: !!process.env.BACKEND_URL,
+        backendUrl: process.env.BACKEND_URL,
+        nextPublicBaseApiUrl: process.env.NEXT_PUBLIC_BASE_API_URL,
+      });
+    }
   } else {
-    // Client-side: use configured URL from site config
-    baseUrl = siteConfig.apiBaseUrl || "http://localhost:8002";
+    // Client-side (browser): Use NEXT_PUBLIC_BASE_API_URL or localhost
+    baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL || siteConfig.apiBaseUrl || "http://localhost:8002";
+    
+    // Log for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log("[getApiBaseUrl] Client-side base URL:", baseUrl);
+    }
   }
   
   // Normalize the URL (ensure HTTPS for production, remove trailing slashes)
@@ -297,8 +307,10 @@ apiClient.interceptors.request.use(
     );
     
     // Check if this is a public endpoint (no auth required)
-    const isPublicEndpoint = !isProtectedEndpoint && config.url && (
-      // Check explicit public endpoints
+    // IMPORTANT: Check public endpoints FIRST before checking protected endpoints
+    // This ensures /auth/login and /auth/register are always recognized as public
+    const isPublicEndpoint = config.url && (
+      // Check explicit public endpoints first
       publicEndpoints.some((endpoint) => {
         const matches = urlMatchesEndpoint(config.url || "", endpoint);
         if (matches && process.env.NODE_ENV === "development") {
@@ -311,7 +323,15 @@ apiClient.interceptors.request.use(
       (config.method?.toUpperCase() === "GET" && 
        /^\/jobs\/[^/]+$/.test(config.url.split("?")[0]) && 
        !config.url.includes("/jobs/ai-generate"))
-    );
+    ) && !isProtectedEndpoint; // But exclude protected endpoints even if they match a public pattern
+    
+    // CRITICAL: Double-check auth endpoints are always treated as public
+    // This is a safety net in case the matching logic above fails
+    if (config.url && (config.url.includes("/auth/login") || config.url.includes("/auth/register"))) {
+      if (!isPublicEndpoint && process.env.NODE_ENV === "development") {
+        console.warn(`[API Request] ⚠️ Auth endpoint ${config.url} not recognized as public - forcing it to be public`);
+      }
+    }
     
     // Debug logging for endpoint classification
     if (process.env.NODE_ENV === "development" && config.url) {
@@ -323,9 +343,22 @@ apiClient.interceptors.request.use(
       });
     }
     
+    // CRITICAL FIX: Explicitly check for auth endpoints to prevent token retrieval
+    // This ensures login/register always work even if matching logic fails
+    const isAuthEndpoint = config.url && (
+      config.url.includes("/auth/login") ||
+      config.url.includes("/auth/register") ||
+      config.url.includes("/auth/refresh_token") ||
+      config.url.includes("/users/login") ||
+      config.url.includes("/users/register")
+    );
+    
+    // FORCE auth endpoints to be treated as public (safety net)
+    const finalIsPublicEndpoint = isPublicEndpoint || isAuthEndpoint;
+    
     // For non-public endpoints, ALWAYS try to attach token with retry logic
     // IMPORTANT: Public endpoints should NEVER try to get a token to avoid timeouts
-    if (!isPublicEndpoint) {
+    if (!finalIsPublicEndpoint) {
       // Special logging for auth endpoints to debug timeout issues
       if (config.url?.includes("/auth/register") || config.url?.includes("/auth/login")) {
         console.warn(`[API Request] ⚠️ WARNING: ${config.url} is NOT recognized as public endpoint!`);
@@ -334,6 +367,7 @@ apiClient.interceptors.request.use(
           url: config.url,
           isProtected: isProtectedEndpoint,
           isPublic: isPublicEndpoint,
+          isAuthEndpoint: isAuthEndpoint,
           publicEndpoints: publicEndpoints.filter(e => config.url?.includes(e.split('/').pop() || '')),
         });
       }
@@ -469,17 +503,23 @@ apiClient.interceptors.request.use(
         // But log a clear warning
       }
     } else {
-      // Public endpoint - no token needed, but log for debugging
-      if (config.url?.includes("/auth/register") || config.url?.includes("/auth/login")) {
-        console.log(`[API Request] ✅ ${config.method?.toUpperCase()} ${config.url} - Public endpoint (no token required)`);
+      // Public endpoint or auth endpoint - no token needed, but log for debugging
+      if (isAuthEndpoint || config.url?.includes("/auth/register") || config.url?.includes("/auth/login")) {
+        console.log(`[API Request] ✅ ${config.method?.toUpperCase()} ${config.url} - Public/Auth endpoint (no token required)`);
         console.log(`[API Request] Request will proceed without authentication token`);
       } else if (process.env.NODE_ENV === "development") {
         console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - Public endpoint (no token required)`);
       }
     }
     
+    // Final safety check: if this is an auth endpoint, ensure no token was accidentally attached
+    if (isAuthEndpoint && config.headers?.Authorization) {
+      console.warn(`[API Request] ⚠️ WARNING: Auth endpoint ${config.url} has Authorization header - removing it`);
+      delete config.headers.Authorization;
+    }
+    
     // Final verification: For authenticated endpoints, ensure Authorization header exists
-    if (!isPublicEndpoint && config.url?.includes("/jobs/ai-generate")) {
+    if (!finalIsPublicEndpoint && config.url?.includes("/jobs/ai-generate")) {
       const hasAuthHeader = !!(config.headers.Authorization || config.headers.get?.('Authorization'));
       console.log("[Axios Interceptor] Final request config verification:", {
         url: config.url,
@@ -547,7 +587,7 @@ apiClient.interceptors.response.use(
     }
     // First, log the raw error structure for debugging
     if (process.env.NODE_ENV === "development") {
-      console.log("Raw Axios Error Object:", {
+      const errorInfo: any = {
         errorType: typeof error,
         errorConstructor: error?.constructor?.name,
         errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
@@ -555,7 +595,29 @@ apiClient.interceptors.response.use(
         hasRequest: !!error?.request,
         hasConfig: !!error?.config,
         errorString: String(error),
-      });
+      };
+      
+      // Add response details if available
+      if (error?.response) {
+        errorInfo.responseStatus = error.response.status;
+        errorInfo.responseStatusText = error.response.statusText;
+        errorInfo.responseData = error.response.data;
+        errorInfo.responseHeaders = error.response.headers ? Object.keys(error.response.headers) : [];
+      }
+      
+      // Add request details if available
+      if (error?.config) {
+        errorInfo.requestUrl = error.config.url;
+        errorInfo.requestMethod = error.config.method;
+        errorInfo.requestBaseURL = error.config.baseURL;
+        errorInfo.requestHeaders = error.config.headers ? Object.keys(error.config.headers) : [];
+      }
+      
+      // Add network error details
+      if (error?.code) errorInfo.errorCode = error.code;
+      if (error?.message) errorInfo.errorMessage = error.message;
+      
+      console.log("Raw Axios Error Object:", errorInfo);
     }
 
     // Handle network errors (no response) vs HTTP errors (with response)
@@ -574,7 +636,27 @@ apiClient.interceptors.response.use(
         message = error?.message || "Network request failed";
       }
     } else {
-      message = data?.message || data?.detail || error?.message || "Something went wrong";
+      // Extract message from various possible locations
+      message = data?.message || 
+                data?.detail || 
+                (typeof data === 'string' ? data : null) ||
+                error?.message || 
+                (status === 401 ? "Invalid email or password" : "Something went wrong");
+      
+      // If message is still generic "Error", try to get more details
+      if (message === "Error" || !message || message.trim() === "") {
+        if (status === 401) {
+          message = "Invalid email or password";
+        } else if (status === 403) {
+          message = "You do not have permission to perform this action";
+        } else if (status === 404) {
+          message = "Resource not found";
+        } else if (status >= 500) {
+          message = "Server error - please try again later";
+        } else {
+          message = "Request failed - please try again";
+        }
+      }
     }
     
     const code = data?.status_code || status || (error?.code ? String(error.code) : (isNetworkError ? "NETWORK_ERROR" : 500));
@@ -741,7 +823,18 @@ apiClient.interceptors.response.use(
     // A single failing API call (expired token, temporary backend issues, CORS, etc.)
     // should not bounce the user away from the page they are viewing.
     if (status === 401) {
-      return Promise.reject(new ApiError(message || "Unauthorized - please login again", 401));
+      // For login endpoint, use a more specific message
+      const isLoginEndpoint = error?.config?.url?.includes("/auth/login");
+      const errorMsg = isLoginEndpoint 
+        ? (message && message !== "Error" ? message : "Invalid email or password")
+        : (message || "Unauthorized - please login again");
+      console.error("[Axios] 401 error for login endpoint:", { 
+        isLoginEndpoint, 
+        originalMessage: message, 
+        finalMessage: errorMsg,
+        url: error?.config?.url 
+      });
+      return Promise.reject(new ApiError(errorMsg, 401));
     }
 
     // Handle 403 Forbidden - permission denied

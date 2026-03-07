@@ -1,8 +1,24 @@
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "./_components/app-sidebar";
 import { SiteHeader } from "./_components/site-header";
+import { authSession } from "~/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function UserLayout({ children }: { children: React.ReactNode }) {
+export default async function UserLayout({ children }: { children: React.ReactNode }) {
+  const session = await authSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (session.user.role !== "candidate") {
+    redirect("/");
+  }
+
+  if (!session.user.is_profile_complete) {
+    redirect("/onboarding");
+  }
+
   return (
     <SidebarProvider
       style={

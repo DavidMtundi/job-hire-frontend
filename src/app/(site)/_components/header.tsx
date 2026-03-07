@@ -30,7 +30,7 @@ export const Header = () => {
         {session ? (
           <div className="flex gap-3">
             <Button variant="secondary" asChild>
-              <Link href="/login">
+              <Link href={session.user.role === "candidate" ? "/user/dashboard" : session.user.role === "hr" || session.user.role === "admin" ? "/admin/dashboard" : "/manager/dashboard"}>
                 Go to Dashboard
                 <ArrowRightIcon className="size-4" />
               </Link>

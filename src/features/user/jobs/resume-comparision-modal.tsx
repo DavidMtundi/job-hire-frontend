@@ -98,13 +98,13 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
 
                 <div className="border rounded-lg px-4 py-3 space-y-1">
                   <Label className="font-semibold">Experience Alignment</Label>
-                  <div className="text-2xl font-bold text-emerald-600">{compareResumeData.matching_skills.length}</div>
+                  <div className="text-2xl font-bold text-emerald-600">{(compareResumeData.matching_skills || []).length}</div>
                   <p className="text-xs text-gray-600">Matching technical skills</p>
                 </div>
 
                 <div className="border rounded-lg px-4 py-3 space-y-1">
                   <Label className="font-semibold">Development Areas</Label>
-                  <div className="text-2xl font-bold text-amber-600">{compareResumeData.missing_skills.length}</div>
+                  <div className="text-2xl font-bold text-amber-600">{(compareResumeData.missing_skills || []).length}</div>
                   <p className="text-xs text-gray-600">Gap areas identified</p>
                 </div>
               </div>
@@ -118,11 +118,11 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                       Matching Skills
                     </CardTitle>
-                    <CardDescription>{compareResumeData.matching_skills.length} skills matched</CardDescription>
+                    <CardDescription>{(compareResumeData.matching_skills || []).length} skills matched</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {compareResumeData.matching_skills.map((skill) => (
+                      {(compareResumeData.matching_skills || []).map((skill) => (
                         <span
                           key={skill}
                           className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full"
@@ -130,6 +130,9 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
                           {skill}
                         </span>
                       ))}
+                      {(compareResumeData.matching_skills || []).length === 0 && (
+                        <p className="text-sm text-gray-500">No matching skills found</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -145,11 +148,14 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {compareResumeData.missing_skills.map((skill, idx) => (
+                      {(compareResumeData.missing_skills || []).map((skill, idx) => (
                         <div key={idx} className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
                           {skill}
                         </div>
                       ))}
+                      {(compareResumeData.missing_skills || []).length === 0 && (
+                        <p className="text-sm text-gray-500">No skill gaps identified</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -163,7 +169,7 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{compareResumeData.recommendation}</p>
+                    <p className="text-gray-700 leading-relaxed">{compareResumeData.recommendation || "No recommendation available"}</p>
                   </CardContent>
                 </Card>
               </div>

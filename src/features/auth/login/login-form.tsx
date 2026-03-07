@@ -46,50 +46,93 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: TLogin) => {
     setIsLoading(true);
+    setError(undefined);
+    setSuccess(undefined);
 
-    const res = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-      // callbackUrl: absoluteUrl("/dashboard"),
-    });
+    try {
+      console.log("[LoginForm] Attempting login for:", data.email);
+      const res = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+        // callbackUrl: absoluteUrl("/dashboard"),
+      });
 
-    if (res?.error) {
-      toast.error("Invalid login credentials");
+      console.log("[LoginForm] signIn response:", { error: res?.error, ok: res?.ok, status: res?.status });
+
+      if (res?.error) {
+        const errorMessage = res.error === "CredentialsSignin" 
+          ? "Invalid email or password" 
+          : res.error || "Invalid login credentials";
+        console.error("[LoginForm] Login failed:", errorMessage);
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!res?.ok) {
+        console.error("[LoginForm] Login response not OK:", res);
+        setError("Login failed - please try again");
+        toast.error("Login failed - please try again");
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("[LoginForm] Login successful, fetching session...");
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      const user = sessionData?.user;
+      
+      console.log("[LoginForm] Session data:", { 
+        hasUser: !!user, 
+        role: user?.role, 
+        isProfileComplete: user?.is_profile_complete 
+      });
+      
+      let fallbackRedirect = "";
+
+      if (user?.role === "candidate") {
+        if (user?.is_profile_complete) {
+          fallbackRedirect = "/user/dashboard";
+        } else {
+          fallbackRedirect = "/onboarding";
+        }
+      } else if (user?.role === "admin" || user?.role === "hr") {
+        // If there's a redirect param (e.g., from company registration), use it
+        if (redirectPath && redirectPath.includes("/admin/companies/register")) {
+          fallbackRedirect = redirectPath;
+        } else {
+          fallbackRedirect = "/admin/dashboard";
+        }
+      } else if (user?.role === "manager") {
+        fallbackRedirect = "/manager/dashboard";
+      } else {
+        fallbackRedirect = "/";
+      }
+
+      console.log("[LoginForm] Redirecting to:", fallbackRedirect);
       setIsLoading(false);
-      return;
+      router.push(fallbackRedirect || `/onboarding/redirect=${redirectPath}`);
+    } catch (error: any) {
+      console.error("[LoginForm] Error during login:", error);
+      const errorMessage = error?.message || "Login failed - please try again";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setIsLoading(false);
     }
-
-    const sessionRes = await fetch("/api/auth/session");
-    const sessionData = await sessionRes.json();
-    const user = sessionData?.user;
-    let fallbackRedirect = "";
-
-    if (user?.role === "candidate") {
-      if (user?.is_profile_complete) {
-        fallbackRedirect = "/user/dashboard";
-      } else {
-        fallbackRedirect = "/onboarding";
-      }
-    } else if (user?.role === "admin" || user?.role === "hr") {
-      // If there's a redirect param (e.g., from company registration), use it
-      if (redirectPath && redirectPath.includes("/admin/companies/register")) {
-        fallbackRedirect = redirectPath;
-      } else {
-        fallbackRedirect = "/admin/dashboard";
-      }
-    } else if (user?.role === "manager") {
-      fallbackRedirect = "/manager/dashboard";
-    } else {
-      fallbackRedirect = "/";
-    }
-
-    router.push(fallbackRedirect || `/onboarding/redirect=${redirectPath}`);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }} 
+        className="space-y-6"
+      >
         <div className="space-y-4">
           <FormField
             control={form.control}
