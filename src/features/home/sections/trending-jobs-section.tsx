@@ -233,12 +233,13 @@ const TrendingJobCard = ({ job, idx }: { job: TJob, idx: number }) => {
   return (
     <div
       key={job.id}
-      className={cn("flex flex-col rounded-2xl p-6 justify-between transition-transform hover:shadow-lg", {
-        "bg-emerald-100": idx === 0,
-        "bg-blue-100": idx === 1,
-        "bg-green-100": idx === 2,
+      className={cn("relative flex flex-col rounded-3xl p-6 justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border backdrop-blur-xl overflow-hidden group", {
+        "bg-gradient-to-br from-emerald-50 to-white/50 border-emerald-100/50 hover:border-emerald-200": idx === 0,
+        "bg-gradient-to-br from-blue-50 to-white/50 border-blue-100/50 hover:border-blue-200": idx === 1,
+        "bg-gradient-to-br from-indigo-50 to-white/50 border-indigo-100/50 hover:border-indigo-200": idx === 2,
       })}
     >
+      <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-bl from-current to-transparent rounded-bl-full w-32 h-32 pointer-events-none" />
       {/* Top Section */}
       <div>
         <div className="flex items-start justify-between mb-4">
@@ -248,8 +249,8 @@ const TrendingJobCard = ({ job, idx }: { job: TJob, idx: number }) => {
             </h3>
             <div className="flex items-center gap-2">
               {job.company?.logo_url ? (
-                <img 
-                  src={job.company.logo_url} 
+                <img
+                  src={job.company.logo_url}
                   alt={job.company.name || "Company logo"}
                   className="h-6 w-6 rounded object-contain"
                   onError={(e) => {
@@ -299,7 +300,7 @@ const TrendingJobCard = ({ job, idx }: { job: TJob, idx: number }) => {
             <span>Monthly</span>
           </div>
         </div>
-        <Button variant="outline" size="lg" className="rounded-full" asChild>
+        <Button variant="outline" size="lg" className="rounded-full bg-white/50 hover:bg-primary hover:text-white border-primary/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-primary/30" asChild>
           <Link href={`/jobs/${job.id}`}>
             Apply Now
           </Link>

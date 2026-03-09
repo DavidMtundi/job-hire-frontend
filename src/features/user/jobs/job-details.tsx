@@ -17,6 +17,9 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { formatDate, getJobTypeLabel } from "~/lib/utils";
+import { CustomFieldType, TCustomField } from "~/apis/jobs/schemas";
+import React from "react";
+import { Label } from "~/components/ui/label";
 import { ApplyJobModal } from "./apply-job-modal";
 import { useGetApplicationsQuery } from "~/apis/applications/queries";
 import { TJob } from "~/apis/jobs/schemas";
@@ -167,6 +170,54 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                         <span className="text-sm sm:text-base break-words">{benefit}</span>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Custom Fields */}
+            {job?.custom_fields && job.custom_fields.length > 0 && (
+              <Card className="bg-white shadow-lg transition-shadow w-full">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">Additional Information</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="space-y-4">
+                    {job.custom_fields.map((field: TCustomField, index: number) => {
+                      let displayValue: string | React.ReactNode = "";
+                      
+                      if (field.value === null || field.value === undefined) {
+                        displayValue = <span className="text-muted-foreground italic text-sm">Not specified</span>;
+                      } else {
+                        switch (field.type) {
+                          case CustomFieldType.BOOLEAN:
+                            displayValue = field.value === true ? "Yes" : "No";
+                            break;
+                          case CustomFieldType.DATE:
+                            displayValue = formatDate(field.value as string);
+                            break;
+                          case CustomFieldType.NUMBER:
+                            displayValue = String(field.value);
+                            break;
+                          default:
+                            displayValue = String(field.value);
+                        }
+                      }
+
+                      return (
+                        <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 pb-3 border-b last:border-0 last:pb-0">
+                          <div className="flex-1">
+                            <Label className="text-sm font-semibold text-primary/80">
+                              {field.field_name}
+                              {field.required && <span className="text-red-500 ml-1">*</span>}
+                            </Label>
+                          </div>
+                          <div className="flex-1 sm:text-right">
+                            <span className="text-muted-foreground text-sm sm:text-base">{displayValue}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

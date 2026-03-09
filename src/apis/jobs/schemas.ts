@@ -1,5 +1,24 @@
 import { z } from "zod";
 
+export enum CustomFieldType {
+  TEXT = "text",
+  NUMBER = "number",
+  BOOLEAN = "boolean",
+  DATE = "date",
+  SELECT = "select",
+  MULTILINE_TEXT = "multiline_text",
+}
+
+export const CustomFieldSchema = z.object({
+  field_name: z.string().min(1, "Field name is required").max(255, "Field name must be at most 255 characters"),
+  field_key: z.string().min(1, "Field key is required").max(255, "Field key must be at most 255 characters"),
+  type: z.nativeEnum(CustomFieldType),
+  value: z.union([z.string(), z.number(), z.boolean()]).nullable().optional(),
+  required: z.boolean().optional().default(false),
+});
+
+export type TCustomField = z.infer<typeof CustomFieldSchema>;
+
 export const JobSchema = z.object({
   id: z.string(),
   title: z
@@ -67,6 +86,7 @@ export const JobSchema = z.object({
   updated_by: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
+  custom_fields: z.array(CustomFieldSchema).optional(),
 }).refine(
   (data) =>
     // if both provided (not null), ensure max >= min

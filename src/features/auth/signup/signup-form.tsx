@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription, F
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { useSignupMutation } from "~/apis/auth/queries";
 import { SignupSchema, TSignup } from "~/apis/auth/schemas";
 import { decodeJWT } from "~/utils/jwt";
@@ -56,6 +57,12 @@ export const SignupForm = () => {
       email: "",
       password: "",
       role: getInitialRole(),
+      company_name: "",
+      company_domain: "",
+      company_website: "",
+      company_description: "",
+      company_industry: "",
+      company_size: undefined,
     },
   })
 
@@ -198,14 +205,153 @@ export const SignupForm = () => {
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  {selectedRole === "hr" && "Select this to create jobs and manage a company. After signup, you'll register your company."}
+                  {selectedRole === "hr" && "Select this to create jobs and manage a company. You can provide company details below to create your company automatically."}
                   {selectedRole === "candidate" && "For job seekers looking to apply for positions."}
-                  {selectedRole === "manager" && "For managers who need to view reports and monitor applications."}
+                  {selectedRole === "manager" && "For managers who need to view reports and monitor applications. You can provide company details below if needed."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
+          {/* Company Fields - Show only for HR/Manager roles */}
+          {(selectedRole === "hr" || selectedRole === "manager") && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="mb-2">
+                <h3 className="text-sm font-semibold text-gray-700">Company Information (Optional)</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Provide company details to create your company automatically. You&apos;ll be set as the owner.
+                </p>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="company_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Company Name</Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        disabled={isPending || isSubmitted}
+                        placeholder="Acme Corporation"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="company_domain"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Company Domain</Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        disabled={isPending || isSubmitted}
+                        placeholder="acme.com"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Leave empty to use your email domain automatically
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="company_website"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Company Website</Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        disabled={isPending || isSubmitted}
+                        placeholder="https://www.acme.com"
+                        type="url"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="company_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>Company Description</Label>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        disabled={isPending || isSubmitted}
+                        placeholder="Brief description of your company..."
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="company_industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label htmlFor={field.name}>Industry</Label>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          disabled={isPending || isSubmitted}
+                          placeholder="Technology"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="company_size"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label htmlFor={field.name}>Company Size</Label>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isPending || isSubmitted}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="startup">Startup (1-10)</SelectItem>
+                          <SelectItem value="small">Small (11-50)</SelectItem>
+                          <SelectItem value="medium">Medium (51-200)</SelectItem>
+                          <SelectItem value="large">Large (201-1000)</SelectItem>
+                          <SelectItem value="enterprise">Enterprise (1000+)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <Button disabled={isPending || isSubmitted} type="submit" className="w-full">
           {isPending ? "Creating account..." : `Create ${selectedRole === "hr" ? "HR/Company Owner" : selectedRole === "candidate" ? "Candidate" : "Manager"} Account`}
@@ -221,7 +367,11 @@ export const SignupForm = () => {
               <div className="text-sm text-blue-700 space-y-1">
                 <p>1. Check your email to verify your account</p>
                 <p>2. Login with your credentials</p>
-                <p>3. Register your company after logging in</p>
+                {form.watch("company_name") ? (
+                  <p>3. Your company has been created! You can start creating jobs after login.</p>
+                ) : (
+                  <p>3. Register your company after logging in (or provide company details during signup next time)</p>
+                )}
               </div>
             ) : selectedRole === "candidate" ? (
               <p className="text-sm text-blue-700">
