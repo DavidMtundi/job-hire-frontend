@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "~/lib/axios";
+import { ApiError } from "~/utils/api-utils";
 import { TAIQuestion, TAIQuestionsResponse, TMarkAIInterviewResponse, TAIInterviewLinkResponse, TSubmitAnswerResponse } from "./schemas";
 
 export const useGetAIInterviewQuestionsQuery = (jobId: string | null) => {
@@ -15,10 +16,11 @@ export const useGetAIInterviewQuestionsQuery = (jobId: string | null) => {
         return response.data.data;
       }
 
-      throw new Error(response.data.message || "Failed to fetch questions");
+      throw new ApiError(response.data.message || "Failed to fetch questions", 500);
     },
     retry: (failureCount, error: any) => {
-      if (error?.response?.status === 404 || error?.response?.status === 422) {
+      const status = error?.status_code ?? error?.metadata?.status ?? error?.response?.status;
+      if (status === 404 || status === 422) {
         return false;
       }
       return failureCount < 3;
@@ -42,14 +44,22 @@ export const useMarkAIInterviewMutation = () => {
       isAiInterview: boolean;
     }) => {
       const response = await apiClient.post<TMarkAIInterviewResponse>(
-        `/ai-interview/mark-ai-interview?application_id=${applicationId}&interview_id=${interviewId}&is_ai_interview=${isAiInterview}`
+        "/ai-interview/mark-ai-interview",
+        undefined,
+        {
+          params: {
+            application_id: applicationId,
+            interview_id: interviewId,
+            is_ai_interview: isAiInterview,
+          },
+        }
       );
 
       if (response.data.success) {
         return response.data.data;
       }
 
-      throw new Error(response.data.message || "Failed to mark AI interview");
+      throw new ApiError(response.data.message || "Failed to mark AI interview", 500);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });
@@ -69,14 +79,21 @@ export const useGetAIInterviewLinkMutation = () => {
       jobId: string;
     }) => {
       const response = await apiClient.get<TAIInterviewLinkResponse>(
-        `/ai-interview/ai-interview-link?application_id=${applicationId}&interview_id=${interviewId}&job_id=${jobId}`
+        "/ai-interview/ai-interview-link",
+        {
+          params: {
+            application_id: applicationId,
+            interview_id: interviewId,
+            job_id: jobId,
+          },
+        }
       );
 
       if (response.data.success) {
         return response.data.data;
       }
 
-      throw new Error(response.data.message || "Failed to get AI interview link");
+      throw new ApiError(response.data.message || "Failed to get AI interview link", 500);
     },
   });
 };
@@ -112,7 +129,7 @@ export const useSubmitAnswerMutation = () => {
         return response.data;
       }
 
-      throw new Error(response.data.message || "Failed to submit answer");
+      throw new ApiError(response.data.message || "Failed to submit answer", 500);
     },
   });
 };

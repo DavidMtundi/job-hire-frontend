@@ -4,6 +4,7 @@ import {
   Calendar,
   Clock,
   MapPin,
+  Link as LinkIcon,
   User,
   Briefcase,
   Mail,
@@ -25,6 +26,7 @@ import { useGetAIInterviewLinkMutation } from "~/apis/ai-interview/queries";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ApiError } from "~/utils/api-utils";
 
 export default function CandidatePortalScreen() {
   const router = useRouter();
@@ -179,6 +181,19 @@ export default function CandidatePortalScreen() {
     }
   };
 
+  const getInterviewTypeTitle = (type?: string) => {
+    if (!type) return "Interview";
+    const normalizedType = type.toLowerCase();
+    if (normalizedType === "hr") return "HR Interview";
+    if (normalizedType === "technical") return "Technical Interview";
+    return `${type.charAt(0).toUpperCase()}${type.slice(1)} Interview`;
+  };
+
+  const isValidMeetingLink = (meetingLink?: string) => {
+    if (!meetingLink || meetingLink === "string") return false;
+    return /^https?:\/\//i.test(meetingLink);
+  };
+
   const getStatusName = (statusId: string | number) => {
     if (typeof statusId === 'string' && !/^\d+$/.test(statusId)) {
       return statusId;
@@ -265,7 +280,13 @@ export default function CandidatePortalScreen() {
       const aiInterviewUrl = `/user/ai-interview?interview_id=${interviewId}&job_id=${jobId}&application_id=${applicationId}`;
       window.open(aiInterviewUrl, '_blank');
     } catch (error) {
-      toast.error("Failed to start AI interview. Please try again.");
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : "Failed to start AI interview. Please try again.";
+      toast.error(message);
     }
   };
 
@@ -544,6 +565,11 @@ export default function CandidatePortalScreen() {
                 {interviews && interviews.length > 0 ? (
                   interviews.map((interview) => {
                     const aiSubmission = aiInterviewSubmissions[interview.id];
+                    const isScheduledInterview = interview.status === "scheduled";
+                    const hasValidMeetingLink = isValidMeetingLink(interview.meeting_link);
+                    const hasLocation = Boolean(interview.location?.trim());
+                    const hasNotes = Boolean(interview.notes?.trim());
+                    const hasRemarks = Boolean(interview.hr_remarks?.trim());
 
                     return (
                       <div key={interview.id} className="space-y-4">
@@ -551,11 +577,7 @@ export default function CandidatePortalScreen() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h4 className="font-semibold text-gray-900 text-lg mb-1">
-                                {interview.interview_type === "hr"
-                                  ? "HR Interview"
-                                  : interview.interview_type === "technical"
-                                  ? "Technical Interview"
-                                  : "Interview"}
+                                {getInterviewTypeTitle(interview.interview_type)}
                               </h4>
                               {application?.title && (
                                 <p className="text-sm text-gray-600 font-medium">
@@ -595,11 +617,30 @@ export default function CandidatePortalScreen() {
                               </span>
                             </div>
 
-                            {interview.meeting_link && (
+                            {interview.interview_mode && (
                               <div className="flex items-center gap-2 text-sm text-gray-700">
                                 <MapPin className="w-4 h-4 text-gray-500" />
+                                <span>
+                                  Interview Mode:{" "}
+                                  <span className="font-medium capitalize">{interview.interview_mode}</span>
+                                </span>
+                              </div>
+                            )}
+
+                            {hasLocation && (
+                              <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <MapPin className="w-4 h-4 text-gray-500" />
+                                <span>
+                                  Location: <span className="font-medium">{interview.location}</span>
+                                </span>
+                              </div>
+                            )}
+
+                            {interview.meeting_link && (
+                              <div className="flex items-start gap-2 text-sm text-gray-700">
+                                <LinkIcon className="w-4 h-4 text-gray-500 mt-0.5" />
                                 <span className="font-medium">Meeting Link: </span>
-                                {interview.meeting_link !== "string" && interview.meeting_link.startsWith("http") ? (
+                                {hasValidMeetingLink ? (
                                   <a
                                     href={interview.meeting_link}
                                     target="_blank"
@@ -615,13 +656,41 @@ export default function CandidatePortalScreen() {
                             )}
                           </div>
 
-                          {interview.hr_remarks && (
+                          {(hasNotes || hasRemarks) && (
+                            <div className="pt-3 border-t space-y-2">
+                              {hasNotes && (
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 mb-1">
+                                    Interview Notes:
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {interview.notes}
+                                  </p>
+                                </div>
+                              )}
+                              {hasRemarks && (
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 mb-1">
+                                    HR Remarks:
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {interview.hr_remarks}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {isScheduledInterview && (
                             <div className="pt-3 border-t">
                               <p className="text-sm font-medium text-gray-700 mb-1">
-                                HR Remarks:
+                                What to prepare:
                               </p>
                               <p className="text-sm text-gray-600">
-                                {interview.hr_remarks}
+                                Please join on time and keep this page open for your latest interview details.
+                                {!hasValidMeetingLink && !hasLocation
+                                  ? " Contact HR if meeting access details are missing."
+                                  : ""}
                               </p>
                             </div>
                           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Calendar, Mail } from "lucide-react";
+import { ArrowLeft, Calendar, Mail, X } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useGetApplicationDetailQuery } from "~/apis/applications/queries";
 import { ScheduleInterviewModal } from "~/features/admin/interviews/schedule-interview-modal";
@@ -14,17 +14,21 @@ import { CandidateSummaryCard } from "./candidate-summary-card";
 import { EmailDraftModal } from "./email-draft-modal";
 import { EnhancedEmailModal } from "./enhanced-email-modal";
 import { CommunicationTimelineCard } from "./communication-timeline-card";
+import { ResumeMatchingModal } from "./resume-matching-modal";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Loader } from "~/components/loader";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 export default function ApplicationDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const applicationId = params?.id as string;
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isMatchingPanelOpen, setIsMatchingPanelOpen] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<"timeline" | "matching">("timeline");
 
   const {
     data: applicationData,
@@ -129,7 +133,13 @@ export default function ApplicationDetailsPage() {
               />
             </div>
             <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
-              <ResumeMatchingCard application={application} />
+              <ResumeMatchingCard
+                application={application}
+                onViewMatchingSkills={() => {
+                  setIsMatchingPanelOpen(true);
+                  setRightPanelTab("matching");
+                }}
+              />
             </div>
             <div className="max-w-none xl:max-w-4xl 2xl:max-w-5xl">
               <AIInterviewAssessmentCard application={application} />
@@ -141,8 +151,55 @@ export default function ApplicationDetailsPage() {
 
           {/* Right Column - Timeline Sidebar */}
           <div className="lg:col-span-2 xl:col-span-5 2xl:col-span-4">
-            <div className="sticky top-6">
-              <TimelineCard applicationId={applicationId} application={application} />
+            <div className="sticky top-6 space-y-4">
+              <Tabs
+                value={rightPanelTab}
+                onValueChange={(value) => setRightPanelTab(value as "timeline" | "matching")}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                  <TabsTrigger value="matching">Matching Skills</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="timeline" className="mt-4">
+                  <TimelineCard applicationId={applicationId} application={application} />
+                </TabsContent>
+
+                <TabsContent value="matching" className="mt-4">
+                  {isMatchingPanelOpen ? (
+                    <Card className="bg-white shadow-sm">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-base">Matching Skills</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setIsMatchingPanelOpen(false);
+                              setRightPanelTab("timeline");
+                            }}
+                            aria-label="Close matching skills panel"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="max-h-[70vh] overflow-y-auto">
+                        <ResumeMatchingModal application={application} />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="bg-white shadow-sm">
+                      <CardContent className="py-6">
+                        <p className="text-sm text-gray-600">
+                          Click <strong>View Matching Skills</strong> in the Resume vs JD Matching card to open this right panel.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>

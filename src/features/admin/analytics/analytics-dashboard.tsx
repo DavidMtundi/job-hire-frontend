@@ -8,15 +8,11 @@ import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Badge } from "~/components/ui/badge";
-import {
-  useGetAnalyticsSummaryQuery,
-  useGetTimeToFillQuery,
-  useGetSourceOfHireQuery,
-  useGetPipelineHealthQuery,
-  useGetRecruiterPerformanceQuery,
-  useGetConversionFunnelQuery,
-} from "~/apis/analytics/queries";
-import { Loader2, TrendingUp, TrendingDown, Clock, DollarSign, Users, BarChart3, Download } from "lucide-react";
+import { useGetAnalyticsSummaryQuery } from "~/apis/analytics/queries";
+import { useGetDepartmentsQuery } from "~/apis/departments/queries";
+import { useGetUsersQuery } from "~/apis/users/queries";
+import { ApiError } from "~/utils/api-utils";
+import { Loader2, Clock, DollarSign, Users, BarChart3, Download } from "lucide-react";
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
 
@@ -41,13 +37,15 @@ export default function AnalyticsDashboard() {
     start_date: dateRange.start,
     end_date: dateRange.end,
   });
+  const { data: departmentsData } = useGetDepartmentsQuery();
+  const { data: recruitersData } = useGetUsersQuery({ role: "recruiter", limit: 200 });
 
   const handleDateChange = (type: "start" | "end", value: string) => {
     setDateRange((prev) => ({ ...prev, [type]: value }));
   };
 
   const handleFilterChange = (key: keyof AnalyticsFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value || undefined }));
+    setFilters((prev) => ({ ...prev, [key]: value === "all" ? undefined : value || undefined }));
   };
 
   if (isLoading) {
@@ -59,8 +57,13 @@ export default function AnalyticsDashboard() {
   }
 
   if (error) {
-    const errorMessage = (error as any)?.response?.data?.detail || (error as any)?.message || "Failed to load analytics data";
-    const isPermissionError = (error as any)?.response?.status === 403;
+    const apiError = error instanceof ApiError ? error : null;
+    const errorMessage =
+      apiError?.message ||
+      (error as Error)?.message ||
+      "Failed to load analytics data";
+    const errorStatus = apiError?.status_code ?? apiError?.metadata?.status;
+    const isPermissionError = errorStatus === 403;
     
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -85,6 +88,8 @@ export default function AnalyticsDashboard() {
   const pipelineHealth = summary?.pipeline_health || [];
   const recruiterPerformance = summary?.recruiter_performance || [];
   const conversionFunnel = summary?.conversion_funnel || [];
+  const departments = departmentsData?.data || [];
+  const recruiters = recruitersData?.data || [];
 
   // Chart data for Pipeline Health
   const pipelineChartOptions = {
@@ -204,23 +209,33 @@ export default function AnalyticsDashboard() {
             </div>
             <div>
               <Label htmlFor="department">Department</Label>
-              <Select value={filters.department_id || undefined} onValueChange={(v) => handleFilterChange("department_id", v)}>
+              <Select value={filters.department_id || "all"} onValueChange={(v) => handleFilterChange("department_id", v)}>
                 <SelectTrigger id="department">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* TODO: Populate from departments API */}
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((department) => (
+                    <SelectItem key={String(department.id)} value={String(department.id)}>
+                      {department.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="recruiter">Recruiter</Label>
-              <Select value={filters.recruiter_id || undefined} onValueChange={(v) => handleFilterChange("recruiter_id", v)}>
+              <Select value={filters.recruiter_id || "all"} onValueChange={(v) => handleFilterChange("recruiter_id", v)}>
                 <SelectTrigger id="recruiter">
                   <SelectValue placeholder="All Recruiters" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* TODO: Populate from recruiters API */}
+                  <SelectItem value="all">All Recruiters</SelectItem>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={String(recruiter.id)} value={String(recruiter.id)}>
+                      {recruiter.username || recruiter.email}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

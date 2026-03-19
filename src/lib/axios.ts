@@ -561,12 +561,49 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    if (error?.config?.url?.includes("/jobs/ai-generate")) {
-    }
-    console.error("[API Request] Request interceptor error:", error);
+    const isAxiosError = Axios.isAxiosError(error);
+    const axiosError = isAxiosError ? error : null;
+    console.error("[API Request] Request interceptor error:", {
+      message: axiosError?.message ?? (error instanceof Error ? error.message : "Unknown request interceptor error"),
+      code: axiosError?.code ?? null,
+      status: axiosError?.response?.status ?? null,
+      url: axiosError?.config?.url ?? null,
+      method: axiosError?.config?.method ?? null,
+      responseData: axiosError?.response?.data ?? null,
+    });
     return Promise.reject(error);
   }
 );
+
+const toLoggableError = (error: unknown) => {
+  if (Axios.isAxiosError(error)) {
+    return {
+      type: "axios",
+      message: error.message ?? "Axios request failed",
+      code: error.code ?? null,
+      status: error.response?.status ?? null,
+      statusText: error.response?.statusText ?? null,
+      url: error.config?.url ?? null,
+      method: error.config?.method ?? null,
+      responseData: error.response?.data ?? null,
+      axios: typeof error.toJSON === "function" ? error.toJSON() : null,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      type: "error",
+      name: error.name,
+      message: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    };
+  }
+
+  return {
+    type: typeof error,
+    value: error ?? null,
+  };
+};
 
 // Response interceptor
 apiClient.interceptors.response.use(
@@ -594,49 +631,24 @@ apiClient.interceptors.response.use(
     return res;
   },
   (error) => {
-    // Add breakpoint for AI job generation errors
-    if (error?.config?.url?.includes("/jobs/ai-generate")) {
+    const isAxiosError = Axios.isAxiosError(error);
+    const axiosError = isAxiosError ? error : null;
+    const response = axiosError?.response;
+    const data = response?.data as Record<string, unknown> | undefined;
+    const status = response?.status;
+    const requestUrl = axiosError?.config?.url ?? null;
+    const requestMethod = axiosError?.config?.method ?? null;
+
+    if (requestUrl?.includes("/jobs/ai-generate")) {
       console.error("[Axios Response] ❌ AI job generation error:", {
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        data: error?.response?.data,
-        message: error?.message,
-        config: error?.config,
+        message: axiosError?.message ?? (error instanceof Error ? error.message : "Unknown error"),
+        status: status ?? null,
+        statusText: response?.statusText ?? null,
+        code: axiosError?.code ?? null,
+        url: requestUrl,
+        method: requestMethod,
+        data: response?.data ?? null,
       });
-    }
-    // First, log the raw error structure for debugging
-    if (process.env.NODE_ENV === "development") {
-      const errorInfo: any = {
-        errorType: typeof error,
-        errorConstructor: error?.constructor?.name,
-        errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
-        hasResponse: !!error?.response,
-        hasRequest: !!error?.request,
-        hasConfig: !!error?.config,
-        errorString: String(error),
-      };
-      
-      // Add response details if available
-      if (error?.response) {
-        errorInfo.responseStatus = error.response.status;
-        errorInfo.responseStatusText = error.response.statusText;
-        errorInfo.responseData = error.response.data;
-        errorInfo.responseHeaders = error.response.headers ? Object.keys(error.response.headers) : [];
-      }
-      
-      // Add request details if available
-      if (error?.config) {
-        errorInfo.requestUrl = error.config.url;
-        errorInfo.requestMethod = error.config.method;
-        errorInfo.requestBaseURL = error.config.baseURL;
-        errorInfo.requestHeaders = error.config.headers ? Object.keys(error.config.headers) : [];
-      }
-      
-      // Add network error details
-      if (error?.code) errorInfo.errorCode = error.code;
-      if (error?.message) errorInfo.errorMessage = error.message;
-      
-      console.log("Raw Axios Error Object:", errorInfo);
     }
 
     const normalizeErrorMessage = (value: unknown): string | null => {
@@ -665,34 +677,37 @@ apiClient.interceptors.response.use(
       return null;
     };
 
-    // Handle network errors (no response) vs HTTP errors (with response)
-    const isNetworkError = !error?.response;
-    const response = error?.response || {};
-    const { data, status } = response;
-    
+    const isNetworkError = isAxiosError ? !response : false;
+    const isLoginEndpoint = requestUrl?.includes("/auth/login");
+    const serverMessage =
+      normalizeErrorMessage(data?.message) ||
+      normalizeErrorMessage(data?.detail) ||
+      normalizeErrorMessage(data);
+
     // Determine error message based on error type
     let message = "Something went wrong";
-    if (isNetworkError) {
-      if (error?.code === "ECONNABORTED" || error?.message?.includes("timeout")) {
+    if (isNetworkError && isAxiosError) {
+      if (axiosError.code === "ECONNABORTED" || axiosError.message?.includes("timeout")) {
         message = "Request timeout - please try again";
-      } else if (error?.code === "ERR_NETWORK" || error?.message?.includes("Network Error")) {
+      } else if (axiosError.code === "ERR_NETWORK" || axiosError.message?.includes("Network Error")) {
         message = "Network error - please check your connection";
       } else {
-        message = error?.message || "Network request failed";
+        message = axiosError.message || "Network request failed";
       }
+    } else if (!isAxiosError) {
+      message = error instanceof Error ? error.message : "Request failed";
     } else {
-      // Extract message from various possible locations
       message =
-        normalizeErrorMessage(data?.message) ||
-        normalizeErrorMessage(data?.detail) ||
-        normalizeErrorMessage(data) ||
-        normalizeErrorMessage(error?.message) ||
-        (status === 401 ? "Invalid email or password" : "Something went wrong");
+        serverMessage ||
+        normalizeErrorMessage(axiosError.message) ||
+        (status === 401
+          ? (isLoginEndpoint ? "Invalid email or password" : "Unauthorized - please login again")
+          : "Something went wrong");
       
       // If message is still generic "Error", try to get more details
       if (message === "Error" || !normalizeErrorMessage(message)) {
         if (status === 401) {
-          message = "Invalid email or password";
+          message = isLoginEndpoint ? "Invalid email or password" : "Unauthorized - please login again";
         } else if (status === 403) {
           message = "You do not have permission to perform this action";
         } else if (status === 404) {
@@ -705,207 +720,56 @@ apiClient.interceptors.response.use(
       }
     }
     
-    const code = data?.status_code || status || (error?.code ? String(error.code) : (isNetworkError ? "NETWORK_ERROR" : 500));
+    const rawStatusCode = typeof data?.status_code === "number" ? data.status_code : undefined;
+    const code: string | number = rawStatusCode ?? status ?? axiosError?.code ?? (isNetworkError ? "NETWORK_ERROR" : 500);
+    const statusCode = rawStatusCode ?? status ?? 500;
 
     // Don't log 404 errors - they're often handled gracefully by queries
     // (e.g., checking if a resource exists)
     // Don't log 403 errors - they're permission errors that should be handled by UI
     const shouldLogError = status !== 404 && status !== 403;
 
-    if (shouldLogError && error) {
-      // Log detailed error for debugging
-      // Build error info object with only defined values
-      const errorInfo: Record<string, any> = {};
-      
-      // Always include message if it's meaningful
-      if (message && message !== "Something went wrong") {
-        errorInfo.message = message;
-      }
-      
-      // Include error type for network errors
-      if (isNetworkError) {
-        errorInfo.type = "Network Error";
-        if (error?.code) errorInfo.code = error.code;
-      } else {
-      if (status) errorInfo.status = status;
-      if (response?.statusText) errorInfo.statusText = response.statusText;
-      if (data && Object.keys(data).length > 0) errorInfo.data = data;
-      }
-      
-      // Include request details if available
-      if (error?.config?.url) errorInfo.url = error.config.url;
-      if (error?.config?.method) errorInfo.method = error.config.method;
-      if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
-      
-      // Include additional error details
-      if (error?.message && error.message !== message) errorInfo.errorMessage = error.message;
-      if (error?.code && !isNetworkError) errorInfo.code = error.code;
-      
-      // Only include stack trace in development
-      if (process.env.NODE_ENV === "development" && error?.stack) {
-        errorInfo.stack = error.stack;
-      }
-
-      // Always capture response and request details first
-      const detailedError: Record<string, any> = {};
-      
-      // Add basic error info (always add message and status if available)
-      if (message) detailedError.message = message;
-      if (code) detailedError.code = code;
-      if (status) detailedError.status = status;
-      if (isNetworkError) detailedError.type = "Network Error";
-      
-      // Add all errorInfo properties
-      Object.assign(detailedError, errorInfo);
-      
-      // Add response details (check if response exists, not just if it has data)
-      if (error?.response || response) {
-        const resp = error?.response || response;
-        detailedError.response = {
-          status: resp?.status || status || null,
-          statusText: resp?.statusText || null,
-          data: resp?.data || data || null,
-          headers: resp?.headers ? (typeof resp.headers === 'object' ? Object.keys(resp.headers) : resp.headers) : [],
-        };
-      }
-      
-      // Add request details if available
-      if (error?.config) {
-        detailedError.request = {
-          url: error.config.url || null,
-          method: error.config.method || null,
-          baseURL: error.config.baseURL || null,
-          params: error.config.params || null,
-          data: error.config.data || null,
-        };
-      }
-      
-      // Add error instance details (always try to capture)
-      detailedError.errorInstance = {
-        type: typeof error,
-        constructor: error?.constructor?.name || null,
-        isError: error instanceof Error,
-        name: error instanceof Error ? error.name : (error?.name || null),
-        message: error instanceof Error ? error.message : (error?.message || null),
-        stack: (process.env.NODE_ENV === "development" && error instanceof Error) ? error.stack : undefined,
-      };
-      
-      // Add network error details
-      if (isNetworkError) {
-        detailedError.networkError = {
-          code: error?.code || null,
-          message: error?.message || null,
-        };
-      }
-      
-      // Add raw error properties (always try)
-      if (error) {
-        try {
-          if (typeof error === 'object') {
-            const errorKeys = Object.keys(error);
-            detailedError.rawErrorKeys = errorKeys;
-            // Try to get some common properties safely
-            if ('code' in error) detailedError.rawCode = (error as any).code;
-            if ('message' in error) detailedError.rawMessage = (error as any).message;
-            if ('response' in error) detailedError.hasResponseProperty = true;
-            if ('request' in error) detailedError.hasRequestProperty = true;
-            if ('config' in error) detailedError.hasConfigProperty = true;
-          }
-          detailedError.rawErrorString = String(error);
-        } catch (e) {
-          detailedError.rawErrorParseError = String(e);
-        }
-      }
-      
-      // Always log - we should have at least message or code by now
+    if (shouldLogError) {
       console.error("Axios Error:", {
-        message: (detailedError.message as string | undefined) ?? message ?? null,
-        status: detailedError.status ?? status ?? null,
-        code: detailedError.code ?? code ?? null,
-        url: error?.config?.url ?? null,
-        method: error?.config?.method ?? null,
-        // Keep response data small to avoid huge console payloads
-        responseData:
-          error?.response?.data && typeof error.response.data === "object"
-            ? error.response.data
-            : error?.response?.data ?? null,
+        message,
+        status: status ?? null,
+        code,
+        url: requestUrl,
+        method: requestMethod,
+        responseData: response?.data ?? null,
+        detail: toLoggableError(error),
       });
-      
-      // Also log fallback if detailedError is still empty (shouldn't happen)
-      if (Object.keys(detailedError).length === 0) {
-        // If error object is completely empty/malformed, log what we can
-        const fallbackInfo: Record<string, any> = {
-          errorType: typeof error,
-          errorString: String(error),
-          hasResponse: !!error?.response,
-          hasRequest: !!error?.request,
-          errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
-        };
-        
-        if (error && typeof error === 'object') {
-          try {
-            // Try to stringify the error to see its structure
-            if (error instanceof Error) {
-              fallbackInfo.errorName = error.name;
-              fallbackInfo.errorMessage = error.message;
-            }
-            // Capture response if available
-            if (error.response) {
-              fallbackInfo.responseStatus = error.response.status;
-              fallbackInfo.responseData = error.response.data;
-            }
-            // Capture request if available
-            if (error.config) {
-              fallbackInfo.requestUrl = error.config.url;
-              fallbackInfo.requestMethod = error.config.method;
-            }
-          } catch (e) {
-            fallbackInfo.stringifyError = "Could not stringify error";
-          }
-        }
-        
-        // Always log fallback info if we have any details
-        if (Object.keys(fallbackInfo).length > 4 || 
-          (fallbackInfo.errorString && fallbackInfo.errorString !== "[object Object]")) {
-          console.error("Axios Error (malformed):", fallbackInfo);
-        } else {
-          // Last resort: log the raw error
-          console.error("Axios Error (raw):", error);
-        }
-      }
     }
 
-    // Handle 401 Unauthorized
-    // IMPORTANT: Do NOT hard-redirect to /login here.
-    // A single failing API call (expired token, temporary backend issues, CORS, etc.)
-    // should not bounce the user away from the page they are viewing.
+    const apiErrorMetadata = {
+      status: status ?? null,
+      code,
+      responseData: response?.data ?? null,
+      url: requestUrl,
+      method: requestMethod,
+    };
+
+    if (!isAxiosError) {
+      return Promise.reject(new ApiError(message, 500, apiErrorMetadata));
+    }
+
     if (status === 401) {
-      // For login endpoint, use a more specific message
-      const isLoginEndpoint = error?.config?.url?.includes("/auth/login");
-      const errorMsg = isLoginEndpoint 
-        ? (message && message !== "Error" ? message : "Invalid email or password")
-        : (message || "Unauthorized - please login again");
-      console.error("[Axios] 401 error for login endpoint:", { 
-        isLoginEndpoint, 
-        originalMessage: message, 
-        finalMessage: errorMsg,
-        url: error?.config?.url 
-      });
-      return Promise.reject(new ApiError(errorMsg, 401));
+      const errorMsg =
+        isLoginEndpoint && !serverMessage
+          ? "Invalid email or password"
+          : (message || "Unauthorized - please login again");
+      return Promise.reject(new ApiError(errorMsg, 401, apiErrorMetadata));
     }
 
-    // Handle 403 Forbidden - permission denied
     if (status === 403) {
-      return Promise.reject(new ApiError(message || "You do not have permission to perform this action", 403));
+      return Promise.reject(new ApiError(message || "You do not have permission to perform this action", 403, apiErrorMetadata));
     }
 
-    // Handle 404 Not Found - return a proper error
     if (status === 404) {
-      return Promise.reject(new ApiError(message || "Resource not found", 404));
+      return Promise.reject(new ApiError(message || "Resource not found", 404, apiErrorMetadata));
     }
 
-    // For all other errors, reject with ApiError
-    return Promise.reject(new ApiError(message, Number(code) || 500));
+    return Promise.reject(new ApiError(message, statusCode, apiErrorMetadata));
   }
 );
 
