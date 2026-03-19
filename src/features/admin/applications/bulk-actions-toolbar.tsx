@@ -32,6 +32,7 @@ import {
 import { useGetEmailTemplatesQuery } from "~/apis/communications/queries";
 import { useGetStatusListQuery } from "~/apis/applications/queries";
 import { Loader2 } from "lucide-react";
+import { useGetMyCompanyQuery, useGetCompanyUsersQuery } from "~/apis/companies/queries";
 
 interface BulkActionsToolbarProps {
   table: Table<TApplication>;
@@ -55,8 +56,13 @@ export function BulkActionsToolbar({ table }: BulkActionsToolbarProps) {
   const updateStatusMutation = useBulkUpdateStatusMutation();
   const assignRecruiterMutation = useBulkAssignRecruiterMutation();
   const sendEmailMutation = useBulkSendEmailMutation();
+  const { data: myCompanyData } = useGetMyCompanyQuery();
+  const companyId = myCompanyData?.data?.id || "";
+  const { data: companyUsersData, isLoading: isLoadingCompanyUsers } = useGetCompanyUsersQuery(companyId);
 
   const templates = templatesData?.data || [];
+  const companyUsers = companyUsersData?.data || [];
+  const recruiters = companyUsers.filter((u) => ["recruiter", "admin", "owner"].includes(u.role));
 
   const handleBulkUpdateStatus = async () => {
     if (!selectedStatusId) {
@@ -245,10 +251,21 @@ export function BulkActionsToolbar({ table }: BulkActionsToolbarProps) {
                   <SelectValue placeholder="Select recruiter..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* TODO: Fetch and display recruiters list */}
-                  <SelectItem value="placeholder" disabled>
-                    Loading recruiters...
-                  </SelectItem>
+                  {isLoadingCompanyUsers ? (
+                    <SelectItem value="loading" disabled>
+                      Loading recruiters...
+                    </SelectItem>
+                  ) : recruiters.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No recruiters found
+                    </SelectItem>
+                  ) : (
+                    recruiters.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {(u.username || u.email || u.user_id).toString()}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500 mt-1">

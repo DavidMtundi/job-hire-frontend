@@ -9,11 +9,12 @@ export const useGetApplicationsQuery = (filters: IGetApplicationsParams = {}) =>
   return useQuery<IApplicationsResponse, Error>({
     queryKey: ["applications", filters],
     queryFn: async () => {
-      const response = await apiClient.get<IApplicationsResponse>("/applications/", {
+      const response = await apiClient.get<IApplicationsResponse>("/applications", {
         params: {
           page: filters.page,
           page_size: filters.page_size,
           stage: filters.stage,
+          recruiter_id: filters.recruiter_id,
           ...(filters.search ? { search: filters.search } : {}),
         },
       });

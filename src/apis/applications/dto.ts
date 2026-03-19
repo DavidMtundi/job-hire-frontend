@@ -5,6 +5,7 @@ export interface IGetApplicationsParams {
   page_size?: number;
   search?: string;
   stage?: TApplicationStatus;
+  recruiter_id?: string;
 }
 
 export interface IPagination {

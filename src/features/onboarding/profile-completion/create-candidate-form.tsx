@@ -142,7 +142,7 @@ export const CreateCandidateForm = () => {
   useEffect(() => {
     if (resumeData) {
       // Handle both snake_case and camelCase job_history
-      const jobHistory = resumeData.job_history || resumeData.jobHistory || [];
+      const jobHistory = resumeData.job_history || (resumeData as any).jobHistory || [];
       
       console.log("[CreateCandidateForm] Updating form with resume data:", {
         hasResumeData: !!resumeData,
@@ -557,7 +557,7 @@ export const CreateCandidateForm = () => {
                           <Input
                             value={stack}
                             onChange={(e) => {
-                              const newSkills = [...field.value];
+                              const newSkills = [...(field.value ?? [])];
                               newSkills[index] = e.target.value;
                               field.onChange(newSkills);
                             }}
@@ -603,7 +603,7 @@ export const CreateCandidateForm = () => {
                           <Input
                             value={skill}
                             onChange={(e) => {
-                              const newSkills = [...field.value];
+                              const newSkills = [...(field.value ?? [])];
                               newSkills[index] = e.target.value;
                               field.onChange(newSkills);
                             }}
@@ -814,7 +814,8 @@ export const CreateCandidateForm = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                const newHistory = field.value.filter((_, i) => i !== index);
+                                const current = field.value ?? [];
+                                const newHistory = current.filter((_, i) => i !== index);
                                 field.onChange(newHistory);
                               }}
                               disabled={isPending}
@@ -827,7 +828,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Company name"
                               value={job.company || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, company: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -837,7 +838,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Position/Job title"
                               value={job.position || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, position: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -847,7 +848,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Start date (e.g., 2020-01)"
                               value={job.start_date || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, start_date: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -857,7 +858,7 @@ export const CreateCandidateForm = () => {
                               placeholder="End date (e.g., 2022-12 or 'Present')"
                               value={job.end_date || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, end_date: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -867,7 +868,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Location (optional)"
                               value={job.location || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, location: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -878,7 +879,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Job description/responsibilities"
                               value={job.description || ""}
                               onChange={(e) => {
-                                const newHistory = [...field.value];
+                                const newHistory = [...(field.value ?? [])];
                                 newHistory[index] = { ...job, description: e.target.value };
                                 field.onChange(newHistory);
                               }}
@@ -896,7 +897,8 @@ export const CreateCandidateForm = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => {
-                        field.onChange([...field.value, { company: "", position: "", start_date: "", end_date: "", description: "", location: "" }]);
+                        const current = field.value ?? [];
+                        field.onChange([...current, { company: "", position: "", start_date: "", end_date: "", description: "", location: "" }]);
                       }}
                       disabled={isPending}
                     >
@@ -932,7 +934,8 @@ export const CreateCandidateForm = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                const newLinks = field.value.filter((_, i) => i !== index);
+                                const current = field.value ?? [];
+                                const newLinks = current.filter((_, i) => i !== index);
                                 field.onChange(newLinks);
                               }}
                               disabled={isPending}
@@ -945,7 +948,7 @@ export const CreateCandidateForm = () => {
                               placeholder="Label (e.g., GitHub, Publication, Portfolio)"
                               value={link.label || ""}
                               onChange={(e) => {
-                                const newLinks = [...field.value];
+                                const newLinks = [...(field.value ?? [])];
                                 newLinks[index] = { ...link, label: e.target.value };
                                 field.onChange(newLinks);
                               }}
@@ -955,7 +958,7 @@ export const CreateCandidateForm = () => {
                               placeholder="URL"
                               value={link.url || ""}
                               onChange={(e) => {
-                                const newLinks = [...field.value];
+                                const newLinks = [...(field.value ?? [])];
                                 newLinks[index] = { ...link, url: e.target.value };
                                 field.onChange(newLinks);
                               }}
@@ -972,7 +975,8 @@ export const CreateCandidateForm = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => {
-                        field.onChange([...field.value, { label: "", url: "" }]);
+                        const current = field.value ?? [];
+                        field.onChange([...current, { label: "", url: "" }]);
                       }}
                       disabled={isPending}
                     >

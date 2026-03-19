@@ -8,6 +8,7 @@
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "node scripts/start-backend.js",
     "dev:frontend": "next dev -p 3001",
+    "test:e2e": "playwright test",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
@@ -52,6 +53,8 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.6.0",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.2.2",
     "input-otp": "^1.4.2",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.536.0",
@@ -75,6 +78,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@tanstack/eslint-plugin-query": "^5.83.1",
     "@types/lodash.debounce": "^4.0.9",

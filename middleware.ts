@@ -12,6 +12,8 @@ import { getToken } from "next-auth/jwt";
  * authentication + authorization by default.
  */
 const isDemoModeEnabled = () => {
+  // Never allow demo-mode bypass in production deployments.
+  if (process.env.NODE_ENV === "production") return false;
   const v = process.env.DEMO_MODE || process.env.NEXT_PUBLIC_DEMO_MODE;
   return typeof v === "string" && ["1", "true", "yes", "on"].includes(v.toLowerCase());
 };

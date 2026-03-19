@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { authSession } from "~/lib/auth";
 import { serverAuthenticatedFetch } from "~/lib/api-helpers";
 
+// Allow this API route to be included in static HTML export builds.
+// (Firebase Hosting static deployment can't run dynamic Next server logic.)
+export const dynamic = "force-static";
+
+// For `output: "export"`, Next requires `generateStaticParams()` on dynamic routes.
+// Returning an empty list avoids trying to prerender any `/api/applications/[id]/remarks` variants.
+export async function generateStaticParams() {
+  // Placeholder parameter set to satisfy `output: "export"`.
+  return [{ id: "0" }];
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

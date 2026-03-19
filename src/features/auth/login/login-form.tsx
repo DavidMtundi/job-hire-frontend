@@ -44,6 +44,11 @@ export const LoginForm = () => {
     },
   })
 
+  const getSafeRedirectPath = (path: string | null): string | null => {
+    if (!path) return null;
+    return path.startsWith("/") ? path : null;
+  };
+
   const onSubmit = async (data: TLogin) => {
     setIsLoading(true);
     setError(undefined);
@@ -91,12 +96,14 @@ export const LoginForm = () => {
       });
       
       let fallbackRedirect = "";
+      const safeRedirectPath = getSafeRedirectPath(redirectPath);
 
       if (user?.role === "candidate") {
         if (user?.is_profile_complete) {
-          fallbackRedirect = "/user/dashboard";
+          fallbackRedirect = safeRedirectPath || "/user/dashboard";
         } else {
-          fallbackRedirect = "/onboarding";
+          const continueTo = safeRedirectPath || "/onboarding/profile-completion";
+          fallbackRedirect = `/onboarding/resume-choice?continueTo=${encodeURIComponent(continueTo)}`;
         }
       } else if (user?.role === "admin" || user?.role === "hr") {
         // If there's a redirect param (e.g., from company registration), use it
@@ -113,7 +120,7 @@ export const LoginForm = () => {
 
       console.log("[LoginForm] Redirecting to:", fallbackRedirect);
       setIsLoading(false);
-      router.push(fallbackRedirect || `/onboarding/redirect=${redirectPath}`);
+      router.push(fallbackRedirect || "/");
     } catch (error: any) {
       console.error("[LoginForm] Error during login:", error);
       const errorMessage = error?.message || "Login failed - please try again";

@@ -3,6 +3,7 @@ import apiClient from "~/lib/axios";
 import { IForgotPasswordInput, IResetPasswordInput, ISignupResponse, IVerifyEmailInput } from "./dto";
 import { TInviteHrEmail, TSignup } from "./schemas";
 import { IUserCandidateResponse } from "../users/dto";
+import { useSession } from "next-auth/react";
 
 export const useSignupMutation = () => {
   const queryClient = useQueryClient();
@@ -71,8 +72,12 @@ export const useInviteHrEmailMutation = () => {
 };
 
 export const useGetAuthUserProfileQuery = () => {
+  const { status } = useSession();
   return useQuery({
     queryKey: ["get-auth-user-profile"],
+    // Avoid hitting `/auth/get-user` while unauthenticated; otherwise we
+    // reliably get 401s and noisy Axios errors during login/initial page loads.
+    enabled: status === "authenticated",
     queryFn: async () => {
       const { data } = await apiClient.get<IUserCandidateResponse>("/auth/get-user");
       return data;

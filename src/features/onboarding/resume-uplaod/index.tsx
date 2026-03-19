@@ -2,7 +2,7 @@
 
 import { EyeIcon, FileText, UploadIcon, XIcon, CheckCircle2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -18,6 +18,12 @@ export default function ResumeUploadScreen() {
   const [isParsing, setIsParsing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const continueToRaw = searchParams.get("continueTo");
+  const continueTo =
+    continueToRaw && continueToRaw.startsWith("/")
+      ? continueToRaw
+      : "/onboarding/profile-completion";
   
   const { data: session, status: sessionStatus } = useSession();
   const userId = session?.user?.id;
@@ -160,6 +166,44 @@ export default function ResumeUploadScreen() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleSkipAndFillManually = () => {
+    if (sessionStatus === "loading") {
+      return;
+    }
+    
+    if (!session?.user?.id) {
+      router.push("/login");
+      return toast.error("Please login to continue");
+    }
+
+    clearResume();
+    
+    const emptyResumeData = {
+      first_name: "",
+      last_name: "",
+      email: session.user.email || "",
+      phone: "",
+      address: "",
+      current_position: "",
+      years_experience: 0,
+      stack: [],
+      skills: [],
+      linkedin_url: "",
+      portfolio_url: "",
+      job_history: [],
+      links: [],
+      summary: "",
+      last_education: "",
+      expected_salary: "",
+      joining_availability: "1 month" as const,
+      resume_url: "",
+    };
+    
+    setResumeData(emptyResumeData);
+    toast.success("Let's fill in your details manually");
+    router.push("/onboarding/profile-completion");
+  };
+
   const handleContinue = async () => {
     if (sessionStatus === "loading") {
       return; // Wait for session to load
@@ -259,7 +303,7 @@ export default function ResumeUploadScreen() {
         });
       }
       
-      router.push("/onboarding/profile-completion");
+      router.push(continueTo);
       return;
     }
 
@@ -285,7 +329,7 @@ export default function ResumeUploadScreen() {
           // Ensure job_history is included in the resume data
           const resumeDataWithJobHistory = {
             ...data.data,
-            job_history: data?.data?.job_history || data?.data?.jobHistory || [],
+            job_history: data?.data?.job_history || (data?.data as any)?.jobHistory || [],
           };
           
           console.log("[ResumeUpload] Setting resume data with job_history:", {
@@ -298,7 +342,7 @@ export default function ResumeUploadScreen() {
           toast.success("Resume Uploaded Successfully");
           // Refetch to update the existing candidate data
           refetchCandidate();
-          router.push("/onboarding/profile-completion");
+          router.push(continueTo);
         },
         onError: (error) => {
           console.error("Upload error", error);
@@ -316,11 +360,11 @@ export default function ResumeUploadScreen() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-blue-950 mb-1">
-            {hasExistingResume ? "Your Resume" : "Upload your resume"}
+            Upload your resume
           </h1>
           <p className="text-sm text-gray-700">
             {hasExistingResume 
-              ? "Your resume is already uploaded. You can continue with it or upload a new one."
+              ? "You can replace your current resume here, or continue with the existing one."
               : "We'll extract your details to speed up your profile setup"}
           </p>
         </div>
@@ -338,9 +382,9 @@ export default function ResumeUploadScreen() {
                 </div>
               )}
 
-              {/* Show existing resume if available - Make it very clear */}
+              {/* Direct-access fallback: allow using existing resume even on upload page */}
               {!isLoading && hasExistingResume && !resume && (
-                <div className="border-2 border-green-300 bg-green-50 rounded-lg p-6 shadow-sm">
+                <div className="border border-green-200 bg-green-50 rounded-lg p-5">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
                       <div className="rounded-full bg-green-100 p-3">
@@ -350,7 +394,7 @@ export default function ResumeUploadScreen() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-3">
                         <p className="font-semibold text-gray-900 text-lg">
-                          Resume Already Uploaded
+                          Existing Resume Available
                         </p>
                         <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 font-medium">
                           Current
@@ -399,7 +443,14 @@ export default function ResumeUploadScreen() {
                         )}
                       </div>
 
-                      <div className="border-t border-green-200 pt-3">
+                      <div className="border-t border-green-200 pt-3 flex flex-wrap items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => router.push(`/onboarding/resume-choice?continueTo=${encodeURIComponent(continueTo)}`)}
+                        >
+                          Back to Resume Choice
+                        </Button>
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline font-medium"
@@ -435,30 +486,57 @@ export default function ResumeUploadScreen() {
               {(!hasExistingResume || resume) && (
                 <>
                   {!resume ? (
-                    <div
-                      className="group border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                      onDrop={handleDrop}
-                      onDragOver={handleDragOver}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <UploadIcon className="size-10 text-gray-400 group-hover:text-gray-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {hasExistingResume ? "Upload New Resume" : "Upload your resume"}
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Drag and drop your file here, or click to browse
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Supports PDF, DOC, DOCX files up to 10MB
-                      </p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                    </div>
+                    <>
+                      <div
+                        className="group border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <UploadIcon className="size-10 text-gray-400 group-hover:text-gray-500 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          {hasExistingResume ? "Upload New Resume" : "Upload your resume"}
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          Drag and drop your file here, or click to browse
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Supports PDF, DOC, DOCX files up to 10MB
+                        </p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                      </div>
+
+                      {/* Divider */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                          <span className="px-2 bg-white text-gray-500">or</span>
+                        </div>
+                      </div>
+
+                      {/* Skip and fill manually option */}
+                      <div className="text-center py-4">
+                        <p className="text-sm text-gray-600 mb-3">
+                          Don't have a resume? Fill in your details manually.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={handleSkipAndFillManually}
+                          disabled={isLoading || sessionStatus === "loading"}
+                          className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          Fill Manually
+                        </Button>
+                      </div>
+                    </>
                   ) : (
                 <div className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
@@ -557,7 +635,7 @@ export default function ResumeUploadScreen() {
         <p className="text-xs text-gray-500 mt-4 text-center">
           {hasExistingResume 
             ? "✅ You already have a resume uploaded. Uploading a new one is optional - you can continue with your current resume."
-            : "⚠️ Resume upload is required to complete your profile."}
+            : "💡 You can upload your resume for automatic extraction or fill in your details manually."}
         </p>
       </div>
     </div>

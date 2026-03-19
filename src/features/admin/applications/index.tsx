@@ -31,6 +31,7 @@ import { DataTable } from "~/components/data-table";
 import { Spinner } from "~/components/spinner";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { BulkActionsToolbar } from "./bulk-actions-toolbar";
+import { useSession } from "next-auth/react";
 
 
 interface ApplicationsFilters {
@@ -45,6 +46,7 @@ export default function Applications() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortByAiMatch, setSortByAiMatch] = useState(false);
+  const [myQueueOnly, setMyQueueOnly] = useState(false);
   const [filters, setFilters] = useState<ApplicationsFilters>({
     search: "",
     stage: "all",
@@ -52,6 +54,8 @@ export default function Applications() {
     priority: "all",
   });
   const pageSize = 10;
+  const { data: session } = useSession();
+  const currentUserId = (session?.user as any)?.id as string | undefined;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,6 +72,7 @@ export default function Applications() {
     page_size: pageSize,
     search: filters.search ?? "",
     ...(filters.stage && filters.stage !== "all" && { stage: filters.stage as TApplicationStatus }),
+    ...(myQueueOnly && currentUserId ? { recruiter_id: currentUserId } : {}),
   });
 
   const { data: hiringFunnelData } = useGetHiringFunnelQuery();
@@ -275,6 +280,15 @@ export default function Applications() {
               >
                 AI Match {sortByAiMatch ? "On" : "Off"}
               </Button>
+            <Button
+              type="button"
+              variant={myQueueOnly ? "default" : "outline"}
+              onClick={() => setMyQueueOnly((v) => !v)}
+              disabled={!currentUserId}
+              title={!currentUserId ? "Login required" : "Show only applications assigned to me"}
+            >
+              My queue {myQueueOnly ? "On" : "Off"}
+            </Button>
             </div>
             <div className="flex flex-wrap gap-4 ">
               <FilterGroup filters={filterConfigs} />

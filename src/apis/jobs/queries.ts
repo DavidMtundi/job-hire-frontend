@@ -1,3 +1,31 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import apiClient from "~/lib/axios";
+import { TCreateJobPayload } from "./schemas";
+
+export const useCreateJobMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["create-job"],
+    mutationFn: async (payload: TCreateJobPayload) => {
+      const response = await apiClient.post("/jobs/", payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job created successfully");
+    },
+    onError: (error: any) => {
+      const message =
+        error?.message ||
+        error?.response?.data?.message ||
+        error?.response?.data?.detail ||
+        "Failed to create job";
+      toast.error(message);
+    },
+  });
+};
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "~/lib/axios";
 import { IGetJobsParams, IJobResponse, IJobsResponse, IAIGenerateJobRequest, IAIGenerateJobResponse } from "./dto";

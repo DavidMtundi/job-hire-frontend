@@ -57,9 +57,10 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_BASE_API_URL=http://localhost:8002
+      - NEXT_PUBLIC_BASE_API_URL=https://job-hire-backend-production.up.railway.app
       - AUTH_URL=http://localhost:3000
       - AUTH_SECRET=${AUTH_SECRET:-dev-auth-secret-change-in-production}
+      - BACKEND_URL=https://job-hire-backend-production.up.railway.app
     depends_on:
       - backend
     networks:

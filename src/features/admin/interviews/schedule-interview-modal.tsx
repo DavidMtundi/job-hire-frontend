@@ -77,7 +77,7 @@ export function ScheduleInterviewModal({
   const { data: jobsData } = useGetJobsQuery();
   const createMutation = useCreateInterviewMutation();
 
-  const candidates = candidatesData?.data || [];
+  const candidates = candidatesData?.data?.items || [];
   const jobs = jobsData?.data || [];
 
   useEffect(() => {

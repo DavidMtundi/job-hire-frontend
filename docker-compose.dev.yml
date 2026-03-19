@@ -58,12 +58,13 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_APP_URL=http://localhost:3001
-      - NEXT_PUBLIC_BASE_API_URL=http://localhost:8002
-      - BACKEND_URL=http://backend:8002
+      - NEXT_PUBLIC_BASE_API_URL=https://job-hire-backend-production.up.railway.app
+      - BACKEND_URL=https://job-hire-backend-production.up.railway.app
       - AUTH_URL=http://localhost:3001
       - AUTH_SECRET=${AUTH_SECRET:-dev-auth-secret-change-in-production}
       - DEMO_MODE=true
       - NEXT_PUBLIC_DEMO_MODE=true
+      - NEXT_DISABLE_TURBOPACK=1
     volumes:
       # Mount source code for hot reload
       - .:/app
@@ -74,7 +75,7 @@ services:
     networks:
       - job-hire-network
     restart: unless-stopped
-    command: npm run dev
+    command: npx next dev --webpack -H 0.0.0.0 -p 3001
 
   # PostgreSQL Database
   postgres:

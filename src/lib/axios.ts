@@ -248,6 +248,20 @@ apiClient.interceptors.request.use(
       config.headers = {} as any;
     }
     
+    // CRITICAL: Do NOT set Content-Type for FormData - let the browser/Axios handle it
+    // FormData requires the browser to set Content-Type with boundary parameter
+    if (config.data instanceof FormData) {
+      // Remove Content-Type header to let FormData set it correctly with boundary
+      delete config.headers['Content-Type'];
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Axios Interceptor] Detected FormData upload - removed Content-Type header to allow browser to set it with boundary");
+        console.log("[Axios Interceptor] FormData details:", {
+          url: config.url,
+          method: config.method?.toUpperCase(),
+        });
+      }
+    }
+    
     // Add breakpoint for AI job generation endpoint specifically
     if (config.url?.includes("/jobs/ai-generate")) {
       console.log("========================================");
@@ -312,6 +326,11 @@ apiClient.interceptors.request.use(
     const isPublicEndpoint = config.url && (
       // Check explicit public endpoints first
       publicEndpoints.some((endpoint) => {
+        // /categories is public only for reads; mutations must stay authenticated.
+        if (endpoint === "/categories") {
+          const method = config.method?.toUpperCase() || "GET";
+          if (method !== "GET") return false;
+        }
         const matches = urlMatchesEndpoint(config.url || "", endpoint);
         if (matches && process.env.NODE_ENV === "development") {
           console.log(`[API Request] ✅ Matched public endpoint: ${config.url} matches ${endpoint}`);
@@ -772,7 +791,18 @@ apiClient.interceptors.response.use(
       }
       
       // Always log - we should have at least message or code by now
-      console.error("Axios Error:", detailedError);
+      console.error("Axios Error:", {
+        message: (detailedError.message as string | undefined) ?? message ?? null,
+        status: detailedError.status ?? status ?? null,
+        code: detailedError.code ?? code ?? null,
+        url: error?.config?.url ?? null,
+        method: error?.config?.method ?? null,
+        // Keep response data small to avoid huge console payloads
+        responseData:
+          error?.response?.data && typeof error.response.data === "object"
+            ? error.response.data
+            : error?.response?.data ?? null,
+      });
       
       // Also log fallback if detailedError is still empty (shouldn't happen)
       if (Object.keys(detailedError).length === 0) {

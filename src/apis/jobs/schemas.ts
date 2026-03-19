@@ -1,3 +1,29 @@
+export type TCustomFieldType = "text" | "multiline_text";
+
+export interface TCustomFieldInput {
+  field_name: string;
+  field_key: string;
+  type: TCustomFieldType;
+  value: string;
+  required: boolean;
+}
+
+export interface TCreateJobPayload {
+  title: string;
+  description: string;
+  responsibilities: string[];
+  benefits: string[];
+  required_skills: string[];
+  education_requirements?: string;
+  location: string;
+  job_type: "full_time" | "part_time" | "contract" | "internship" | "temporary";
+  experience_level: "entry" | "mid" | "senior" | "lead" | "executive";
+  salary_min?: number;
+  salary_max?: number;
+  salary_currency: string;
+  is_remote: boolean;
+  custom_fields?: TCustomFieldInput[];
+}
 import { z } from "zod";
 
 export const JobSchema = z.object({

@@ -28,6 +28,7 @@ const LoginScreen = () => {
                 <div>
                   <Link 
                     href="/signup?role=candidate" 
+                    prefetch={false}
                     className="text-blue-600 hover:text-blue-700 font-medium underline"
                   >
                     Sign up as Candidate
@@ -37,6 +38,7 @@ const LoginScreen = () => {
                   <p className="text-xs text-gray-500 mb-2">Want to post jobs and manage a company?</p>
                   <Link 
                     href="/signup?role=hr&redirect=/admin/companies/register" 
+                    prefetch={false}
                     className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium underline"
                   >
                     Create Company Owner Account →

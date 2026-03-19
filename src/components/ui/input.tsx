@@ -5,6 +5,10 @@ import { cn } from "~/lib/utils"
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
+      // Some browser extensions / autofill tooling can inject ARIA attributes
+      // (e.g. aria-autocomplete) between SSR and hydration, causing noisy
+      // hydration mismatch warnings.
+      suppressHydrationWarning
       type={type}
       data-slot="input"
       className={cn(

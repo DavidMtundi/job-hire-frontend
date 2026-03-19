@@ -51,12 +51,12 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
             success: response?.success,
             hasData: !!response?.data,
             dataKeys: response?.data ? Object.keys(response.data) : [],
-            message: response?.message
+            message: (response as any)?.message
           });
           console.log("[AUTH] Full API Response:", JSON.stringify(response, null, 2));
 
           if (!response || !response.success) {
-            const errorMessage = response?.message || response?.data?.message || "Invalid email or password";
+            const errorMessage = (response as any)?.message || (response as any)?.data?.message || "Invalid email or password";
             console.error("Login failed:", errorMessage);
             throw new Error(errorMessage);
           }
@@ -226,16 +226,17 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
       // On first login (when user object is provided)
       if (user) {
         const { tokens, ...restUser } = user;
+        const restUserAny = restUser as any;
         // Only store essential fields in JWT token to avoid cookie size issues
         // Exclude large nested objects like candidate_profile
         token.user = {
-          id: restUser.id,
-          email: restUser.email,
-          username: restUser.username,
-          role: restUser.role,
-          is_active: restUser.is_active,
-          is_email_verified: restUser.is_email_verified,
-          is_profile_complete: restUser.is_profile_complete,
+          id: restUserAny.id,
+          email: restUserAny.email,
+          username: restUserAny.username,
+          role: restUserAny.role,
+          is_active: restUserAny.is_active,
+          is_email_verified: restUserAny.is_email_verified,
+          is_profile_complete: restUserAny.is_profile_complete,
           // Don't include candidate_profile or other large objects
         } as IUser;
         

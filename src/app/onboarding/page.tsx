@@ -14,5 +14,5 @@ export default async function OnboardingPage() {
   }
 
   // Use client-side redirect to prevent performance measurement issues
-  return <RedirectHandler redirectTo="/onboarding/resume-upload" />;
+  return <RedirectHandler redirectTo="/onboarding/resume-choice" />;
 }

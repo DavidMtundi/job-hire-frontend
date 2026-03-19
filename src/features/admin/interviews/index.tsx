@@ -99,9 +99,8 @@ export default function InterviewsScreen() {
   const enrichedInterviews = useMemo(() => {
     if (!interviewsData || interviewsData.length === 0) return [];
 
-    const candidatesMap = new Map(
-      candidatesData?.data?.map((c) => [c.id, c]) || []
-    );
+    const candidatesList = candidatesData?.data?.items || [];
+    const candidatesMap = new Map(candidatesList.map((c) => [c.id, c]));
     const jobsMap = new Map(jobsData?.data?.map((j) => [j.id, j]) || []);
     
     const applicationsMap = new Map<string, string>();

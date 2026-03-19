@@ -11,6 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/labels";
+import { useCreateApplicationMutation } from "~/apis/applications/queries";
+import { useUploadResumeMutation } from "~/apis/resume/queries";
+import { useGetAuthUserProfileQuery } from "~/apis/auth/queries";
 
 export default function Apply() {
   const [resume, setResume] = useState<File | null>(null);
@@ -20,10 +23,16 @@ export default function Apply() {
   } | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resumeMode, setResumeMode] = useState<"existing" | "new">("new");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
+  const createApplicationMutation = useCreateApplicationMutation();
+  const uploadResumeMutation = useUploadResumeMutation();
+  const { data: userProfile } = useGetAuthUserProfileQuery();
+  const existingResumeUrl = userProfile?.data?.candidate_profile?.resume_url || "";
+  const hasExistingResume = !!existingResumeUrl;
 
   useEffect(() => {
     // Wait for NextAuth to resolve session state; don't redirect while loading.
@@ -41,6 +50,7 @@ export default function Apply() {
     if (savedMeta) {
       try {
         setResumeMeta(JSON.parse(savedMeta));
+        setResumeMode("new");
       } catch {}
     }
     // Prefill a simple default cover letter using profile summary if available
@@ -58,7 +68,10 @@ export default function Apply() {
           );
       } catch {}
     }
-  }, [session, status, router, params.id]);
+    if (!savedMeta && hasExistingResume) {
+      setResumeMode("existing");
+    }
+  }, [session, status, router, params.id, hasExistingResume]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,23 +105,60 @@ export default function Apply() {
   const removeResume = () => {
     setResume(null);
     setResumeMeta(null);
+    if (hasExistingResume) {
+      setResumeMode("existing");
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const handleSubmit = () => {
-    const hasResume = resume || resumeMeta;
+  const getResumeFileName = (url: string) => {
+    try {
+      const fileName = url.split("/").pop();
+      return fileName?.split("?")[0] || "resume.pdf";
+    } catch {
+      return "resume.pdf";
+    }
+  };
+
+  const handleSubmit = async () => {
+    const hasResume = resume || resumeMeta || (hasExistingResume && resumeMode === "existing");
     if (!hasResume) {
-      alert("Please upload your resume to submit");
+      toast.error("Please upload your resume to submit");
       return;
     }
+    if (!session?.user) {
+      toast.error("Please login to apply for this job");
+      router.push(`/login?redirect=/apply/${params.id}`);
+      return;
+    }
+
+    const userId = (session.user as any)?.id as string | undefined;
+    if (!userId) {
+      toast.error("User information not available");
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simulate submit
-    setTimeout(() => {
+    try {
+      // If user uploaded a new resume file, upload it first.
+      if (resume) {
+        await uploadResumeMutation.mutateAsync({ userId, file: resume });
+      }
+
+      await createApplicationMutation.mutateAsync({
+        job_id: String(params.id),
+        cover_letter: coverLetter || "",
+      });
+
       localStorage.setItem("lastCoverLetter", coverLetter || "");
       router.push(`/apply/${params.id}/success`);
-    }, 1200);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to submit application");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -128,7 +178,7 @@ export default function Apply() {
             <CardTitle>Resume</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {!resume && !resumeMeta ? (
+            {!resume && !resumeMeta && !(hasExistingResume && resumeMode === "existing") ? (
               <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
                 onDrop={handleDrop}
@@ -137,7 +187,7 @@ export default function Apply() {
               >
                 <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Upload Your Resume
+                  {hasExistingResume ? "Upload a New Resume" : "Upload Your Resume"}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   Drag and drop your file here, or click to browse
@@ -160,9 +210,16 @@ export default function Apply() {
                     <FileText className="h-8 w-8 text-blue-600 mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">
-                        {resume?.name || resumeMeta?.name}
+                        {resume?.name ||
+                          resumeMeta?.name ||
+                          (hasExistingResume && resumeMode === "existing"
+                            ? getResumeFileName(existingResumeUrl)
+                            : "")}
                       </p>
-                      {resumeMeta?.size && (
+                      {hasExistingResume && resumeMode === "existing" && (
+                        <p className="text-sm text-gray-500">Using your current uploaded resume</p>
+                      )}
+                      {resumeMeta?.size && resumeMode !== "existing" && (
                         <p className="text-sm text-gray-500">
                           {(resumeMeta.size / 1024 / 1024).toFixed(2)} MB
                         </p>
@@ -170,10 +227,34 @@ export default function Apply() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {hasExistingResume && resumeMode === "existing" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setResumeMode("new");
+                          setResumeMeta(null);
+                          setResume(null);
+                        }}
+                      >
+                        Upload New
+                      </Button>
+                    )}
+                    {hasExistingResume && resumeMode === "existing" && existingResumeUrl && (
+                      <a
+                        href={existingResumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        View
+                      </a>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
+                      disabled={hasExistingResume && resumeMode === "existing"}
                     >
                       Reupload
                     </Button>
@@ -182,6 +263,7 @@ export default function Apply() {
                       size="sm"
                       onClick={removeResume}
                       className="text-red-600 hover:text-red-700"
+                      disabled={hasExistingResume && resumeMode === "existing"}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -194,6 +276,12 @@ export default function Apply() {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+
+            {hasExistingResume && !resume && !resumeMeta && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                You already have a resume on file. You can use it as-is or upload a new one.
               </div>
             )}
 
@@ -220,7 +308,9 @@ export default function Apply() {
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || (!resume && !resumeMeta)}
+                disabled={
+                  isSubmitting || (!resume && !resumeMeta && !(hasExistingResume && resumeMode === "existing"))
+                }
               >
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
