@@ -19,6 +19,7 @@ import {
   XCircleIcon
 } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
 import { BsCheck2Square } from 'react-icons/bs';
 import { TJob } from '~/apis/jobs/schemas';
 import { Badge } from '~/components/ui/badge';
@@ -27,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Label } from '~/components/ui/label';
 import { Separator } from '~/components/ui/separator';
 import { formatDate } from '~/lib/utils';
+import { CustomFieldType, TCustomField } from '~/apis/jobs/schemas';
 
 interface JobDetailsProps {
   jobData: TJob;
@@ -250,6 +252,54 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
                     <span className="text-gray-600">{benefit}</span>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Custom Fields */}
+        {job?.custom_fields && job.custom_fields.length > 0 && (
+          <Card className="gap-2">
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {job.custom_fields.map((field: TCustomField, index: number) => {
+                  let displayValue: string | React.ReactNode = "";
+                  
+                  if (field.value === null || field.value === undefined) {
+                    displayValue = <span className="text-muted-foreground italic">Not specified</span>;
+                  } else {
+                    switch (field.type) {
+                      case CustomFieldType.BOOLEAN:
+                        displayValue = field.value === true ? "Yes" : "No";
+                        break;
+                      case CustomFieldType.DATE:
+                        displayValue = formatDate(field.value as string);
+                        break;
+                      case CustomFieldType.NUMBER:
+                        displayValue = String(field.value);
+                        break;
+                      default:
+                        displayValue = String(field.value);
+                    }
+                  }
+
+                  return (
+                    <div key={index} className="flex justify-between items-start gap-4 pb-3 border-b last:border-0 last:pb-0">
+                      <div className="flex-1">
+                        <Label className="text-sm font-semibold text-primary/80">
+                          {field.field_name}
+                          {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                      </div>
+                      <div className="flex-1 text-right">
+                        <span className="text-muted-foreground">{displayValue}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

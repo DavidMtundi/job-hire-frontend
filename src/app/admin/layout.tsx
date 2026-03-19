@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <SiteHeader />
         <div className="p-6">
           {children}

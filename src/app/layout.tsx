@@ -49,9 +49,15 @@ export default async function RootLayout({
   return (
     <SessionProvider session={session}>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        </head>
         <body
           className={cn(
-            "min-h-screen bg-background font-sans antialiased"
+            "min-h-screen bg-background font-sans antialiased",
+            "[font-family:'Inter',sans-serif]"
             // geistSans.variable,
             // geistMono.variable
           )}

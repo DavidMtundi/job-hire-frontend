@@ -19,10 +19,10 @@ const SignupScreen = () => {
               <div className="pt-3 border-t bg-blue-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-700 mb-2 font-semibold">For Company Owners & HR:</p>
                 <p className="text-xs text-gray-600 mb-2">
-                  Select <strong>"HR"</strong> role below. After creating your account and logging in, you&apos;ll be able to register your company.
+                  Select <strong>"HR"</strong> role below. You can optionally provide company details during signup to create your company automatically, or register it later after logging in.
                 </p>
                 <p className="text-xs text-gray-500 italic">
-                  Step 1: Create Account (this page) → Step 2: Login → Step 3: Register Company
+                  💡 Tip: Provide company details now to skip the company registration step later!
                 </p>
               </div>
             </CardDescription>

@@ -45,6 +45,7 @@ import {
 import { TCreateCategory, CreateCategorySchema } from "~/apis/categories/schemas";
 import { TCreateDepartment, CreateDepartmentSchema } from "~/apis/departments/schemas";
 import { Combobox } from "~/components/ui/combobox";
+import { CustomFieldsEditor } from "~/components/custom-fields-editor";
 
 const jobTypes = [
   { label: "Full-time", value: "full_time" },
@@ -140,6 +141,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
       // application_deadline: null,
       // max_applications: null,
       status: "active",
+      custom_fields: [],
     },
   });
 
@@ -261,6 +263,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
           salary_currency: "USD",
           is_remote: false,
           status: "active",
+          custom_fields: [],
         });
         // router.push("/admin/jobs");
       },
@@ -999,6 +1002,30 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                       </Select>
                     </FormControl>
                     <FormMessage className="absolute -bottom-4 text-xs" />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-primary/80">Custom Fields</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-6">
+              <FormField
+                control={form.control}
+                name="custom_fields"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <CustomFieldsEditor
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

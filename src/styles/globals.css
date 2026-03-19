@@ -43,30 +43,30 @@
 
 /* custom colors */
 @theme {
-  --color-primary: #1e3a8a;
-  --color-primary-foreground: #eff6ff;
-  --color-background: #ffff;
+  --color-primary: #4f46e5;
+  --color-primary-foreground: #ffffff;
+  --color-background: #f8fafc;
   --color-foreground: #0f172a;
-  --color-secondary: #dbeafe;
-  --color-secondary-foreground: #0f172a;
-  --color-muted: #dbeafe;
+  --color-secondary: #e0e7ff;
+  --color-secondary-foreground: #1e1b4b;
+  --color-muted: #f1f5f9;
   --color-muted-foreground: #64748b;
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #000;
+  --color-accent: #eef2ff;
+  --color-accent-foreground: #312e81;
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #eff6ff;
-  --color-border: #bfdbfe;
-  --color-input: #bfdbfe;
-  --color-ring: #2563eb;
-  --color-chart-1: #f97316;
-  --color-chart-2: #0d9488;
-  --color-chart-3: #115e59;
-  --color-chart-4: #fde047;
-  --color-chart-5: #facc15;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #4f46e5;
+  --color-chart-1: #8b5cf6;
+  --color-chart-2: #10b981;
+  --color-chart-3: #f59e0b;
+  --color-chart-4: #f43f5e;
+  --color-chart-5: #3b82f6;
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
