@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useGetApplicationsQuery } from "~/apis/applications/queries";
 import { useGetCandidatesQuery } from "~/apis/candidates/queries";
 import { useCreateInterviewMutation } from "~/apis/interviews/queries";
 import {
@@ -36,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 
 interface ScheduleInterviewModalProps {
@@ -70,7 +70,7 @@ export function ScheduleInterviewModal({
       meeting_link: "",
       notes: "",
       hr_remarks: "",
-      interview_type: "technical",
+      interview_type: "hr",
       interview_mode: "online",
       location: "",
     },
@@ -80,10 +80,41 @@ export function ScheduleInterviewModal({
 
   const { data: candidatesData } = useGetCandidatesQuery();
   const { data: jobsData } = useGetJobsQuery();
+  const { data: applicationsData } = useGetApplicationsQuery({});
   const createMutation = useCreateInterviewMutation();
 
   const candidates = candidatesData?.data?.items || [];
   const jobs = jobsData?.data || [];
+  const selectedCandidateId = form.watch("candidate_id");
+  const lastProcessedCandidateRef = useRef<string>("");
+  const hasExplicitPrefill = Boolean(prefilledData?.jobId || prefilledData?.applicationId);
+
+  const latestApplicationByCandidateId = useMemo(() => {
+    const applicationsList = Array.isArray((applicationsData as any)?.data)
+      ? (applicationsData as any).data
+      : (applicationsData as any)?.data?.items || [];
+
+    const byCandidate = new Map<string, any>();
+
+    for (const application of applicationsList) {
+      const candidateId = application?.candidate_id;
+      if (!candidateId) continue;
+
+      const existing = byCandidate.get(candidateId);
+      if (!existing) {
+        byCandidate.set(candidateId, application);
+        continue;
+      }
+
+      const existingTime = new Date(existing?.applied_at || 0).getTime();
+      const incomingTime = new Date(application?.applied_at || 0).getTime();
+      if (incomingTime >= existingTime) {
+        byCandidate.set(candidateId, application);
+      }
+    }
+
+    return byCandidate;
+  }, [applicationsData]);
 
   useEffect(() => {
     if (open && prefilledData) {
@@ -99,20 +130,60 @@ export function ScheduleInterviewModal({
       if (session?.user?.id) {
         form.setValue("hr_id", session.user.id);
       }
+      lastProcessedCandidateRef.current = prefilledData.candidateId || "";
+    } else if (open && session?.user?.id) {
+      form.setValue("hr_id", session.user.id);
+      lastProcessedCandidateRef.current = "";
     }
   }, [open, prefilledData, session, form]);
+
+  useEffect(() => {
+    if (!open || !selectedCandidateId || hasExplicitPrefill) return;
+
+    const matchedApplication = latestApplicationByCandidateId.get(selectedCandidateId);
+    const previousCandidateId = lastProcessedCandidateRef.current;
+    const candidateChanged = selectedCandidateId !== previousCandidateId;
+    const shouldHydrateEmptyFields =
+      !form.getValues("application_id") && !form.getValues("job_id");
+
+    if (!candidateChanged && !shouldHydrateEmptyFields) {
+      return;
+    }
+
+    if (matchedApplication?.id && matchedApplication?.job_id) {
+      form.setValue("application_id", matchedApplication.id, { shouldDirty: false });
+      form.setValue("job_id", matchedApplication.job_id, { shouldDirty: false });
+    } else if (candidateChanged) {
+      form.setValue("application_id", "", { shouldDirty: false });
+      form.setValue("job_id", "", { shouldDirty: false });
+    }
+
+    lastProcessedCandidateRef.current = selectedCandidateId;
+  }, [open, selectedCandidateId, hasExplicitPrefill, latestApplicationByCandidateId, form]);
 
   const onSubmit = async (values: TCreateInterview) => {
     try {
       const applicationId = prefilledData?.applicationId || values.application_id;
+      const candidateId = prefilledData?.candidateId || values.candidate_id;
+      const jobId = prefilledData?.jobId || values.job_id;
+      const hrId = values.hr_id || session?.user?.id;
       
       if (!applicationId || applicationId.trim() === "") {
         toast.error("Application ID is required. Please ensure you're scheduling from an application page.");
         return;
       }
-
-      // Backend expects lowercase interview_type: "technical" or "hr"
-      const interviewType = values.interview_type?.toLowerCase() || "hr";
+      if (!candidateId || candidateId.trim() === "") {
+        toast.error("Candidate is required.");
+        return;
+      }
+      if (!jobId || jobId.trim() === "") {
+        toast.error("Job is required.");
+        return;
+      }
+      if (!hrId || hrId.trim() === "") {
+        toast.error("HR user is required.");
+        return;
+      }
 
       // Validate interview_date
       if (!values.interview_date) {
@@ -120,25 +191,34 @@ export function ScheduleInterviewModal({
         return;
       }
 
-      // Prepare interview data according to backend schema
-      // Backend expects: application_id, interview_date (datetime), duration, meeting_link (optional), hr_remarks (optional), interview_type
+      // Prepare interview data according to backend schema.
+      // interview_type is intentionally omitted so backend/default flow can handle it.
+      const normalizedMeetingLink =
+        values.interview_mode === "online"
+          ? (values.meeting_link || "").trim()
+          : "";
+
       const interviewData: any = {
+        candidate_id: candidateId,
+        job_id: jobId,
+        hr_id: hrId,
         application_id: applicationId,
         interview_date: new Date(values.interview_date).toISOString(),
         duration: Number(values.duration) || 45,
-        meeting_link: values.meeting_link || null,
+        interview_type: values.interview_type || "hr",
+        meeting_link: normalizedMeetingLink,
+        notes: values.notes || null,
         hr_remarks: values.hr_remarks || null,
-        interview_type: interviewType,
         interview_mode: values.interview_mode || "online",
         location: values.location || null,
       };
 
       // Remove null/empty values if they're truly optional
-      if (!interviewData.meeting_link) {
-        delete interviewData.meeting_link;
-      }
       if (!interviewData.hr_remarks) {
         delete interviewData.hr_remarks;
+      }
+      if (!interviewData.notes) {
+        delete interviewData.notes;
       }
       if (!interviewData.location) {
         delete interviewData.location;
@@ -288,7 +368,7 @@ export function ScheduleInterviewModal({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
            
               <FormField
                 control={form.control}
@@ -314,30 +394,6 @@ export function ScheduleInterviewModal({
                 )}
               />
 
-          
-              <FormField
-                control={form.control}
-                name="interview_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor={field.name}>
-                      Interview Type <span className="text-red-500">*</span>
-                    </Label>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="technical">Technical</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <FormField

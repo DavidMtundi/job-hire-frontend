@@ -639,6 +639,32 @@ apiClient.interceptors.response.use(
       console.log("Raw Axios Error Object:", errorInfo);
     }
 
+    const normalizeErrorMessage = (value: unknown): string | null => {
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      }
+      if (Array.isArray(value)) {
+        const parts = value
+          .map((item) => normalizeErrorMessage(item))
+          .filter((item): item is string => Boolean(item));
+        return parts.length > 0 ? parts.join("; ") : null;
+      }
+      if (value && typeof value === "object") {
+        const candidate = value as Record<string, unknown>;
+        if (typeof candidate.msg === "string" && candidate.msg.trim() !== "") {
+          return candidate.msg.trim();
+        }
+        if (typeof candidate.message === "string" && candidate.message.trim() !== "") {
+          return candidate.message.trim();
+        }
+        if (typeof candidate.detail === "string" && candidate.detail.trim() !== "") {
+          return candidate.detail.trim();
+        }
+      }
+      return null;
+    };
+
     // Handle network errors (no response) vs HTTP errors (with response)
     const isNetworkError = !error?.response;
     const response = error?.response || {};
@@ -656,14 +682,15 @@ apiClient.interceptors.response.use(
       }
     } else {
       // Extract message from various possible locations
-      message = data?.message || 
-                data?.detail || 
-                (typeof data === 'string' ? data : null) ||
-                error?.message || 
-                (status === 401 ? "Invalid email or password" : "Something went wrong");
+      message =
+        normalizeErrorMessage(data?.message) ||
+        normalizeErrorMessage(data?.detail) ||
+        normalizeErrorMessage(data) ||
+        normalizeErrorMessage(error?.message) ||
+        (status === 401 ? "Invalid email or password" : "Something went wrong");
       
       // If message is still generic "Error", try to get more details
-      if (message === "Error" || !message || message.trim() === "") {
+      if (message === "Error" || !normalizeErrorMessage(message)) {
         if (status === 401) {
           message = "Invalid email or password";
         } else if (status === 403) {
