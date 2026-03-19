@@ -2,14 +2,9 @@
 
 import {
   ArrowLeft,
-  Building2,
-  Calendar,
-  CheckCircle,
-  Clock,
-  DollarSign,
   Loader2,
-  MapPin,
 } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useGetJobQuery } from "~/apis/jobs/queries";
 import { Badge } from "~/components/ui/badge";
@@ -25,7 +20,6 @@ import { useGetApplicationsQuery } from "~/apis/applications/queries";
 import { TJob } from "~/apis/jobs/schemas";
 import { useSession } from "next-auth/react";
 import { useDeleteResumeMutation } from "~/apis/resume/queries";
-import { toast } from "sonner";
 
 interface JobDetailsProps {
   jobId: string;
@@ -53,6 +47,37 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
     (item) => item.job_id === jobId && item.status_id === 17
   );
 
+  const getJobUrl = () => {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}/jobs/${jobId}`;
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = encodeURIComponent(getJobUrl());
+    const text = encodeURIComponent(`Check out this job: ${job?.title}`);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`, "_blank");
+  };
+
+  const handleShareTwitter = () => {
+    const url = encodeURIComponent(getJobUrl());
+    const text = encodeURIComponent(`Check out this job: ${job?.title} - Apply now!`);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(`Check out this job: ${job?.title} - Apply here: ${getJobUrl()}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const handleShareFacebook = () => {
+    const url = encodeURIComponent(getJobUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(getJobUrl()).then(() => sonnerToast.success("Link copied!"));
+  };
+
   //DELETE RESUME HOOK
   const { mutate: deleteResume, isPending: isDeleting } =
     useDeleteResumeMutation();
@@ -65,10 +90,10 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
       { userId },
       {
         onSuccess: () => {
-          toast.success("Resume deleted successfully");
+          sonnerToast.success("Resume deleted successfully");
         },
         onError: () => {
-          toast.error("Failed to delete resume");
+          sonnerToast.error("Failed to delete resume");
         },
       }
     );
@@ -96,19 +121,12 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <Card className="bg-white shadow-lg transition-shadow w-full">
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="text-xl sm:text-2xl mb-3 break-words">{job?.title}</CardTitle>
-
-                <div className="flex items-center text-gray-600 mb-3">
-                  <Building2 className="size-4 sm:size-5 mr-2" />
-                </div>
-
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm sm:text-base text-gray-600 mb-4">
                   <div className="flex items-center">
-                    <MapPin className="size-4 mr-1" />
                     <span>{job?.location}</span>
                   </div>
 
                   <div className="flex items-center">
-                    <Clock className="size-4 mr-1" />
                     <span>{getJobTypeLabel(job?.job_type as string)}</span>
                   </div>
 
@@ -117,7 +135,6 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                     job?.salary_min > 0 &&
                     job?.salary_max > 0 && (
                       <div className="flex items-center">
-                        <DollarSign className="size-4 mr-1" />
                         <span className="font-medium text-green-600">
                           ${job.salary_min} - ${job.salary_max}
                         </span>
@@ -147,9 +164,8 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               <CardContent className="p-4 sm:p-6">
                 <ul className="space-y-2">
                   {job?.responsibilities?.map((req, i) => (
-                    <li key={i} className="flex items-start">
-                      <CheckCircle className="size-4 sm:size-5 text-green-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm sm:text-base break-words">{req}</span>
+                    <li key={i} className="text-sm sm:text-base break-words">
+                      {req}
                     </li>
                   ))}
                 </ul>
@@ -165,10 +181,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                 <CardContent className="p-4 sm:p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {job.benefits.map((benefit, i) => (
-                      <div key={i} className="flex items-start">
-                        <CheckCircle className="size-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm sm:text-base break-words">{benefit}</span>
-                      </div>
+                      <div key={i} className="text-sm sm:text-base break-words">{benefit}</div>
                     ))}
                   </div>
                 </CardContent>
@@ -295,6 +308,49 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                     {formatDate(job?.created_at as string)}
                   </span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Share Job */}
+            <Card className="bg-white shadow-lg transition-shadow w-full">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  Share This Job
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={handleShareLinkedIn}
+                    className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#0077B5] text-white hover:bg-[#006396] transition-colors"
+                  >
+                    LinkedIn
+                  </button>
+                  <button
+                    onClick={handleShareTwitter}
+                    className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+                  >
+                    Twitter / X
+                  </button>
+                  <button
+                    onClick={handleShareWhatsApp}
+                    className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#25D366] text-white hover:bg-[#1ebe5d] transition-colors"
+                  >
+                    WhatsApp
+                  </button>
+                  <button
+                    onClick={handleShareFacebook}
+                    className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#1877F2] text-white hover:bg-[#166fe0] transition-colors"
+                  >
+                    Facebook
+                  </button>
+                </div>
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full flex items-center justify-center rounded-md border px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Copy Link
+                </button>
               </CardContent>
             </Card>
           </div>

@@ -27,7 +27,7 @@ export default function ApplicationFormPage() {
     location: "San Francisco, CA",
     experience: "5",
     currentRole: "Frontend Developer",
-    expectedSalary: "$140,000",
+    expectedSalary: "KES 140,000",
     availableDate: "2024-02-01",
     coverLetter: "I am excited to apply for this position...",
     linkedinUrl: "https://linkedin.com/in/johndoe",

@@ -2,22 +2,13 @@
 
 import { format } from "date-fns";
 import {
-  AwardIcon,
-  BriefcaseIcon,
   Calendar,
-  CalendarIcon,
   Clock,
-  ClockIcon,
-  DollarSign,
-  GraduationCapIcon,
-  HomeIcon,
-  MapPinIcon,
-  TargetIcon
+  Copy,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { BsCheck2Square } from "react-icons/bs";
 import { useGetJobQuery } from "~/apis/jobs/queries";
 import { Spinner } from "~/components/spinner";
 import { Badge } from "~/components/ui/badge";
@@ -41,6 +32,37 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
   const { data: jobData, isLoading } = useGetJobQuery(jobId);
   const job = jobData?.data;
   // console.log("job details", job);
+
+  const getJobUrl = () => {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}/jobs/${jobId}`;
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = encodeURIComponent(getJobUrl());
+    const text = encodeURIComponent(`Check out this job: ${job?.title}`);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`, "_blank");
+  };
+
+  const handleShareTwitter = () => {
+    const url = encodeURIComponent(getJobUrl());
+    const text = encodeURIComponent(`Check out this job: ${job?.title} - Apply now!`);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(`Check out this job: ${job?.title} - Apply here: ${getJobUrl()}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const handleShareFacebook = () => {
+    const url = encodeURIComponent(getJobUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(getJobUrl()).then(() => toast.success("Link copied!"));
+  };
 
   const handleApply = () => {
     // Don't force-login redirect while session is still being resolved.
@@ -104,9 +126,7 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
                     />
                   </div>
                 ) : (
-                  <div className="size-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <BriefcaseIcon className="size-8 text-primary" />
-                  </div>
+                  <div className="size-16 rounded-lg bg-primary/10" />
                 )}
                 <div className="">
                   <h1 className="text-3xl font-bold text-gray-900">
@@ -126,26 +146,21 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
 
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="text-sm">
-                  <MapPinIcon className="size-3 mr-1" />
                   {job.location}
                 </Badge>
                 <Badge variant="secondary" className="text-sm">
-                  <ClockIcon className="size-3 mr-1" />
                   {job.job_type && formatJobType(job.job_type)}
                 </Badge>
                 <Badge variant="secondary" className="text-sm">
-                  <HomeIcon className="size-3 mr-1" />
                   {job.is_remote ? "Remote Available" : "Onsite"}
                 </Badge>
                 <Badge variant="outline" className="text-sm">
-                  <AwardIcon className="size-3 mr-1" />
                   {job.experience_level && formatExperienceLevel(job.experience_level)}
                 </Badge>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <DollarSign className="w-4 h-4 text-success" />
                   <span className="font-semibold text-card-foreground">
                     {formatSalary(
                       job.salary_min || 0,
@@ -156,14 +171,12 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
                   <span>/ month</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
                   <span>
                     Apply by: <strong>{format(new Date(job.application_deadline as unknown as string), "dd MMM yyyy")}</strong>
                   </span>
                 </div>
                 {daysUntilDeadline() > 0 && (
                   <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-                    <Clock className="w-3 h-3 mr-1" />
                     {daysUntilDeadline()} days left
                   </Badge>
                 )}
@@ -175,10 +188,7 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
         {/* Job Description */}
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TargetIcon className="size-5 text-primary/70" />
-              Job Description
-            </CardTitle>
+            <CardTitle>Job Description</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
@@ -191,10 +201,7 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
 
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BriefcaseIcon className="size-5 text-primary/70" />
-              Key Responsibilities
-            </CardTitle>
+            <CardTitle>Key Responsibilities</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 px-2">
@@ -210,10 +217,7 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
 
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AwardIcon className="size-5 text-primary/70" />
-              Required Skills
-            </CardTitle>
+            <CardTitle>Required Skills</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <ul className="space-y-2 px-2">
@@ -225,10 +229,7 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
               ))}
             </ul>
             <div className="space-y-2">
-              <h2 className="font-semibold flex items-center gap-2">
-                <GraduationCapIcon className="size-5 text-primary" />
-                Education Requirements
-              </h2>
+              <h2 className="font-semibold">Academic and Professional Requirements</h2>
               <p className="text-gray-600 px-2">{job?.education_requirements}</p>
             </div>
           </CardContent>
@@ -244,7 +245,6 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
             <div className="grid grid-cols-1 md:grid-cols-2">
               {job?.benefits?.map((benefit: string, index: number) => (
                 <div key={index} className="flex items-center gap-2">
-                  <BsCheck2Square className="size-4 text-blue-500 flex-shrink-0" />
                   <span className="text-gray-600">{benefit}</span>
                 </div>
               ))}
@@ -355,7 +355,6 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BriefcaseIcon className="size-4 text-primary/70" />
                 <Label className="text-primary/80">Job Type:</Label>
               </div>
               <Badge variant="outline">{job?.job_type && formatJobType(job.job_type)}</Badge>
@@ -363,7 +362,6 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
             <Separator />
             <div className="flex justify-between">
               <div className="flex items-center gap-2">
-                <DollarSign className="size-4 text-primary/70" />
                 <Label className="text-primary/80">Salary Range:</Label>
               </div>
               <span className="font-medium text-green-600">
@@ -373,13 +371,53 @@ export default function JobDetailsScreen({ jobId }: JobDetailsScreenProps) {
             <Separator />
             <div className="flex justify-between">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="size-4 text-primary/70" />
                 <Label className="text-primary/80">Posted:</Label>
               </div>
               <span className="font-medium">
                 {formatDate(job?.created_at as string)}
               </span>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Share Job */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Share This Job</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleShareLinkedIn}
+                className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#0077B5] text-white hover:bg-[#006396] transition-colors"
+              >
+                LinkedIn
+              </button>
+              <button
+                onClick={handleShareTwitter}
+                className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+              >
+                Twitter / X
+              </button>
+              <button
+                onClick={handleShareWhatsApp}
+                className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#25D366] text-white hover:bg-[#1ebe5d] transition-colors"
+              >
+                WhatsApp
+              </button>
+              <button
+                onClick={handleShareFacebook}
+                className="flex items-center justify-center rounded-md border px-2 py-2 text-xs font-medium bg-[#1877F2] text-white hover:bg-[#166fe0] transition-colors"
+              >
+                Facebook
+              </button>
+            </div>
+            <button
+              onClick={handleCopyLink}
+              className="w-full flex items-center justify-center rounded-md border px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Copy Link
+            </button>
           </CardContent>
         </Card>
       </div>

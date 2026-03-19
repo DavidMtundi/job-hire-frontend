@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 
 interface ScheduleInterviewModalProps {
@@ -70,8 +71,12 @@ export function ScheduleInterviewModal({
       notes: "",
       hr_remarks: "",
       interview_type: "technical",
+      interview_mode: "online",
+      location: "",
     },
   });
+
+  const interviewMode = form.watch("interview_mode");
 
   const { data: candidatesData } = useGetCandidatesQuery();
   const { data: jobsData } = useGetJobsQuery();
@@ -119,11 +124,13 @@ export function ScheduleInterviewModal({
       // Backend expects: application_id, interview_date (datetime), duration, meeting_link (optional), hr_remarks (optional), interview_type
       const interviewData: any = {
         application_id: applicationId,
-        interview_date: new Date(values.interview_date).toISOString(), // Backend will parse ISO string to datetime
-        duration: Number(values.duration) || 45, // Default to 45 minutes if not provided
-        meeting_link: values.meeting_link || null, // Use null instead of "string" for optional fields
-        hr_remarks: values.hr_remarks || null, // Use null instead of "string" for optional fields
-        interview_type: interviewType, // Lowercase: "technical" or "hr"
+        interview_date: new Date(values.interview_date).toISOString(),
+        duration: Number(values.duration) || 45,
+        meeting_link: values.meeting_link || null,
+        hr_remarks: values.hr_remarks || null,
+        interview_type: interviewType,
+        interview_mode: values.interview_mode || "online",
+        location: values.location || null,
       };
 
       // Remove null/empty values if they're truly optional
@@ -132,6 +139,9 @@ export function ScheduleInterviewModal({
       }
       if (!interviewData.hr_remarks) {
         delete interviewData.hr_remarks;
+      }
+      if (!interviewData.location) {
+        delete interviewData.location;
       }
 
       console.log("Submitting interview data:", interviewData);
@@ -330,25 +340,82 @@ export function ScheduleInterviewModal({
               />
             </div>
 
-         
             <FormField
               control={form.control}
-              name="meeting_link"
+              name="interview_mode"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor={field.name}>
-                    Meeting Link <span className="text-red-500">*</span>
-                  </Label>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="https://meet.google.com/abc-defg-hij"
-                    />
-                  </FormControl>
+                  <Label htmlFor={field.name}>Interview Mode</Label>
+                  <div className="flex items-center gap-4 pt-1">
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                        field.value === "online"
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      }`}
+                      onClick={() => field.onChange("online")}
+                    >
+                      Online
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                        field.value === "physical"
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      }`}
+                      onClick={() => field.onChange("physical")}
+                    >
+                      Physical
+                    </button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {interviewMode === "physical" && (
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>
+                      Location <span className="text-red-500">*</span>
+                    </Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="e.g. 123 Main St, Suite 400, New York, NY"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {interviewMode === "online" && (
+              <FormField
+                control={form.control}
+                name="meeting_link"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor={field.name}>
+                      Meeting Link <span className="text-red-500">*</span>
+                    </Label>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="https://meet.google.com/abc-defg-hij"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
 
             <FormField

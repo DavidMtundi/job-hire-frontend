@@ -46,7 +46,14 @@ export const LoginForm = () => {
 
   const getSafeRedirectPath = (path: string | null): string | null => {
     if (!path) return null;
-    return path.startsWith("/") ? path : null;
+    if (!path.startsWith("/")) return null;
+
+    // Normalize common typo to avoid broken onboarding redirects.
+    if (path.startsWith("/onboardin/") || path === "/onboardin") {
+      return path.replace(/^\/onboardin\b/, "/onboarding");
+    }
+
+    return path;
   };
 
   const onSubmit = async (data: TLogin) => {

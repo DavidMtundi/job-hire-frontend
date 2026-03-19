@@ -2,16 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import {
-  Building2,
-  Calendar,
-  ClockIcon,
-  DollarSign,
-  FileTextIcon,
-  HandshakeIcon,
-  MapPin,
-  UserIcon,
-  XCircleIcon,
-  ArrowRight,
+  ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -20,7 +11,6 @@ import { useGetStatusListQuery } from "~/apis/applications/queries";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent } from "~/components/ui/card";
-import { MatchCard } from "./match-card";
 import { Button } from "~/components/ui/button";
 
 const CoverLetterDisplay = ({ coverLetter }: { coverLetter: string }) => {
@@ -70,28 +60,6 @@ const getStatusColor = (statusName: string) => {
   }
 };
 
-const getStatusIcon = (statusName: string) => {
-  switch (statusName) {
-    case "Screening":
-    case "Under Review":
-      return <ClockIcon className="h-4 w-4" />;
-    case "HR Interview":
-    case "Interview Scheduled":
-      return <UserIcon className="h-4 w-4" />;
-    case "Offer Sent":
-    case "Offer Extended":
-    case "Offer Accepted":
-      return <HandshakeIcon className="h-4 w-4" />;
-    case "Rejected":
-    case "CV Rejected":
-    case "Interview Rejected":
-    case "Candidate Withdrawn":
-      return <XCircleIcon className="h-4 w-4" />;
-    default:
-      return <FileTextIcon className="h-4 w-4" />;
-  }
-};
-
 const ApplicationStatusBadge = ({ application }: { application: TApplication }) => {
   const { data: statusList } = useGetStatusListQuery();
   
@@ -115,8 +83,7 @@ const ApplicationStatusBadge = ({ application }: { application: TApplication }) 
   
   return (
     <Badge variant="secondary" className={getStatusColor(statusName)}>
-      {getStatusIcon(statusName)}
-      <span className="ml-1">{statusName}</span>
+      <span>{statusName}</span>
     </Badge>
   );
 };
@@ -143,12 +110,10 @@ export const columns: ColumnDef<TApplication>[] = [
 
                   <div className="flex items-center text-gray-600 space-x-4 mb-3">
                     <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
                       <span className="text-sm">{data.job.location}</span>
                     </div>
                     {(data.job.salary_min || data.job.salary_max) && (
                       <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 mr-1" />
                         <span className="text-sm">
                           {data.job.salary_min} - {data.job.salary_max}{" "}
                           {data.job.salary_currency}
@@ -156,7 +121,6 @@ export const columns: ColumnDef<TApplication>[] = [
                       </div>
                     )}
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
                       <span className="text-sm">
                         Applied {new Date(data.applied_at).toLocaleDateString()}
                       </span>
@@ -178,15 +142,6 @@ export const columns: ColumnDef<TApplication>[] = [
                   </div>
                 </div>
               </div>
-              {(data.score !== null && data.score !== undefined) && (
-                <MatchCard
-                  score={data.score}
-                  title={data.match_level ?? ""}
-                  matching_skills={data.matching_skills ?? []}
-                  missing_skills={data.missing_skills ?? []}
-                  recommendation={data.recommendation}
-                />
-              )}
             </div>
           </CardContent>
         </Card>

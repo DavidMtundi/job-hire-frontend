@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, CheckCircle, Clock, Eye, FileText, Users, XCircle, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetRecentApplicationsQuery } from "~/apis/dashboard-hr/queries";
 import { Badge } from "~/components/ui/badge";
@@ -31,23 +31,6 @@ export const RecentApplications = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "review":
-        return <Clock className="h-3 w-3" />;
-      case "interview":
-        return <Eye className="h-3 w-3" />;
-      case "offer":
-        return <Award className="h-3 w-3" />;
-      case "hired":
-        return <CheckCircle className="h-3 w-3" />;
-      case "rejected":
-        return <XCircle className="h-3 w-3" />;
-      default:
-        return <FileText className="h-3 w-3" />;
-    }
-  };
-
   if (isLoading) {
     return <RecentApplicationsSkeleton />;
   }
@@ -74,15 +57,12 @@ export const RecentApplications = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentApplications.map((application) => (
+          {recentApplications.map((application, index) => (
             <div
-              key={application.id}
+              key={`${application.id}-${application.applied_at ?? "no-date"}-${index}`}
               className="flex items-center justify-between p-4 border rounded-lg"
             >
               <div className="flex items-center space-x-4">
-                <div className="bg-gray-100 p-2 rounded-full">
-                  <Users className="h-5 w-5 text-gray-600" />
-                </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
                     {application.applicant_name}
@@ -102,8 +82,7 @@ export const RecentApplications = () => {
                     {new Date(application.applied_at).toLocaleDateString()}
                   </p>
                 </div>
-                <Badge className={`${getStatusColor(application.status)} flex items-center space-x-1`}>
-                  {getStatusIcon(application.status)}
+                <Badge className={getStatusColor(application.status)}>
                   <span className="capitalize">{application.status}</span>
                 </Badge>
               </div>

@@ -1,7 +1,6 @@
 "use client";
 
-import { Clock, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useGetApplicationStatusHistoryQuery, useGetStatusListQuery, useUpdateApplicationMutation, useUpdateApplicationStatusByIdMutation } from "~/apis/applications/queries";
 import { IApplicationStatus } from "~/apis/applications/dto";
@@ -141,19 +140,18 @@ export const TimelineCard = ({ applicationId, application }: TimelineCardProps) 
     }
   };
 
-  const statusHistoryIds = statusHistory?.map((s: IApplicationStatus) => {
-    const statusName = getStatusName(s.status_id);
-    return statusName;
-  }) || [];
+  const safeFormatDate = (value: unknown) => {
+    if (!value) return null;
+    const dateValue = value instanceof Date ? value : new Date(value as string | number);
+    if (!isValid(dateValue)) return null;
+    return format(dateValue, "M/d/yyyy");
+  };
 
   return (
     <Card className="bg-white shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Clock className="h-5 w-5 text-blue-600" />
-            </div>
             <CardTitle className="text-lg font-semibold">Timeline</CardTitle>
           </div>
         </div>
@@ -241,16 +239,17 @@ export const TimelineCard = ({ applicationId, application }: TimelineCardProps) 
 
                 return allStatuses.map((item, index) => {
                   const isCompleted = item.type === 'completed';
-                  const formattedDate = item.date ? format(item.date, "M/d/yyyy") : null;
+                  const formattedDate = safeFormatDate(item.date);
                   const historyEntry = isCompleted ? item.historyEntry : null;
+                  const itemKey = isCompleted
+                    ? `completed-${String(historyEntry?.id ?? "unknown")}-${String(historyEntry?.created_at ?? index)}`
+                    : `pending-${String(item.status?.id ?? "unknown")}-${index}`;
 
                   return (
-                    <div key={isCompleted ? item.historyEntry.id : item.status.id} className="relative flex gap-4 pb-6 last:pb-0">
+                    <div key={itemKey} className="relative flex gap-4 pb-6 last:pb-0">
                       <div className="relative z-10 flex-shrink-0">
                         {isCompleted ? (
-                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <CheckCircle2 className="h-5 w-5 text-white" />
-                          </div>
+                          <div className="w-8 h-8 bg-green-500 rounded-full"></div>
                         ) : (
                           <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                         )}

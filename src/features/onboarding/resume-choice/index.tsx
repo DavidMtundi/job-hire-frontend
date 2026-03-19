@@ -15,6 +15,12 @@ const DEFAULT_CONTINUE_TO = "/onboarding/profile-completion";
 const getSafeContinueTo = (value: string | null): string => {
   if (!value) return DEFAULT_CONTINUE_TO;
   if (!value.startsWith("/")) return DEFAULT_CONTINUE_TO;
+
+  // Normalize common typo so Continue does not navigate to a dead route.
+  if (value.startsWith("/onboardin/") || value === "/onboardin") {
+    return value.replace(/^\/onboardin\b/, "/onboarding");
+  }
+
   return value;
 };
 
@@ -31,20 +37,36 @@ const getResumeFileName = (url: string) => {
 export default function ResumeChoiceScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const continueTo = useMemo(
     () => getSafeContinueTo(searchParams.get("continueTo")),
     [searchParams]
   );
 
   const userId = session?.user?.id || "";
-  const { data: userProfile, isLoading: loadingProfile } = useGetAuthUserProfileQuery();
-  const { data: candidate, isLoading: loadingCandidate } = useGetCandidateByUserIdQuery(userId);
+  const {
+    data: userProfile,
+    isLoading: loadingProfile,
+    error: profileError,
+  } = useGetAuthUserProfileQuery();
+  const {
+    data: candidate,
+    isLoading: loadingCandidate,
+    error: candidateError,
+  } = useGetCandidateByUserIdQuery(userId);
 
-  const existingResumeUrl =
-    userProfile?.data?.candidate_profile?.resume_url || candidate?.data?.resume_url || "";
-  const hasExistingResume = !!existingResumeUrl;
-  const isLoading = loadingProfile || loadingCandidate;
+  const existingResumeUrl = (
+    userProfile?.data?.candidate_profile?.resume_url ||
+    candidate?.data?.resume_url ||
+    ""
+  ).trim();
+  const hasExistingResume = existingResumeUrl.length > 0;
+
+  const isSessionLoading = sessionStatus === "loading";
+  const isAuthenticated = sessionStatus === "authenticated";
+  const isCheckingResume =
+    isSessionLoading || (isAuthenticated && (loadingProfile || loadingCandidate));
+  const hasFetchError = isAuthenticated && !!(profileError || candidateError);
 
   const encodedContinueTo = encodeURIComponent(continueTo);
   const uploadNewHref = `/onboarding/resume-upload?continueTo=${encodedContinueTo}`;
@@ -64,13 +86,19 @@ export default function ResumeChoiceScreen() {
             <CardTitle>Resume Options</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            {isLoading && (
+            {isCheckingResume && (
               <div className="text-center text-sm text-gray-500 py-4">
                 Checking your existing resume...
               </div>
             )}
 
-            {!isLoading && hasExistingResume && (
+            {!isCheckingResume && hasFetchError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+                We couldn't verify your current resume right now. Please try uploading again or refresh this page.
+              </div>
+            )}
+
+            {!isCheckingResume && !hasFetchError && hasExistingResume && (
               <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="size-5 text-green-700" />
@@ -106,7 +134,7 @@ export default function ResumeChoiceScreen() {
               </div>
             )}
 
-            {!isLoading && !hasExistingResume && (
+            {!isCheckingResume && !hasFetchError && !hasExistingResume && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                 No existing resume was found on your profile. Upload a new resume to continue.
               </div>

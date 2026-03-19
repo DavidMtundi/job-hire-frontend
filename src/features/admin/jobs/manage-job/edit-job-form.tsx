@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2Icon, XCircleIcon, XIcon } from "lucide-react";
+import { XCircleIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { cn } from "~/lib/utils";
 import { useUpdateJobMutation } from "~/apis/jobs/queries";
-import { TJob, TUpdateJob, UpdateJobSchema } from "~/apis/jobs/schemas";
+import { TJob, TUpdateJobForm, UpdateJobSchema } from "~/apis/jobs/schemas";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { useGetDepartmentsQuery } from "~/apis/departments/queries";
 import { useGetCategoriesQuery } from "~/apis/categories/queries";
@@ -49,7 +49,7 @@ interface EditJobFormProps {
 export const EditJobForm = ({ jobData }: EditJobFormProps) => {
   const router = useRouter();
 
-  const form = useForm<TUpdateJob>({
+  const form = useForm<TUpdateJobForm>({
     resolver: zodResolver(UpdateJobSchema),
     defaultValues: {
       id: jobData.id,
@@ -84,9 +84,20 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
 
   const { mutate: updateJob, isPending, isSuccess } = useUpdateJobMutation();
 
-  const onSubmit = async (values: TUpdateJob) => {
+  const onSubmit = async (values: TUpdateJobForm) => {
     // return console.log("values", values);
-    updateJob(values, {
+    const normalizedValues = {
+      ...values,
+      responsibilities: values.responsibilities ?? [],
+      benefits: values.benefits ?? [],
+      required_skills: values.required_skills ?? [],
+      custom_fields: values.custom_fields?.map((f) => ({
+        ...f,
+        required: f.required ?? false,
+      })),
+    };
+
+    updateJob(normalizedValues, {
       onSuccess: async () => {
         toast.success("Job updated successfully.");
         form.reset();
@@ -101,7 +112,6 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
     <>
       {isSuccess && (
         <Alert className="mb-4" variant="success">
-          <CheckCircle2Icon />
           <AlertTitle>Success! Job updated successfully</AlertTitle>
           <AlertDescription>
             Job updated successfully. You can now view it in the jobs list.
@@ -422,7 +432,7 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
                 name="education_requirements"
                 render={({ field }) => (
                   <FormItem className="relative">
-                    <Label htmlFor={field.name}>Education Requirements</Label>
+                    <Label htmlFor={field.name}>Academic and Professional Requirements</Label>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -451,12 +461,12 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
                   <FormItem>
                     <Label htmlFor={field.name}>Benefits</Label>
                     <div className="space-y-2">
-                      {field.value.map((benefit, index) => (
+                      {(field.value ?? []).map((benefit, index) => (
                         <div key={index} className="flex gap-2">
                           <Input
                             value={benefit}
                             onChange={(e) => {
-                              const newBenefits = [...field.value];
+                              const newBenefits = [...(field.value ?? [])];
                               newBenefits[index] = e.target.value;
                               field.onChange(newBenefits);
                             }}
@@ -469,7 +479,7 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
                             variant="outline"
                             size="iconSm"
                             onClick={() => {
-                              const newBenefits = field.value.filter((_, i) => i !== index);
+                              const newBenefits = (field.value ?? []).filter((_, i) => i !== index);
                               field.onChange(newBenefits);
                             }}
                           >
@@ -481,7 +491,7 @@ export const EditJobForm = ({ jobData }: EditJobFormProps) => {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => field.onChange([...field.value, ""])}
+                        onClick={() => field.onChange([...(field.value ?? []), ""])}
                         disabled={isPending}
                       >
                         Add Benefit

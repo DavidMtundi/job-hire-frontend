@@ -14,7 +14,7 @@ interface NavSecondaryProps {
   items: {
     title: string
     url: string
-    icon: React.ElementType
+    icon?: React.ElementType
   }[]
 }
 
@@ -28,7 +28,7 @@ export const NavSecondary = ({ items, ...props }
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
                 <Link href={item.url}>
-                  <item.icon />
+                  {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

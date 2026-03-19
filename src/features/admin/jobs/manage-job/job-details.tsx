@@ -1,26 +1,9 @@
 import { format } from 'date-fns';
 import {
-  AlertCircleIcon,
-  AwardIcon,
-  BriefcaseIcon,
-  Building2Icon,
-  CalendarIcon,
-  CheckCircleIcon,
-  ClockIcon,
   DollarSign,
-  DollarSignIcon,
-  EditIcon,
-  GraduationCapIcon,
-  HomeIcon,
-  MapPinIcon,
-  TargetIcon,
-  TrashIcon,
-  UsersIcon,
-  XCircleIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
-import { BsCheck2Square } from 'react-icons/bs';
 import { TJob } from '~/apis/jobs/schemas';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -49,21 +32,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <CheckCircleIcon className="h-4 w-4" />;
-      case "paused":
-        return <AlertCircleIcon className="h-4 w-4" />;
-      case "closed":
-        return <XCircleIcon className="h-4 w-4" />;
-      case "draft":
-        return <ClockIcon className="h-4 w-4" />;
-      default:
-        return <ClockIcon className="h-4 w-4" />;
     }
   };
 
@@ -112,9 +80,7 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
           <CardContent>
             <div className="space-y-4">
               <div className="flex gap-3">
-                <div className="size-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <BriefcaseIcon className="size-8 text-primary/80" />
-                </div>
+                <div className="size-16 rounded-lg bg-primary/10" />
                 <div className="space-y-1">
                   <h1 className="text-3xl font-bold text-gray-900">
                     {job.title}
@@ -125,19 +91,15 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
 
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="text-sm">
-                  <MapPinIcon className="size-3 mr-1" />
                   {job.location}
                 </Badge>
                 <Badge variant="secondary" className="text-sm">
-                  <ClockIcon className="size-3 mr-1" />
                   {job.job_type && formatJobType(job.job_type)}
                 </Badge>
                 <Badge variant="secondary" className="text-sm">
-                  <HomeIcon className="size-3 mr-1" />
                   {job.is_remote ? "Remote Available" : "Onsite"}
                 </Badge>
                 <Badge variant="outline" className="text-sm">
-                  <AwardIcon className="size-3 mr-1" />
                   {job.experience_level && formatExperienceLevel(job.experience_level)}
                 </Badge>
               </div>
@@ -158,7 +120,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
                 )}
                 {job.application_deadline && (
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <CalendarIcon className="size-4" />
                     <span>
                       Apply by: <strong>{format(new Date(job.application_deadline as unknown as string), "dd MMM yyyy")}</strong>
                     </span>
@@ -166,7 +127,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
                 )}
                 {daysUntilDeadline() > 0 && (
                   <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-                    <ClockIcon className="w-3 h-3 mr-1" />
                     {daysUntilDeadline()} days left
                   </Badge>
                 )}
@@ -178,10 +138,7 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
         {/* Job Description */}
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TargetIcon className="size-5 text-primary/70" />
-              Job Description
-            </CardTitle>
+            <CardTitle>Job Description</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
@@ -194,10 +151,7 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
 
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BriefcaseIcon className="size-5 text-primary/70" />
-              Key Responsibilities
-            </CardTitle>
+            <CardTitle>Key Responsibilities</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 px-2">
@@ -213,10 +167,7 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
 
         <Card className="gap-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AwardIcon className="size-5 text-primary/70" />
-              Required Skills
-            </CardTitle>
+            <CardTitle>Required Skills</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <ul className="space-y-2 px-2">
@@ -228,10 +179,7 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
               ))}
             </ul>
             <div className="space-y-2">
-              <h2 className="font-semibold flex items-center gap-2">
-                <GraduationCapIcon className="size-5 text-primary" />
-                Education Requirements
-              </h2>
+              <h2 className="font-semibold">Academic and Professional Requirements</h2>
               <p className="text-gray-600 px-2">{job?.education_requirements}</p>
             </div>
           </CardContent>
@@ -248,7 +196,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {job.benefits.map((benefit: string, index: number) => (
                   <div key={index} className="flex items-center gap-2">
-                    <BsCheck2Square className="size-4 text-blue-500" />
                     <span className="text-gray-600">{benefit}</span>
                   </div>
                 ))}
@@ -337,7 +284,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BriefcaseIcon className="size-4 text-primary/70" />
                 <Label className="text-primary/80">Job Type:</Label>
               </div>
               <Badge variant="outline">{job?.job_type && formatJobType(job.job_type)}</Badge>
@@ -347,7 +293,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
                 <Separator />
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="size-4 text-primary/70" />
                     <Label className="text-primary/80">Salary Range:</Label>
                   </div>
                   <span className="font-medium text-green-600">
@@ -359,7 +304,6 @@ export const JobDetails = ({ jobData }: JobDetailsProps) => {
             <Separator />
             <div className="flex justify-between">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="size-4 text-primary/70" />
                 <Label className="text-primary/80">Posted:</Label>
               </div>
               <span className="font-medium">

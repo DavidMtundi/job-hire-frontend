@@ -2,6 +2,7 @@ import * as z from "zod";
 
 const interviewStatus = ["pending", "scheduled", "accepted", "declined", "completed", "expired", "rescheduled", "cancelled", "shortlisted", "rejected"] as const;
 const interviewType = ["technical", "hr"] as const;
+const interviewMode = ["physical", "online"] as const;
 
 export const InterviewSchema = z.object({
   id: z.string(),
@@ -34,6 +35,8 @@ export const InterviewSchema = z.object({
   hr_remarks: z.string().optional(),
   available_time_slots: z.union([z.string(), z.array(z.string())]).optional(),
   interview_type: z.enum(interviewType),
+  interview_mode: z.enum(interviewMode).optional(),
+  location: z.string().optional(),
   selected_time_slot: z.string().nullable().optional(),
 
   status: z.enum(interviewStatus).optional(),
@@ -51,11 +54,13 @@ export const CreateInterviewSchema = z.object({
   application_id: z.string().optional(),
   interview_date: z.string().min(1, "Interview date is required"), // ISO datetime
   duration: z.number().min(15, "Duration must be at least 15 minutes").optional(),
-  meeting_link: z.string().url("Must be a valid URL").min(1, "Meeting link is required"),
+  meeting_link: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   notes: z.string().optional(),
   hr_remarks: z.string().optional(),
   available_time_slots: z.array(z.string()).optional(),
   interview_type: z.enum(interviewType).optional(),
+  interview_mode: z.enum(interviewMode).optional(),
+  location: z.string().optional(),
 });
 
 export const UpdateInterviewSchema = CreateInterviewSchema.partial().extend({
@@ -65,6 +70,7 @@ export const UpdateInterviewSchema = CreateInterviewSchema.partial().extend({
 
 export type TInterviewStatus = typeof interviewStatus[number];
 export type TInterviewType = typeof interviewType[number];
+export type TInterviewMode = typeof interviewMode[number];
 export type TInterview = z.infer<typeof InterviewSchema>;
 export type TCreateInterview = z.infer<typeof CreateInterviewSchema>;
 export type TUpdateInterview = z.infer<typeof UpdateInterviewSchema>;

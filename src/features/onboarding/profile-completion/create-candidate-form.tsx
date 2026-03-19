@@ -716,7 +716,7 @@ export const CreateCandidateForm = () => {
                           {...field}
                           id={field.name}
                           disabled={isPending}
-                          placeholder="e.g 2000 USD"
+                          placeholder="e.g 2000 KES"
                         />
                       </FormControl>
                       <FormMessage />
@@ -926,7 +926,14 @@ export const CreateCandidateForm = () => {
                   <div className="space-y-4">
                     {field.value && field.value.length > 0 ? (
                       field.value.map((link, index) => (
-                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div
+                          key={index}
+                          className={`border rounded-lg p-4 space-y-3 ${
+                            form.formState.errors.links?.[index]?.url
+                              ? "border-red-300 bg-red-50/40"
+                              : ""
+                          }`}
+                        >
                           <div className="flex justify-between items-start">
                             <h4 className="font-medium">Link {index + 1}</h4>
                             <Button
@@ -954,16 +961,24 @@ export const CreateCandidateForm = () => {
                               }}
                               disabled={isPending}
                             />
-                            <Input
-                              placeholder="URL"
-                              value={link.url || ""}
-                              onChange={(e) => {
-                                const newLinks = [...(field.value ?? [])];
-                                newLinks[index] = { ...link, url: e.target.value };
-                                field.onChange(newLinks);
-                              }}
-                              disabled={isPending}
-                            />
+                            <div className="space-y-1">
+                              <Input
+                                placeholder="URL"
+                                value={link.url || ""}
+                                onChange={(e) => {
+                                  const newLinks = [...(field.value ?? [])];
+                                  newLinks[index] = { ...link, url: e.target.value };
+                                  field.onChange(newLinks);
+                                }}
+                                disabled={isPending}
+                                aria-invalid={!!form.formState.errors.links?.[index]?.url}
+                              />
+                              {form.formState.errors.links?.[index]?.url?.message && (
+                                <p className="text-sm text-red-600">
+                                  {String(form.formState.errors.links[index]?.url?.message)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))

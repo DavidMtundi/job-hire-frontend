@@ -14,6 +14,7 @@ import {
   TbEye,
   TbCircleCheck
 } from "react-icons/tb";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useGetApplicationsQuery } from "~/apis/applications/queries";
 import { useGetHiringFunnelQuery } from "~/apis/dashboard-hr/queries";
@@ -41,6 +42,17 @@ interface ApplicationsFilters {
   department: string;
   priority: string;
 }
+
+const normalizeStageLabel = (stage: string) => {
+  const value = (stage || "").trim().toLowerCase();
+  if (value.includes("under review") || value.includes("in review") || value.includes("review")) return "In Review";
+  if (value.includes("interview")) return "Interview";
+  if (value.includes("offer")) return "Offer";
+  if (value.includes("hired")) return "Hired";
+  if (value.includes("reject")) return "Rejected";
+  if (value.includes("appl")) return "Applications";
+  return stage || "";
+};
 
 export default function Applications() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -147,8 +159,8 @@ export default function Applications() {
 
 
   const getFunnelCount = (stageName: string) => {
-    const stage = hiringFunnel.find((s) => 
-      s.stage.toLowerCase() === stageName.toLowerCase()
+    const stage = hiringFunnel.find((s) =>
+      normalizeStageLabel(String(s.stage)) === normalizeStageLabel(stageName)
     );
     return stage?.count || 0;
   };
@@ -163,7 +175,7 @@ export default function Applications() {
     },
     {
       title: "In Review",
-      value: getFunnelCount("Under review"),
+      value: getFunnelCount("In Review"),
       icon: TbClock,
       iconBg: "bg-yellow-50",
       iconColor: "text-yellow-600",
@@ -186,7 +198,7 @@ export default function Applications() {
 
   const statusCounts = {
     all: getFunnelCount("Applications"),
-    review: getFunnelCount("Under review"),
+    review: getFunnelCount("In Review"),
     interview: getFunnelCount("Interview"),
     offer: getFunnelCount("Offer"),
     hired: getFunnelCount("Hired"),
@@ -227,12 +239,9 @@ export default function Applications() {
           <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
           <p className="text-gray-600">Track and manage job applications</p>
         </div>
-        {/* <div className="flex space-x-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div> */}
+        <Button asChild variant="outline">
+          <Link href="/admin/summary-reports">View Overall Report</Link>
+        </Button>
       </div>
 
       {/* Summary Cards */}

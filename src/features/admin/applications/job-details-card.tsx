@@ -17,7 +17,7 @@ export const JobDetailsCard = ({ application }: JobDetailsCardProps) => {
   const department = application.department || "N/A";
   const salaryMin = application.salary_min;
   const salaryMax = application.salary_max;
-  const salaryCurrency = application.salary_currency || "USD";
+  const salaryCurrency = application.salary_currency || "KES";
   const isRemote = application.is_remote || false;
   const status = application.status || "N/A";
 

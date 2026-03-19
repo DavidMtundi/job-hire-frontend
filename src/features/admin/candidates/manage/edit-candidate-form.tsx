@@ -398,7 +398,7 @@ export const EditCandidateForm = ({ candidateData }: EditCandidateFormProps) => 
                             {...field}
                             id={field.name}
                             disabled={isPending}
-                            placeholder="e.g 2000 USD"
+                            placeholder="e.g 2000 KES"
                           />
                         </FormControl>
                         <FormMessage />

@@ -4,22 +4,6 @@ import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 import {
-  TbBriefcase,
-  TbCalendar,
-  TbChartBar,
-  TbDashboard,
-  TbHelp,
-  TbInnerShadowTop,
-  TbListDetails,
-  TbSearch,
-  TbSettings,
-  TbBuilding,
-  TbCalendarEvent,
-  TbUsers,
-  TbShare,
-  TbRocket,
-} from "react-icons/tb"
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -38,88 +22,76 @@ const data = {
     {
       title: "Dashboard",
       url: "/admin/dashboard",
-      icon: TbDashboard,
     },
     {
       title: "Candidates",
       url: "/admin/candidates",
-      icon: TbListDetails,
     },
     {
       title: "Applications",
       url: "/admin/applications",
-      icon: TbChartBar,
     },
     {
       title: "Interviews",
       url: "/admin/interviews",
-      icon: TbCalendar,
     },
     {
       title: "Jobs",
       url: "/admin/jobs",
-      icon: TbBriefcase,
+    },
+    {
+      title: "Summary Reports",
+      url: "/admin/summary-reports",
     },
   ],
   navSecondary: [
     {
       title: "Company",
       url: "/admin/companies",
-      icon: TbBuilding,
     },
     {
       title: "Analytics",
       url: "/admin/analytics",
-      icon: TbChartBar,
     },
     {
       title: "Calendar",
       url: "/admin/calendar",
-      icon: TbCalendar,
     },
     {
       title: "Compliance",
       url: "/admin/compliance",
-      icon: TbListDetails,
     },
     {
       title: "Audit Logs",
       url: "/admin/audit-logs",
-      icon: TbListDetails,
     },
     {
       title: "Settings",
       url: "/admin/settings",
-      icon: TbSettings,
     },
     {
       title: "Get Help",
       url: "#",
-      icon: TbHelp,
     },
     {
       title: "Search",
       url: "#",
-      icon: TbSearch,
     },
   ],
   navUpcoming: [
     {
       title: "Calendar Integration",
       url: "/admin/calendar-integration",
-      icon: TbCalendarEvent,
       badge: "Coming Soon",
     },
     {
       title: "Referral Management",
       url: "/admin/referrals",
-      icon: TbUsers,
       badge: "Coming Soon",
     },
     {
       title: "Multi-Channel Posting",
       url: "/admin/multi-channel-posting",
-      icon: TbShare,
       badge: "Coming Soon",
     },
   ],

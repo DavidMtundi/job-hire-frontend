@@ -392,7 +392,7 @@ export const CreateCandidateForm = () => {
                           {...field}
                           id={field.name}
                           disabled={isPending}
-                          placeholder="Enter expected salary (e.g. 2000 USD)"
+                          placeholder="Enter expected salary (e.g. 2000 KES)"
                         />
                       </FormControl>
                       <FormMessage />

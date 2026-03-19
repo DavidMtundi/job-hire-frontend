@@ -109,6 +109,7 @@ export const useUpdateCandidateMutation = () => {
 
 // move to resume queries
 export function useUploadResumeMutation() {
+    const queryClient = useQueryClient();
     return useMutation<IResumeResponse, Error, { userId: string, file: File }>({
     mutationKey: ["upload-resume"],
     mutationFn: async ({ userId, file }: { userId: string, file: File }) => {
@@ -125,6 +126,14 @@ export function useUploadResumeMutation() {
         }
       );
       return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // Keep profile/resume reads fresh for onboarding resume-choice and apply flows.
+      queryClient.invalidateQueries({ queryKey: ["get-auth-user-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      queryClient.invalidateQueries({
+        queryKey: ["candidates", "by-user", variables.userId],
+      });
     },
   });
 }

@@ -1,10 +1,16 @@
-export type TCustomFieldType = "text" | "multiline_text";
+export type TCustomFieldType =
+  | "text"
+  | "number"
+  | "boolean"
+  | "date"
+  | "select"
+  | "multiline_text";
 
 export interface TCustomFieldInput {
   field_name: string;
   field_key: string;
   type: TCustomFieldType;
-  value: string;
+  value?: string | number | boolean | null;
   required: boolean;
 }
 
@@ -15,6 +21,8 @@ export interface TCreateJobPayload {
   benefits: string[];
   required_skills: string[];
   education_requirements?: string;
+  department_id?: number;
+  category_id?: number;
   location: string;
   job_type: "full_time" | "part_time" | "contract" | "internship" | "temporary";
   experience_level: "entry" | "mid" | "senior" | "lead" | "executive";
@@ -40,7 +48,7 @@ export const CustomFieldSchema = z.object({
   field_key: z.string().min(1, "Field key is required").max(255, "Field key must be at most 255 characters"),
   type: z.nativeEnum(CustomFieldType),
   value: z.union([z.string(), z.number(), z.boolean()]).nullable().optional(),
-  required: z.boolean().optional().default(false),
+  required: z.boolean().default(false),
 });
 
 export type TCustomField = z.infer<typeof CustomFieldSchema>;
@@ -57,7 +65,8 @@ export const JobSchema = z.object({
     .min(1, "At least one responsibility is required"),
   benefits: z
     .array(z.string().nonempty({ message: "Benefit must be non-empty" }))
-    .min(1, "At least one benefit is required"),
+    .optional()
+    .default([]),
   required_skills: z
     .array(z.string().nonempty({ message: "Skill must be non-empty" }))
     .min(1, "At least one required skill is required"),
@@ -148,8 +157,12 @@ export const UpdateJobSchema = JobSchema.omit({
 
 
 export type TJob = z.infer<typeof JobSchema>;
+// For react-hook-form + zodResolver, the resolver is typed against the Zod *input*,
+// while `z.infer` represents the Zod *output* (after defaults/transforms).
 export type TCreateJob = z.infer<typeof CreateJobSchema>;
+export type TCreateJobForm = z.input<typeof CreateJobSchema>;
 export type TUpdateJob = z.infer<typeof UpdateJobSchema>;
+export type TUpdateJobForm = z.input<typeof UpdateJobSchema>;
 
 // suggested schema for job data:
 

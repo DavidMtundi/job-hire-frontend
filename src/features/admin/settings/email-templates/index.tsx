@@ -356,23 +356,21 @@ export default function EmailTemplatesScreen() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditModal(template)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         {!template.is_default && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditModal(template)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(template.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(template.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>

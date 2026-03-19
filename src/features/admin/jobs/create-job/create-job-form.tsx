@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2Icon, PlusIcon, XCircleIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -28,7 +28,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { cn } from "~/lib/utils";
 import { useCreateJobMutation } from "~/apis/jobs/queries";
-import { CreateJobSchema, TCreateJob } from "~/apis/jobs/schemas";
+import { CreateJobSchema, TCreateJobForm } from "~/apis/jobs/schemas";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { useGetDepartmentsQuery, useCreateDepartmentMutation } from "~/apis/departments/queries";
 import { useGetCategoriesQuery, useCreateCategoryMutation } from "~/apis/categories/queries";
@@ -118,7 +118,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const form = useForm<TCreateJob>({
+  const form = useForm<TCreateJobForm>({
     resolver: zodResolver(CreateJobSchema),
     defaultValues: {
       title: "",
@@ -135,7 +135,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
       experience_level: "entry",
       // salary_min: 0,
       // salary_max: 0,
-      salary_currency: "USD",
+      salary_currency: "KES",
       is_remote: false,
       // work_mode: "remote",
       // application_deadline: null,
@@ -236,16 +236,31 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
         location: aiGeneratedData.location || "",
         job_type: "full_time",
         experience_level: experienceLevel,
-        salary_currency: "USD",
+        salary_currency: "KES",
         is_remote: isRemote,
         status: "active",
       });
     }
   }, [aiGeneratedData, departments, form]);
 
-  const onSubmit = async (values: TCreateJob) => {
+  const onSubmit = async (values: TCreateJobForm) => {
     // return console.log("values", values);
-    createJob(values, {
+    const normalizedValues = {
+      ...values,
+      responsibilities: values.responsibilities ?? [],
+      benefits: values.benefits ?? [],
+      required_skills: values.required_skills ?? [],
+      job_type: values.job_type ?? "full_time",
+      experience_level: values.experience_level ?? "entry",
+      salary_currency: values.salary_currency ?? "KES",
+      is_remote: values.is_remote ?? false,
+      custom_fields: values.custom_fields?.map((f) => ({
+        ...f,
+        required: f.required ?? false,
+      })),
+    };
+
+    createJob(normalizedValues, {
       onSuccess: async () => {
         toast.success("Job created successfully.");
         form.reset({
@@ -260,7 +275,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
           location: "",
           job_type: "full_time",
           experience_level: "entry",
-          salary_currency: "USD",
+          salary_currency: "KES",
           is_remote: false,
           status: "active",
           custom_fields: [],
@@ -321,7 +336,6 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
     <>
       {isSuccess && (
         <Alert className="mb-4" variant="success">
-          <CheckCircle2Icon />
           <AlertTitle>Success! Job created successfully</AlertTitle>
           <AlertDescription>
             Job created successfully. You can now view it in the jobs list.
@@ -443,10 +457,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                                 setIsCreateDepartmentOpen(true);
                               }}
                             >
-                              <div className="flex items-center gap-2">
-                                <PlusIcon className="h-4 w-4" />
-                                Create New Department
-                              </div>
+                              Create New Department
                             </div>
                           </SelectContent>
                         </Select>
@@ -498,10 +509,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                                 setIsCreateCategoryOpen(true);
                               }}
                             >
-                              <div className="flex items-center gap-2">
-                                <PlusIcon className="h-4 w-4" />
-                                Create New Category
-                              </div>
+                              Create New Category
                             </div>
                           </SelectContent>
                         </Select>
@@ -668,7 +676,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                         onClick={() => field.onChange([...field.value, ""])}
                         disabled={isPending}
                       >
-                        <PlusIcon className="size-4" /> Add Responsibility
+                        Add Responsibility
                       </Button>
                     </div>
                     <FormMessage />
@@ -714,7 +722,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                         onClick={() => field.onChange([...field.value, ""])}
                         disabled={isPending}
                       >
-                        <PlusIcon className="size-4" /> Add Skill
+                        Add Skill
                       </Button>
                     </div>
                     <FormMessage />
@@ -761,10 +769,10 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => field.onChange([...field.value, ""])}
+                        onClick={() => field.onChange([...(field.value ?? []), ""])}
                         disabled={isPending}
                       >
-                        <PlusIcon className="size-4" /> Add Skill
+                        Add Skill
                       </Button>
                     </div>
                     <FormMessage />
@@ -776,7 +784,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                 name="education_requirements"
                 render={({ field }) => (
                   <FormItem className="relative">
-                    <Label htmlFor={field.name}>Education Requirements</Label>
+                    <Label htmlFor={field.name}>Academic and Professional Requirements</Label>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -806,12 +814,12 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                   <FormItem>
                     <Label htmlFor={field.name}>Benefits</Label>
                     <div className="space-y-2">
-                      {field.value.map((benefit, index) => (
+                      {(field.value ?? []).map((benefit, index) => (
                         <div key={index} className="flex gap-2">
                           <Input
                             value={benefit}
                             onChange={(e) => {
-                              const newBenefits = [...field.value];
+                              const newBenefits = [...(field.value ?? [])];
                               newBenefits[index] = e.target.value;
                               field.onChange(newBenefits);
                             }}
@@ -824,7 +832,7 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                             variant="outline"
                             size="iconSm"
                             onClick={() => {
-                              const newBenefits = field.value.filter(
+                              const newBenefits = (field.value ?? []).filter(
                                 (_, i) => i !== index
                               );
                               field.onChange(newBenefits);
@@ -838,10 +846,10 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => field.onChange([...field.value, ""])}
+                        onClick={() => field.onChange([...(field.value ?? []), ""])}
                         disabled={isPending}
                       >
-                        <PlusIcon className="size-4" /> Add Benefit
+                        Add Benefit
                       </Button>
                     </div>
                     <FormMessage />
@@ -1020,7 +1028,10 @@ export const CreateJobForm = ({ aiGeneratedData }: CreateJobFormProps) => {
                   <FormItem>
                     <FormControl>
                       <CustomFieldsEditor
-                        value={field.value || []}
+                        value={(field.value || []).map((f) => ({
+                          ...f,
+                          required: f.required ?? false,
+                        }))}
                         onChange={field.onChange}
                         disabled={isPending}
                       />

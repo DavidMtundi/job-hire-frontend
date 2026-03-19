@@ -158,6 +158,27 @@ export default function CandidatePortalScreen() {
     return types[type] || type;
   };
 
+  const safeFormatDate = (
+    value: unknown,
+    pattern: string,
+    fallback: string = "Date unavailable"
+  ) => {
+    if (value === null || value === undefined || value === "") {
+      return fallback;
+    }
+
+    const parsedDate = value instanceof Date ? value : new Date(value as string | number);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return fallback;
+    }
+
+    try {
+      return format(parsedDate, pattern);
+    } catch {
+      return fallback;
+    }
+  };
+
   const getStatusName = (statusId: string | number) => {
     if (typeof statusId === 'string' && !/^\d+$/.test(statusId)) {
       return statusId;
@@ -404,7 +425,7 @@ export default function CandidatePortalScreen() {
                   </div>
                   <div className="text-sm text-gray-600">
                     Applied on:{" "}
-                    {format(new Date(application.applied_at), "MM/dd/yyyy")}
+                    {safeFormatDate(application.applied_at, "MM/dd/yyyy")}
                   </div>
                 </div>
               </div>
@@ -463,10 +484,7 @@ export default function CandidatePortalScreen() {
                                   {getStatusName(status.status_id)}
                                 </h5>
                                 <p className="text-sm text-gray-600">
-                                  {format(
-                                    new Date(status.created_at),
-                                    "MM/dd/yyyy"
-                                  )}
+                                  {safeFormatDate(status.created_at, "MM/dd/yyyy")}
                                 </p>
                                 {status.remark && (
                                   <p className="text-sm text-gray-700 mt-1">
@@ -488,10 +506,7 @@ export default function CandidatePortalScreen() {
                                 Application Received
                               </h5>
                               <p className="text-sm text-gray-600">
-                                {format(
-                                  new Date(application.applied_at),
-                                  "MM/dd/yyyy"
-                                )}
+                                {safeFormatDate(application.applied_at, "MM/dd/yyyy")}
                               </p>
                               <p className="text-sm text-gray-700 mt-1">
                                 Application Received
@@ -558,9 +573,10 @@ export default function CandidatePortalScreen() {
                               <Calendar className="w-4 h-4 text-gray-500" />
                               <span>
                                 {interview.interview_date
-                                  ? format(
-                                      new Date(interview.interview_date),
-                                      "EEEE, MMMM dd, yyyy"
+                                  ? safeFormatDate(
+                                      interview.interview_date,
+                                      "EEEE, MMMM dd, yyyy",
+                                      "Date not set"
                                     )
                                   : "Date not set"}
                               </span>
@@ -569,9 +585,10 @@ export default function CandidatePortalScreen() {
                               <Clock className="w-4 h-4 text-gray-500" />
                               <span>
                                 {interview.interview_date
-                                  ? format(
-                                      new Date(interview.interview_date),
-                                      "h:mm a"
+                                  ? safeFormatDate(
+                                      interview.interview_date,
+                                      "h:mm a",
+                                      "Time not set"
                                     )
                                   : "Time not set"}{" "}
                                 ({interview.duration} minutes)

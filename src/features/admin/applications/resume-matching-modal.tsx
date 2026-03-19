@@ -1,6 +1,7 @@
 "use client";
 
-import { Award, Info, Sparkles, Check, X, Brain, TrendingUp, GraduationCap, Code, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Award, Info, Sparkles, Check, X, Brain, TrendingUp, GraduationCap, Code, AlertCircle, Maximize2, Minimize2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ export const ResumeMatchingModal = ({
   onOpenChange,
   application,
 }: ResumeMatchingModalProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const score = application?.score;
   const matchPercentage = score != null ? Math.round(score) : 0;
   const matchingSkills = application?.matching_skills || [];
@@ -39,9 +41,21 @@ export const ResumeMatchingModal = ({
 
   const matchLevelClasses = getMatchLevelClasses(application?.match_level);
 
+  useEffect(() => {
+    if (!open) {
+      setIsExpanded(false);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={
+          isExpanded
+            ? "w-[96vw] max-w-none h-[95vh] overflow-y-auto"
+            : "max-w-6xl max-h-[92vh] overflow-y-auto"
+        }
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -56,6 +70,25 @@ export const ResumeMatchingModal = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                aria-label={isExpanded ? "Collapse modal size" : "Expand modal size"}
+                title={isExpanded ? "Collapse" : "Expand"}
+              >
+                {isExpanded ? (
+                  <>
+                    <Minimize2 className="h-3.5 w-3.5" />
+                    <span>Collapse</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    <span>Expand</span>
+                  </>
+                )}
+              </button>
               <Badge variant="outline" className="flex items-center gap-1">
                 <Brain className="h-3 w-3" />
                 <span className="text-xs">AI-Assisted</span>

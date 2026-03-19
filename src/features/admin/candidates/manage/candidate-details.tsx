@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseIcon, CalendarIcon, DownloadIcon, GraduationCapIcon, MailIcon, MapPinIcon, PhoneIcon, Star } from 'lucide-react';
+import { DownloadIcon, MailIcon } from 'lucide-react';
 import { TCandidate } from '~/apis/candidates/schema';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
@@ -23,18 +23,19 @@ export const CandidateDetails = ({ candidate }: { candidate: TCandidate }) => {
           </h2>
           <p className="text-gray-600">{candidate.current_position}</p>
           <div className="flex items-center mt-1">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
             <span className="text-sm text-gray-600 ml-1">
             {candidate.metadata?.rating}
             </span>
-            <Badge
-              className={`ml-2 ${getStatusColor(
-                candidate.joining_availability
-              )}`}
-            >
-              {candidate.joining_availability.charAt(0).toUpperCase() +
-                candidate.joining_availability.slice(1)}
-            </Badge>
+            {candidate.joining_availability && (
+              <Badge
+                className={`ml-2 ${getStatusColor(
+                  candidate.joining_availability
+                )}`}
+              >
+                {candidate.joining_availability.charAt(0).toUpperCase() +
+                  candidate.joining_availability.slice(1)}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -44,24 +45,21 @@ export const CandidateDetails = ({ candidate }: { candidate: TCandidate }) => {
           {
             title: "Contact Information",
             items: [
-              { icon: MailIcon, text: candidate.email },
-              { icon: PhoneIcon, text: candidate.phone },
-              { icon: MapPinIcon, text: candidate.address },
+              { text: candidate.email },
+              { text: candidate.phone },
+              { text: candidate.address },
             ],
           },
           {
             title: "Professional Details",
             items: [
               {
-                icon: BriefcaseIcon,
                 text: `${candidate.years_experience} experience`,
               },
               {
-                icon: GraduationCapIcon,
                 text: candidate.last_education ?? "",
               },
               {
-                icon: CalendarIcon,
                 text: `Applied ${new Date(
                   candidate.metadata?.appliedDate
                 ).toLocaleDateString()}`,
@@ -74,8 +72,7 @@ export const CandidateDetails = ({ candidate }: { candidate: TCandidate }) => {
               {section.title}
             </h3>
             {section.items.map((item, idx) => (
-              <div key={idx} className="flex items-center text-gray-600">
-              <item.icon className="h-4 w-4 mr-2" />
+              <div key={idx} className="text-gray-600">
               <span className="text-sm">{item.text}</span>
             </div>
             ))}
@@ -86,7 +83,7 @@ export const CandidateDetails = ({ candidate }: { candidate: TCandidate }) => {
       <div>
         <h3 className="font-semibold text-gray-900 mb-3">Skills</h3>
         <div className="flex flex-wrap gap-2">
-          {candidate.skills.map((skill: string, index: number) => (
+          {(candidate.skills ?? []).map((skill: string, index: number) => (
             <Badge key={index} variant="secondary">
               {skill}
             </Badge>

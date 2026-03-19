@@ -20,10 +20,14 @@ export default function ResumeUploadScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const continueToRaw = searchParams.get("continueTo");
-  const continueTo =
-    continueToRaw && continueToRaw.startsWith("/")
-      ? continueToRaw
-      : "/onboarding/profile-completion";
+  const normalizeContinueTo = (value: string | null) => {
+    if (!value || !value.startsWith("/")) return "/onboarding/profile-completion";
+    if (value.startsWith("/onboardin/") || value === "/onboardin") {
+      return value.replace(/^\/onboardin\b/, "/onboarding");
+    }
+    return value;
+  };
+  const continueTo = normalizeContinueTo(continueToRaw);
   
   const { data: session, status: sessionStatus } = useSession();
   const userId = session?.user?.id;
@@ -317,7 +321,7 @@ export default function ResumeUploadScreen() {
       setIsParsing(true);
 
       uploadResume({ userId: session?.user?.id, file: resume }, {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           console.log("[ResumeUpload] Upload response received:", {
             success: data?.success,
             hasData: !!data?.data,
@@ -340,8 +344,8 @@ export default function ResumeUploadScreen() {
           
           setResumeData(resumeDataWithJobHistory);
           toast.success("Resume Uploaded Successfully");
-          // Refetch to update the existing candidate data
-          refetchCandidate();
+          // Ensure we navigate with fresh server state in cache.
+          await refetchCandidate();
           router.push(continueTo);
         },
         onError: (error) => {

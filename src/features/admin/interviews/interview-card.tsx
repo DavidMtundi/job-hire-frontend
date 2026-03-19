@@ -4,17 +4,12 @@ import {
   Calendar,
   Clock,
   Copy,
-  Edit,
   Link,
-  MapPin,
-  Trash2,
-  User,
   Video,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  useDeleteInterviewMutation,
   useUpdateInterviewMutation,
   useGetInterviewStatusListQuery,
   useCreateInterviewStatusMutation,
@@ -32,18 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { EditInterviewModal } from "./edit-interview-modal";
 
 interface InterviewCardProps {
   interview: TInterview;
 }
 
 export function InterviewCard({ interview }: InterviewCardProps) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(
     interview.status || "scheduled"
   );
-  const deleteMutation = useDeleteInterviewMutation();
   const updateInterviewMutation = useUpdateInterviewMutation();
   const createInterviewStatusMutation = useCreateInterviewStatusMutation();
   const markAIInterviewMutation = useMarkAIInterviewMutation();
@@ -134,17 +126,6 @@ export function InterviewCard({ interview }: InterviewCardProps) {
     }
     
     return interviewStatusList[0]?.status || currentStatus;
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this interview?")) return;
-
-    try {
-      await deleteMutation.mutateAsync(interview.id);
-      toast.success("Interview deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete interview");
-    }
   };
 
   const handleGenerateAIInterviewLink = async () => {
@@ -453,34 +434,9 @@ export function InterviewCard({ interview }: InterviewCardProps) {
                 {markAIInterviewMutation.isPending ? "Enabling..." : "Enable AI Interview"}
               </Button>
             )}
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setIsEditModalOpen(true)}
-              className="flex-1 bg-black text-white hover:bg-gray-800 flex items-center justify-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="flex-1 bg-black text-white hover:bg-gray-800 flex items-center justify-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
           </div>
         </CardContent>
       </Card>
-
-      <EditInterviewModal
-        interview={interview}
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-      />
     </>
   );
 }
