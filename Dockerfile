@@ -16,8 +16,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Build-time env (NEXT_PUBLIC_* must be present during `next build`)
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_BASE_API_URL
+
 # Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL} \
+    NEXT_PUBLIC_BASE_API_URL=${NEXT_PUBLIC_BASE_API_URL}
 
 # Build the application
 RUN npm run build
@@ -26,8 +32,15 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_BASE_API_URL
+
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Keep these at runtime too (useful for server-side logs/debugging)
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL} \
+    NEXT_PUBLIC_BASE_API_URL=${NEXT_PUBLIC_BASE_API_URL}
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

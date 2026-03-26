@@ -686,7 +686,7 @@ apiClient.interceptors.response.use(
 
     // Determine error message based on error type
     let message = "Something went wrong";
-    if (isNetworkError && isAxiosError) {
+    if (isNetworkError && isAxiosError && axiosError) {
       if (axiosError.code === "ECONNABORTED" || axiosError.message?.includes("timeout")) {
         message = "Request timeout - please try again";
       } else if (axiosError.code === "ERR_NETWORK" || axiosError.message?.includes("Network Error")) {
@@ -696,7 +696,7 @@ apiClient.interceptors.response.use(
       }
     } else if (!isAxiosError) {
       message = error instanceof Error ? error.message : "Request failed";
-    } else {
+    } else if (axiosError) {
       message =
         serverMessage ||
         normalizeErrorMessage(axiosError.message) ||
@@ -712,12 +712,14 @@ apiClient.interceptors.response.use(
           message = "You do not have permission to perform this action";
         } else if (status === 404) {
           message = "Resource not found";
-        } else if (status >= 500) {
+        } else if (typeof status === "number" && status >= 500) {
           message = "Server error - please try again later";
         } else {
           message = "Request failed - please try again";
         }
       }
+    } else {
+      message = error instanceof Error ? error.message : "Request failed";
     }
     
     const rawStatusCode = typeof data?.status_code === "number" ? data.status_code : undefined;
