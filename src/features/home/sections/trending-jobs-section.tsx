@@ -237,7 +237,7 @@ const TrendingJobCard = ({ job, idx }: { job: TJob, idx: number }) => {
       className={cn("relative flex flex-col rounded-3xl p-6 justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border backdrop-blur-xl overflow-hidden group", {
         "bg-gradient-to-br from-emerald-50 to-white/50 border-emerald-100/50 hover:border-emerald-200": idx === 0,
         "bg-gradient-to-br from-primary/10 to-white/50 border-primary/20/50 hover:border-primary/20": idx === 1,
-        "bg-gradient-to-br from-primary/10 to-white/50 border-primary/20/50 hover:border-primary/20": idx === 2,
+        "bg-gradient-to-br from-riara-gold/10 to-white/50 border-riara-gold/20 hover:border-riara-gold/30": idx === 2,
       })}
     >
       <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-bl from-current to-transparent rounded-bl-full w-32 h-32 pointer-events-none" />
