@@ -1,25 +1,41 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ApiError from "~/utils/api-utils/api-error";
+import { QueryClient, QueryClientProvider, type DefaultOptions } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { PropsWithChildren, useState } from "react";
+import { type PropsWithChildren, useState } from "react";
 
-const queryClientOptions = {
-  defaultOptions: {
-    queries: { staleTime: 5 * 60 * 1000 }, // cache time: 5 minutes
+function getErrorStatus(error: unknown): number | undefined {
+  if (error instanceof ApiError) {
+    return error.status_code;
+  }
+  const meta = (error as { metadata?: { status?: number | null } })?.metadata;
+  return typeof meta?.status === "number" ? meta.status : undefined;
+}
+
+const queryClientDefaults: DefaultOptions = {
+  queries: {
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: process.env.NODE_ENV === "production",
+    retry: (failureCount, error) => {
+      if (failureCount >= 3) return false;
+      const status = getErrorStatus(error);
+      if (status === 401 || status === 403 || status === 404) return false;
+      return true;
+    },
+  },
+  mutations: {
+    retry: 0,
   },
 };
 
-// export const queryClient = new QueryClient({
-//   defaultOptions: {
-//     queries: { refetchOnWindowFocus: false, retry: 3 },
-//     mutations: { retry: 3 },
-//   },
-// });
-
 const ReactQueryProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  // Create a query client instance
-  const [queryClient] = useState(() => new QueryClient(queryClientOptions));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: queryClientDefaults,
+      })
+  );
   const isDevelopment = process.env.NODE_ENV === "development";
 
   return (

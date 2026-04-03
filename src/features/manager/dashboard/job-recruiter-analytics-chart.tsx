@@ -1,22 +1,19 @@
 "use client";
 
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
-import { ApexOptions } from 'apexcharts';
-import { useGetJobAnalyticsQuery, useGetRecruiterAnalyticsQuery } from '~/apis/dashboard-manager';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import { Skeleton } from '~/components/ui/skeleton';
+import { useState } from "react";
+import { useGetJobAnalyticsQuery, useGetRecruiterAnalyticsQuery } from "~/apis/dashboard-manager";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-
-type TabType = 'job' | 'recruiter';
+type TabType = "job" | "recruiter";
 
 export const JobRecruiterAnalyticsChart = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('job');
+  const [activeTab, setActiveTab] = useState<TabType>("job");
   const { data: jobData, isLoading: jobLoading } = useGetJobAnalyticsQuery();
   const { data: recruiterData, isLoading: recruiterLoading } = useGetRecruiterAnalyticsQuery();
 
-  const isLoading = activeTab === 'job' ? jobLoading : recruiterLoading;
+  const isLoading = activeTab === "job" ? jobLoading : recruiterLoading;
 
   if (isLoading) {
     return (
@@ -31,133 +28,23 @@ export const JobRecruiterAnalyticsChart = () => {
     );
   }
 
- 
   const jobChartData = jobData?.data;
   const recruiterChartData = recruiterData?.data;
 
-  const categories = activeTab === 'job'
-    ? jobChartData?.jobs.map((item) => item.title) || []
-    : recruiterChartData?.recruiters.map((item) => item.recruiter) || [];
-
-  const options: ApexOptions = {
-    chart: {
-      type: 'bar',
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '70%',
-        borderRadius: 2,
-        borderRadiusApplication: 'end',
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ['transparent'],
-    },
-    fill: {
-      opacity: 1,
-      colors: ['#46a5e5', '#f59e0b', '#a10e83'],
-    },
-    xaxis: {
-      categories: categories,
-      labels: {
-        style: {
-          colors: '#9ca3af',
-          fontSize: '11px',
-        },
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: '#9ca3af',
-          fontSize: '11px',
-        },
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => val.toString(),
-      },
-      theme: 'light',
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'center',
-      fontSize: '12px',
-      markers: {
-        size: 8,
-      },
-      itemMargin: {
-        horizontal: 12,
-        vertical: 0,
-      },
-    },
-    colors: ['#46a5e5', '#f59e0b', '#a10e83'],
-    grid: {
-      borderColor: '#f3f4f6',
-      strokeDashArray: 0,
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      xaxis: {
-        lines: {
-          show: false,
-        },
-      },
-    },
-  };
-
-  const series = activeTab === 'job'
-    ? [
-        {
-          name: 'Applied',
-          data: jobChartData?.jobs.map((item) => item.applied_total) || [],
-        },
-        {
-          name: 'Shortlisted',
-          data: jobChartData?.jobs.map((item) => item.shortlisted) || [],
-        },
-        {
-          name: 'Hired',
-          data: jobChartData?.jobs.map((item) => item.hired) || [],
-        },
-      ]
-    : [
-        {
-          name: 'Total Applications',
-          data: recruiterChartData?.recruiters.map((item) => item.total_applications) || [],
-        },
-        {
-          name: 'Shortlisted',
-          data: recruiterChartData?.recruiters.map((item) => item.shortlisted) || [],
-        },
-        {
-          name: 'Hired',
-          data: recruiterChartData?.recruiters.map((item) => item.hired) || [],
-        },
-      ];
+  const chartData =
+    activeTab === "job"
+      ? jobChartData?.jobs.map((item) => ({
+          name: item.title,
+          Applied: item.applied_total,
+          Shortlisted: item.shortlisted,
+          Hired: item.hired,
+        })) || []
+      : recruiterChartData?.recruiters.map((item) => ({
+          name: item.recruiter,
+          "Total Applications": item.total_applications,
+          Shortlisted: item.shortlisted,
+          Hired: item.hired,
+        })) || [];
 
   return (
     <Card>
@@ -166,21 +53,19 @@ export const JobRecruiterAnalyticsChart = () => {
           <CardTitle className="text-base font-semibold">Analytics</CardTitle>
           <div className="flex gap-2">
             <button
-              onClick={() => setActiveTab('job')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                activeTab === 'job'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              type="button"
+              onClick={() => setActiveTab("job")}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === "job" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               Job
             </button>
             <button
-              onClick={() => setActiveTab('recruiter')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                activeTab === 'recruiter'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              type="button"
+              onClick={() => setActiveTab("recruiter")}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === "recruiter" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               Recruiter
@@ -188,8 +73,29 @@ export const JobRecruiterAnalyticsChart = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <Chart options={options} series={series} type="bar" height={300} />
+      <CardContent className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Legend />
+            {activeTab === "job" ? (
+              <>
+                <Bar dataKey="Applied" fill="#46a5e5" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Shortlisted" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Hired" fill="#a10e83" radius={[2, 2, 0, 0]} />
+              </>
+            ) : (
+              <>
+                <Bar dataKey="Total Applications" fill="#46a5e5" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Shortlisted" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Hired" fill="#a10e83" radius={[2, 2, 0, 0]} />
+              </>
+            )}
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

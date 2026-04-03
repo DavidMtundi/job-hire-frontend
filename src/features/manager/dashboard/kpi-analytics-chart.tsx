@@ -1,12 +1,9 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-import { ApexOptions } from 'apexcharts';
-import { useGetKPIAnalyticsQuery } from '~/apis/dashboard-manager';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import { Skeleton } from '~/components/ui/skeleton';
-
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+import { useGetKPIAnalyticsQuery } from "~/apis/dashboard-manager";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const KPIAnalyticsChart = () => {
   const { data, isLoading } = useGetKPIAnalyticsQuery();
@@ -24,121 +21,32 @@ export const KPIAnalyticsChart = () => {
     );
   }
 
-  const chartData = data?.data ;
-  const recruiterNames = chartData?.kpis.map((item) => item.recruiter) || [];
-
-  const options: ApexOptions = {
-    chart: {
-      type: 'bar',
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '70%',
-        borderRadius: 2,
-        borderRadiusApplication: 'end',
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ['transparent'],
-    },
-    xaxis: {
-      categories: recruiterNames,
-      labels: {
-        style: {
-          colors: '#9ca3af',
-          fontSize: '11px',
-        },
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: '#9ca3af',
-          fontSize: '11px',
-        },
-      },
-    },
-    fill: {
-      opacity: 1,
-      colors: ['#46a5e5', '#f59e0b', '#a10e83'],
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => val.toString(),
-      },
-      theme: 'light',
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'center',
-      fontSize: '12px',
-      markers: {
-        size: 8,
-      },
-      itemMargin: {
-        horizontal: 12,
-        vertical: 0,
-      },
-    },
-    colors: ['#46a5e5', '#f59e0b', '#a10e83'],
-    grid: {
-      borderColor: '#f3f4f6',
-      strokeDashArray: 0,
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      xaxis: {
-        lines: {
-          show: false,
-        },
-      },
-    },
-  };
-
-  const series = [
-    {
-      name: 'Offers Sent',
-      data: chartData?.kpis.map((item) => item.offers_sent) || [],
-    },
-    {
-      name: 'Offers Accepted',
-      data: chartData?.kpis.map((item) => item.offers_accepted) || [],
-    },
-    {
-      name: 'Offers Rejected',
-      data: chartData?.kpis.map((item) => item.offers_rejected) || [],
-    },
-  ];
+  const chartData =
+    data?.data?.kpis.map((item) => ({
+      recruiter: item.recruiter,
+      "Offers Sent": item.offers_sent,
+      "Offers Accepted": item.offers_accepted,
+      "Offers Rejected": item.offers_rejected,
+    })) || [];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base font-semibold">KPI Analytics</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Chart options={options} series={series} type="bar" height={300} />
+      <CardContent className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis dataKey="recruiter" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="Offers Sent" fill="#46a5e5" radius={[2, 2, 0, 0]} />
+            <Bar dataKey="Offers Accepted" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+            <Bar dataKey="Offers Rejected" fill="#a10e83" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

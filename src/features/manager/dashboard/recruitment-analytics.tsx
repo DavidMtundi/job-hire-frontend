@@ -1,7 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -20,8 +18,6 @@ import {
 } from "react-icons/tb";
 import { MetricCard } from "./metric-card";
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
-
 export const RecruitmentAnalytics = () => {
   const { data: apiResponse, isLoading } = useGetRecruitmentAnalyticsQuery();
   const allData = apiResponse?.data || [];
@@ -39,60 +35,12 @@ export const RecruitmentAnalytics = () => {
 
   const totalJobs = allData.length;
   const activeJobs = allData.filter((job) => job.tags === "active").length;
-  const closedJobs = allData.filter((job) => job.tags === "closed").length;
-  const inactiveJobs = allData.filter((job) => job.tags === "inactive").length;
   const totalHired = allData.reduce((sum, job) => sum + job.total_hired, 0);
   const avgTimeToFill =
     allData
       .filter((job) => job.time_to_fill_days !== null)
       .reduce((sum, job) => sum + (job.time_to_fill_days || 0), 0) /
     allData.filter((job) => job.time_to_fill_days !== null).length || 0;
-
-  const statusChartOptions: ApexOptions = {
-    chart: {
-      type: "donut",
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    labels: ["Active", "Closed", "Inactive"],
-    colors: ["#10b981", "#3b82f6", "#6b7280"],
-    legend: {
-      position: "bottom",
-      fontSize: "12px",
-      markers: {
-        size: 8,
-      },
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => `${val.toFixed(1)}%`,
-      style: {
-        fontSize: "12px",
-        fontWeight: 600,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => `${val} jobs`,
-      },
-      theme: "light",
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "60%",
-        },
-      },
-    },
-  };
-
-  const statusChartSeries = [activeJobs, closedJobs, inactiveJobs];
 
   const columns: ColumnDef<TRecruitmentAnalyticsItem>[] = [
     {

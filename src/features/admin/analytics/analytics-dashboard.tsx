@@ -14,9 +14,23 @@ import { useGetUsersQuery } from "~/apis/users/queries";
 import { ApiError } from "~/utils/api-utils";
 import { Loader2, Clock, DollarSign, Users, BarChart3, Download } from "lucide-react";
 import { format } from "date-fns";
-import dynamic from "next/dynamic";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Legend,
+  Line,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+const PIE_COLORS = ["#10b981", "#179bd7", "#f59e0b", "#ef4444", "#a10e83"];
 
 interface AnalyticsFilters {
   start_date?: string;
@@ -91,82 +105,22 @@ export default function AnalyticsDashboard() {
   const departments = departmentsData?.data || [];
   const recruiters = recruitersData?.data || [];
 
-  // Chart data for Pipeline Health
-  const pipelineChartOptions = {
-    chart: {
-      type: "bar" as const,
-      height: 350,
-    },
-    xaxis: {
-      categories: pipelineHealth.map((item) => item.stage),
-    },
-    yaxis: {
-      title: {
-        text: "Count",
-      },
-    },
-    colors: ["#179bd7"],
-    dataLabels: {
-      enabled: true,
-    },
-  };
+  const pipelineChartData = pipelineHealth.map((item) => ({
+    stage: item.stage,
+    count: item.count,
+  }));
 
-  const pipelineChartSeries = [
-    {
-      name: "Applications",
-      data: pipelineHealth.map((item) => item.count),
-    },
-  ];
+  const sourcePieData =
+    sourceOfHire?.data?.map((item) => ({
+      name: item.source,
+      value: item.total_hired,
+    })) || [];
 
-  // Chart data for Source of Hire
-  const sourceChartOptions = {
-    chart: {
-      type: "pie" as const,
-      height: 350,
-    },
-    labels: sourceOfHire?.data?.map((item) => item.source) || [],
-    colors: ["#10b981", "#179bd7", "#f59e0b", "#ef4444", "#a10e83"],
-    legend: {
-      position: "bottom" as const,
-    },
-  };
-
-  const sourceChartSeries = sourceOfHire?.data?.map((item) => item.total_hired) || [];
-
-  // Chart data for Conversion Funnel
-  const funnelChartOptions = {
-    chart: {
-      type: "bar" as const,
-      height: 400,
-    },
-    xaxis: {
-      categories: conversionFunnel.map((item) => item.stage),
-    },
-    yaxis: {
-      title: {
-        text: "Count",
-      },
-    },
-    colors: ["#46a5e5"],
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "50%",
-      },
-    },
-  };
-
-  const funnelChartSeries = [
-    {
-      name: "Count",
-      data: conversionFunnel.map((item) => item.count),
-    },
-    {
-      name: "Conversion Rate",
-      data: conversionFunnel.map((item) => item.conversion_rate_percent || 0),
-      type: "line" as const,
-    },
-  ];
+  const funnelChartData = conversionFunnel.map((item) => ({
+    stage: item.stage,
+    count: item.count,
+    rate: item.conversion_rate_percent || 0,
+  }));
 
   return (
     <div className="space-y-6">
@@ -318,14 +272,17 @@ export default function AnalyticsDashboard() {
               <CardTitle>Pipeline Health</CardTitle>
               <CardDescription>Applications by stage</CardDescription>
             </CardHeader>
-            <CardContent>
-              {pipelineHealth.length > 0 && Chart ? (
-                <Chart
-                  options={pipelineChartOptions}
-                  series={pipelineChartSeries}
-                  type="bar"
-                  height={350}
-                />
+            <CardContent className="h-[350px]">
+              {pipelineHealth.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={pipelineChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="stage" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" name="Applications" fill="#179bd7" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No data available</p>
               )}
@@ -339,14 +296,27 @@ export default function AnalyticsDashboard() {
               <CardTitle>Source of Hire</CardTitle>
               <CardDescription>Hires by source channel</CardDescription>
             </CardHeader>
-            <CardContent>
-              {sourceChartSeries.length > 0 && Chart ? (
-                <Chart
-                  options={sourceChartOptions}
-                  series={sourceChartSeries}
-                  type="pie"
-                  height={350}
-                />
+            <CardContent className="h-[350px]">
+              {sourcePieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sourcePieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={110}
+                      label
+                    >
+                      {sourcePieData.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" />
+                  </PieChart>
+                </ResponsiveContainer>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No data available</p>
               )}
@@ -360,14 +330,28 @@ export default function AnalyticsDashboard() {
               <CardTitle>Conversion Funnel</CardTitle>
               <CardDescription>Application flow through stages</CardDescription>
             </CardHeader>
-            <CardContent>
-              {conversionFunnel.length > 0 && Chart ? (
-                <Chart
-                  options={funnelChartOptions}
-                  series={funnelChartSeries}
-                  type="bar"
-                  height={400}
-                />
+            <CardContent className="h-[400px]">
+              {conversionFunnel.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={funnelChartData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="stage" tick={{ fontSize: 11 }} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="count" name="Count" fill="#46a5e5" radius={[4, 4, 0, 0]} />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="rate"
+                      name="Conversion %"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No data available</p>
               )}

@@ -12,9 +12,9 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone', // Enable standalone output for Docker/Node server
+  // Only vars listed here are inlined into the client bundle — never expose secrets.
   env: {
     AUTH_URL: process.env.AUTH_URL,
-    AUTH_SECRET: process.env.AUTH_SECRET
   },
   // Increase header size limit to handle larger cookies if needed
   // But we should optimize the JWT token size instead

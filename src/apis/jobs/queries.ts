@@ -1,27 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "~/lib/axios";
 import { IGetJobsParams, IJobResponse, IJobsResponse, IAIGenerateJobRequest, IAIGenerateJobResponse } from "./dto";
+import { jobQueryKeys } from "./keys";
 import { TCreateJobPayload, TUpdateJob } from "./schemas";
 
+type JobsListParams = Record<string, string | number | boolean | undefined>;
 
 export const useGetJobsQuery = (filters: IGetJobsParams = {}) => {
   const page = filters.page ?? 1;
   const pageSize = filters.page_size ?? 10;
-  
+
   return useQuery<IJobsResponse, Error>({
-    queryKey: [
-      "jobs",
-      page,
-      pageSize,
-      filters.status,
-      filters.search,
-      filters.job_type,
-      filters.category,
-      filters.is_trending,
-      filters.is_featured,
-    ],
+    queryKey: jobQueryKeys.list(filters),
     queryFn: async () => {
-      const params: Record<string, any> = {
+      const params: JobsListParams = {
         page,
         page_size: pageSize,
         ...(filters.search ? { search: filters.search } : {}),
@@ -46,7 +38,7 @@ export const useGetJobsQuery = (filters: IGetJobsParams = {}) => {
 };
 export const useGetJobQuery = (jobId: string) => {
   return useQuery<IJobResponse, Error>({
-    queryKey: ["jobs", jobId],
+    queryKey: jobQueryKeys.detail(jobId),
     enabled: !!jobId,
     queryFn: async () => {
       const response = await apiClient.get<IJobResponse>(`/jobs/${jobId}`);
@@ -64,7 +56,7 @@ export const useCreateJobMutation = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: jobQueryKeys.all });
       // console.log("Job created:", data);
     },
     onError: (error) => {
@@ -82,7 +74,7 @@ export const useUpdateJobMutation = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: jobQueryKeys.all });
       // console.log("Job updated:", data);
     },
     onError: (error) => {
@@ -100,7 +92,7 @@ export const useDeleteJobMutation = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: jobQueryKeys.all });
       // console.log("Job deleted:", data);
     },
     onError: (error) => {

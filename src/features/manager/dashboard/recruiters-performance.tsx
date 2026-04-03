@@ -1,7 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { DataTable } from "~/components/data-table";
@@ -17,8 +15,7 @@ import {
   TbCheck
 } from "react-icons/tb";
 import { MetricCard } from "./metric-card";
-
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const RecruitersPerformance = () => {
   const { data: apiResponse, isLoading } = useGetRecruitersPerformanceQuery();
@@ -41,121 +38,13 @@ export const RecruitersPerformance = () => {
   const totalOffersSent = allRecruiters.reduce((sum, r) => sum + r.no_of_offer_sent, 0);
   const totalOffersAccepted = allRecruiters.reduce((sum, r) => sum + r.no_of_offer_acceptance, 0);
 
-  const recruiterNames = allRecruiters.map((r) => r.recruiter);
-  const leadsData = allRecruiters.map((r) => r.no_of_leads);
-  const hrScreeningData = allRecruiters.map((r) => r.hr_screening);
-  const offersRejectedData = allRecruiters.map((r) => r.no_of_offer_rejected);
-  const offersAcceptedData = allRecruiters.map((r) => r.no_of_offer_acceptance);
-
-  const chartOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "70%",
-        borderRadius: 2,
-        borderRadiusApplication: "end",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
-    xaxis: {
-      categories: recruiterNames,
-      labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "11px",
-        },
-        rotate: -45,
-        rotateAlways: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "11px",
-        },
-      },
-    },
-    fill: {
-      opacity: 1,
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => val.toString(),
-      },
-      theme: "light",
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "center",
-      fontSize: "12px",
-      markers: {
-        size: 8,
-      },
-      itemMargin: {
-        horizontal: 12,
-        vertical: 0,
-      },
-    },
-    colors: ["#46a5e5", "#179bd7", "#a10e83", "#7d0a65", "#f59e0b"],
-    grid: {
-      borderColor: "#f3f4f6",
-      strokeDashArray: 0,
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      xaxis: {
-        lines: {
-          show: false,
-        },
-      },
-    },
-  };
-
-  const chartSeries = [
-    {
-      name: "Leads",
-      data: leadsData,
-    },
-    {
-      name: "HR Screening",
-      data: hrScreeningData,
-    },
-    {
-      name: "Offers Rejected",
-      data: offersRejectedData,
-    },
-    {
-      name: "Offers Accepted",
-      data: offersAcceptedData,
-    },
-  ];
+  const performanceChartData = allRecruiters.map((r) => ({
+    name: r.recruiter,
+    Leads: r.no_of_leads,
+    "HR Screening": r.hr_screening,
+    "Offers Rejected": r.no_of_offer_rejected,
+    "Offers Accepted": r.no_of_offer_acceptance,
+  }));
 
   const columns: ColumnDef<TRecruiterPerformanceItem>[] = [
     {
@@ -279,18 +168,23 @@ export const RecruitersPerformance = () => {
             Recruiters Performance Overview
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[400px]">
           {allRecruiters.length > 0 ? (
-            <Chart
-              options={chartOptions}
-              series={chartSeries}
-              type="bar"
-              height={400}
-            />
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={performanceChartData} margin={{ top: 8, right: 8, left: 8, bottom: 48 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={70} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Leads" fill="#46a5e5" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="HR Screening" fill="#179bd7" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Offers Rejected" fill="#a10e83" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Offers Accepted" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[400px] text-gray-500">
-              No data available
-            </div>
+            <div className="flex h-[400px] items-center justify-center text-gray-500">No data available</div>
           )}
         </CardContent>
       </Card>

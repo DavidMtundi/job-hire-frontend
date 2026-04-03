@@ -8,8 +8,22 @@
  */
 
 import { getSession } from "next-auth/react";
+import { siteConfig } from "~/config/site";
 import { authSession } from "~/lib/auth";
 import apiClient from "~/lib/axios";
+
+/** Normalized public API origin (for absolute URLs consumed by backend jobs, e.g. resume compare). */
+export function getPublicApiBaseUrl(): string {
+  const raw = (process.env.NEXT_PUBLIC_BASE_API_URL || siteConfig.apiBaseUrl || "").trim();
+  return raw.replace(/\/+$/, "");
+}
+
+/** Build an absolute API URL from a path (always starts with `/`). */
+export function apiAbsoluteUrl(path: string): string {
+  const base = getPublicApiBaseUrl();
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
+}
 
 /**
  * Client-side: Get the current session token

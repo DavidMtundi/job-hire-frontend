@@ -11,91 +11,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
+import {
+  adminSidebarNavMain,
+  adminSidebarNavSecondary,
+  adminSidebarNavUpcoming,
+} from "~/config/navigation/admin-sidebar"
+import { siteConfig } from "~/config/site"
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavUpcoming } from "./nav-upcoming"
 import { NavUser } from "./nav-user"
-import { siteConfig } from "~/config/site"
-
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/admin/dashboard",
-    },
-    {
-      title: "Candidates",
-      url: "/admin/candidates",
-    },
-    {
-      title: "Applications",
-      url: "/admin/applications",
-    },
-    {
-      title: "Interviews",
-      url: "/admin/interviews",
-    },
-    {
-      title: "Jobs",
-      url: "/admin/jobs",
-    },
-    {
-      title: "Summary Reports",
-      url: "/admin/summary-reports",
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Company",
-      url: "/admin/companies",
-    },
-    {
-      title: "Analytics",
-      url: "/admin/analytics",
-    },
-    {
-      title: "Calendar",
-      url: "/admin/calendar",
-    },
-    {
-      title: "Compliance",
-      url: "/admin/compliance",
-    },
-    {
-      title: "Audit Logs",
-      url: "/admin/audit-logs",
-    },
-    {
-      title: "Settings",
-      url: "/admin/settings",
-    },
-    {
-      title: "Get Help",
-      url: "#",
-    },
-    {
-      title: "Search",
-      url: "#",
-    },
-  ],
-  navUpcoming: [
-    {
-      title: "Calendar Integration",
-      url: "/admin/calendar-integration",
-      badge: "Coming Soon",
-    },
-    {
-      title: "Referral Management",
-      url: "/admin/referrals",
-      badge: "Coming Soon",
-    },
-    {
-      title: "Multi-Channel Posting",
-      url: "/admin/multi-channel-posting",
-      badge: "Coming Soon",
-    },
-  ],
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -124,9 +49,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} />
-        <NavUpcoming items={data.navUpcoming} className="mt-auto border-t pt-4" />
+        <NavMain items={adminSidebarNavMain} />
+        <NavSecondary items={adminSidebarNavSecondary} />
+        <NavUpcoming items={adminSidebarNavUpcoming} className="mt-auto border-t pt-4" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

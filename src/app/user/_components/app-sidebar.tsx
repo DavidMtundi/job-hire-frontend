@@ -1,103 +1,18 @@
 "use client"
 
-import { HelpCircleIcon, SearchIcon, SettingsIcon } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { PiFiles, PiListMagnifyingGlassDuotone, PiReadCvLogo, PiUserCircleCheckDuotone, PiUserFocusDuotone } from "react-icons/pi"
-import {
-  TbDashboard,
-  TbDatabase,
-  TbFileWord,
-  TbInnerShadowTop,
-  TbMessageCircle,
-  TbReport
-} from "react-icons/tb"
 import { Button } from "~/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem
 } from "~/components/ui/sidebar"
-import { NavMain } from "./nav-main"
-import { NavSecondary } from "./nav-secondary"
+import { userSidebarNavMain } from "~/config/navigation/user-sidebar"
 import { siteConfig } from "~/config/site"
-
-const data = {
-  user: {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "/images/avatar.png",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/user/dashboard",
-      icon: TbDashboard,
-    },
-    {
-      title: "Jobs",
-      url: "/user/jobs",
-      icon: PiListMagnifyingGlassDuotone,
-    },
-    {
-      title: "Applications",
-      url: "/user/applications",
-      icon: PiFiles,
-    },
-    {
-      title: "Resume",
-      url: "/user/resume",
-      icon: PiReadCvLogo,
-    },
-    {
-      title: "Profile",
-      url: "/user/profile",
-      icon: PiUserCircleCheckDuotone,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Search",
-      url: "#",
-      icon: SearchIcon,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: SettingsIcon,
-    },
-  ],
-  documents: [
-    {
-      name: "Agent",
-      url: "#",
-      icon: TbDatabase,
-    },
-    {
-      name: "Refer & Earn",
-      url: "#",
-      icon: TbReport,
-    },
-    {
-      name: "Messages",
-      url: "#",
-      icon: TbMessageCircle,
-    },
-    {
-      name: "Feedback",
-      url: "#",
-      icon: TbFileWord,
-    },
-  ],
-}
+import { NavMain } from "./nav-main"
 
 export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
   return (
@@ -120,14 +35,8 @@ export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+        <NavMain items={userSidebarNavMain} />
       </SidebarContent>
-      {/* <SidebarFooter>
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-        <NavUser user={data.user} />
-      </SidebarFooter> */}
     </Sidebar>
   )
 }

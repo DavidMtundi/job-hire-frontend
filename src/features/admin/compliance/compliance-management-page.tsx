@@ -27,10 +27,8 @@ import {
 } from "~/apis/compliance/queries";
 import { FileText, Upload, FileCheck, BarChart3, Plus, Download, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import dynamic from "next/dynamic";
 import { toast } from "sonner";
-
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function ComplianceManagementPage() {
   const [filters, setFilters] = useState({
@@ -55,36 +53,12 @@ export default function ComplianceManagementPage() {
     (documentsError as any)?.response?.status === 403 ||
     (reportsError as any)?.response?.status === 403;
 
-  // EEO Summary Chart
-  const eeoChartOptions = {
-    chart: {
-      type: "bar" as const,
-      height: 350,
-    },
-    xaxis: {
-      categories: eeoSummary?.summary?.map((item) => `${item.gender || "Unknown"} - ${item.race_ethnicity || "Unknown"}`) || [],
-    },
-    yaxis: {
-      title: {
-        text: "Count",
-      },
-    },
-    colors: ["#3b82f6", "#10b981"],
-    legend: {
-      position: "top" as const,
-    },
-  };
-
-  const eeoChartSeries = [
-    {
-      name: "Applications",
-      data: eeoSummary?.summary?.map((item) => item.total_applications) || [],
-    },
-    {
-      name: "Hired",
-      data: eeoSummary?.summary?.map((item) => item.total_hired) || [],
-    },
-  ];
+  const eeoChartData =
+    eeoSummary?.summary?.map((item) => ({
+      category: `${item.gender || "Unknown"} - ${item.race_ethnicity || "Unknown"}`,
+      Applications: item.total_applications,
+      Hired: item.total_hired,
+    })) || [];
 
   if (hasPermissionError) {
     return (
@@ -124,14 +98,19 @@ export default function ComplianceManagementPage() {
               <CardTitle>EEO Summary</CardTitle>
               <CardDescription>Hiring statistics by gender and race/ethnicity</CardDescription>
             </CardHeader>
-            <CardContent>
-              {eeoSummary && eeoSummary.summary.length > 0 && Chart ? (
-                <Chart
-                  options={eeoChartOptions}
-                  series={eeoChartSeries}
-                  type="bar"
-                  height={350}
-                />
+            <CardContent className="h-[350px]">
+              {eeoSummary && eeoChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={eeoChartData} margin={{ top: 8, right: 8, left: 8, bottom: 48 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={60} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="Applications" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Hired" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No EEO data available</p>
               )}

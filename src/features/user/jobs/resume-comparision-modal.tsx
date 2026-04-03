@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useGetAuthUserProfileQuery } from "~/apis/auth/queries";
 import { TCandidate } from "~/apis/candidates/schema";
 import { TCompareResumeData } from "~/apis/resume/dto";
@@ -21,6 +22,7 @@ import { Spinner } from "~/components/spinner";
 import { AlertCircle, CheckCircle2, Lightbulb, LoaderIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
+import { apiAbsoluteUrl } from "~/lib/api-helpers";
 
 
 interface ResumeComparisonModalProps {
@@ -31,6 +33,7 @@ interface ResumeComparisonModalProps {
 export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [compareResumeData, setCompareResumeData] = useState<TCompareResumeData | null>(null);
+  const { data: session } = useSession();
 
   const { data: userProfile, isLoading, isError } = useGetAuthUserProfileQuery();
   const candidateProfile = userProfile?.data?.candidate_profile || {} as TCandidate;
@@ -38,7 +41,16 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
   const { mutate: compareResume, isPending } = useCompareResumeMutation();
 
   const handleCompareResume = () => {
-    const resume_url = "https://dev-api-hiring.must.company/candidates/get-candidate-resume/34"
+    const userId = session?.user?.id ?? userProfile?.data?.id;
+    if (!userId) {
+      toast.error("Could not determine your account. Please sign in again.");
+      return;
+    }
+    const stored = candidateProfile?.resume_url?.trim();
+    const resume_url =
+      stored && /^https?:\/\//i.test(stored)
+        ? stored
+        : apiAbsoluteUrl(`/candidates/get-candidate-resume/${userId}`);
     compareResume({ job_id: jobId, resume_url: resume_url }, {
       onSuccess: (data) => {
         console.log("data", data);

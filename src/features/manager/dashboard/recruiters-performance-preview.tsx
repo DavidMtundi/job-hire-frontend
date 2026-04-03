@@ -1,131 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Button } from "~/components/ui/button";
 import { TbArrowRight } from "react-icons/tb";
 import { useGetRecruitersPerformanceQuery } from "~/apis/dashboard-manager";
-
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const RecruitersPerformancePreview = () => {
   const router = useRouter();
   const { data: apiResponse, isLoading } = useGetRecruitersPerformanceQuery();
   const recruiters = apiResponse?.data?.recruiters || [];
 
-  const sortedRecruiters = [...recruiters]
-    .sort((a, b) => b.no_of_leads - a.no_of_leads)
-    .slice(0, 5); 
+  const sortedRecruiters = [...recruiters].sort((a, b) => b.no_of_leads - a.no_of_leads).slice(0, 5);
 
-  const recruiterNames = sortedRecruiters.map((r) => r.recruiter);
-  const leadsData = sortedRecruiters.map((r) => r.no_of_leads);
-  const hrScreeningData = sortedRecruiters.map((r) => r.hr_screening);
-
-  const chartOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "70%",
-        borderRadius: 2,
-        borderRadiusApplication: "end",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
-    xaxis: {
-      categories: recruiterNames,
-      labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "11px",
-        },
-        rotate: -45,
-        rotateAlways: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "11px",
-        },
-      },
-    },
-    fill: {
-      opacity: 1,
-      colors: ["#c4b5fd", "#a78bfa"],
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => val.toString(),
-      },
-      theme: "light",
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "center",
-      fontSize: "12px",
-      markers: {
-        size: 8,
-      },
-      itemMargin: {
-        horizontal: 12,
-        vertical: 0,
-      },
-    },
-    colors: ["#c4b5fd", "#a78bfa"],
-    grid: {
-      borderColor: "#f3f4f6",
-      strokeDashArray: 0,
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      xaxis: {
-        lines: {
-          show: false,
-        },
-      },
-    },
-  };
-
-  const chartSeries = [
-    {
-      name: "Leads",
-      data: leadsData,
-    },
-    {
-      name: "HR Screening",
-      data: hrScreeningData,
-    },
-  ];
+  const chartData = sortedRecruiters.map((r) => ({
+    name: r.recruiter,
+    Leads: r.no_of_leads,
+    "HR Screening": r.hr_screening,
+  }));
 
   if (isLoading) {
     return (
@@ -146,40 +40,34 @@ export const RecruitersPerformancePreview = () => {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            className="p-0 h-auto font-semibold text-base hover:underline"
+            className="h-auto p-0 text-base font-semibold hover:underline"
             onClick={() => router.push("/manager/performance")}
           >
             Recruiters Performance
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => router.push("/manager/performance")}
-          >
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => router.push("/manager/performance")}>
             View All
             <TbArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="h-[300px]">
         {recruiters.length > 0 ? (
-          <div className="w-full">
-            <Chart
-              options={chartOptions}
-              series={chartSeries}
-              type="bar"
-              height={300}
-              width="100%"
-            />
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 48 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={70} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="Leads" fill="#c4b5fd" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="HR Screening" fill="#a78bfa" radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-[300px] text-gray-500">
-            No data available
-          </div>
+          <div className="flex h-[300px] items-center justify-center text-gray-500">No data available</div>
         )}
       </CardContent>
     </Card>
   );
 };
-

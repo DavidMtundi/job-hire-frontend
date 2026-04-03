@@ -1,15 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Button } from "~/components/ui/button";
 import { TbArrowRight } from "react-icons/tb";
 import { useGetRecruitmentAnalyticsQuery } from "~/apis/dashboard-manager";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+const STATUS_COLORS = ["#10b981", "#3b82f6", "#6b7280"];
 
 export const RecruitmentAnalyticsPreview = () => {
   const router = useRouter();
@@ -20,51 +19,12 @@ export const RecruitmentAnalyticsPreview = () => {
   const closedJobs = data.filter((job) => job.tags === "closed").length;
   const inactiveJobs = data.filter((job) => job.tags === "inactive").length;
 
-  const statusChartOptions: ApexOptions = {
-    chart: {
-      type: "donut",
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-      animations: {
-        enabled: true,
-        speed: 800,
-      },
-    },
-    labels: ["Active", "Closed", "Inactive"],
-    colors: ["#10b981", "#3b82f6", "#6b7280"],
-    legend: {
-      position: "bottom",
-      fontSize: "12px",
-      markers: {
-        size: 8,
-      },
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => `${val.toFixed(1)}%`,
-      style: {
-        fontSize: "12px",
-        fontWeight: 600,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) => `${val} jobs`,
-      },
-      theme: "light",
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "60%",
-        },
-      },
-    },
-  };
+  const pieData = [
+    { name: "Active", value: activeJobs },
+    { name: "Closed", value: closedJobs },
+    { name: "Inactive", value: inactiveJobs },
+  ].filter((d) => d.value > 0);
 
-  const statusChartSeries = [activeJobs, closedJobs, inactiveJobs];
   const totalJobs = activeJobs + closedJobs + inactiveJobs;
 
   if (isLoading) {
@@ -86,40 +46,44 @@ export const RecruitmentAnalyticsPreview = () => {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            className="p-0 h-auto font-semibold text-base hover:underline"
+            className="h-auto p-0 text-base font-semibold hover:underline"
             onClick={() => router.push("/manager/recruitments")}
           >
-          Recruitment Analytics
+            Recruitment Analytics
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => router.push("/manager/recruitments")}
-          >
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => router.push("/manager/recruitments")}>
             View All
             <TbArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="h-[300px]">
         {totalJobs > 0 ? (
-          <div className="w-full">
-            <Chart
-              options={statusChartOptions}
-              series={statusChartSeries}
-              type="donut"
-              height={300}
-              width="100%"
-            />
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={100}
+                paddingAngle={2}
+                label={({ name, percent }) => `${name ?? ""} ${((percent ?? 0) * 100).toFixed(0)}%`}
+              >
+                {pieData.map((_, i) => (
+                  <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number) => [`${value} jobs`, "Count"]} />
+              <Legend verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-[300px] text-gray-500">
-            No data available
-          </div>
+          <div className="flex h-[300px] items-center justify-center text-gray-500">No data available</div>
         )}
       </CardContent>
     </Card>
   );
 };
-

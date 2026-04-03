@@ -5,7 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { siteConfig } from "~/config/site";
 import { authSession } from "~/lib/auth";
 import { cn } from "~/lib/utils";
-import ReactQueryProvider from "~/utils/react-query";
+import ReactQueryProvider from "~/providers/react-query-provider";
 import { ThemeProvider } from "~/providers/theme-provider";
 import { ToasterProvider } from "~/providers/toast-provider";
 
@@ -31,19 +31,29 @@ export const metadata: Metadata = {
   },
 };
 
+function isNextDynamicServerUsage(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const digest = "digest" in error ? String((error as { digest?: string }).digest) : "";
+  if (digest === "DYNAMIC_SERVER_USAGE") return true;
+  const msg = error instanceof Error ? error.message : "";
+  return msg.includes("Dynamic server usage") && msg.includes("headers");
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Wrap authSession in try-catch to handle cases where there's no valid session
   let session = null;
   try {
     session = await authSession();
   } catch (error) {
-    // If there's a JWT error (e.g., invalid token, no session), continue with null session
-    // This is expected for unauthenticated users
-    console.warn("Session error (this is normal for unauthenticated users):", error);
+    // Prerender/static analysis may throw when auth reads headers(); not a real session failure.
+    if (isNextDynamicServerUsage(error)) {
+      session = null;
+    } else {
+      console.warn("Session error (this is normal for unauthenticated users):", error);
+    }
   }
 
   return (
