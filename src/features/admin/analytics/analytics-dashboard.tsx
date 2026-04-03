@@ -105,7 +105,7 @@ export default function AnalyticsDashboard() {
         text: "Count",
       },
     },
-    colors: ["#3b82f6"],
+    colors: ["#179bd7"],
     dataLabels: {
       enabled: true,
     },
@@ -125,7 +125,7 @@ export default function AnalyticsDashboard() {
       height: 350,
     },
     labels: sourceOfHire?.data?.map((item) => item.source) || [],
-    colors: ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#c23aa0"],
+    colors: ["#10b981", "#179bd7", "#f59e0b", "#ef4444", "#a10e83"],
     legend: {
       position: "bottom" as const,
     },
@@ -147,7 +147,7 @@ export default function AnalyticsDashboard() {
         text: "Count",
       },
     },
-    colors: ["#06b6d4"],
+    colors: ["#46a5e5"],
     plotOptions: {
       bar: {
         horizontal: false,

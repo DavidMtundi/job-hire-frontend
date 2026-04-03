@@ -121,7 +121,7 @@ export const RecruitersPerformance = () => {
         vertical: 0,
       },
     },
-    colors: ["#c4b5fd", "#a78bfa", "#c23aa0", "#af1685", "#8a1169"],
+    colors: ["#46a5e5", "#179bd7", "#a10e83", "#7d0a65", "#f59e0b"],
     grid: {
       borderColor: "#f3f4f6",
       strokeDashArray: 0,

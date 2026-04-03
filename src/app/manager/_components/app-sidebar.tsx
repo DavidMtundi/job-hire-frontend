@@ -27,6 +27,7 @@ import {
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
+import { siteConfig } from "~/config/site"
 
 const data = {
   navMain: [
@@ -76,15 +77,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               size="lg"
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/manager/dashboard" className="flex items-center gap-2">
-                <img 
-                  src="/riara-logo.jpg" 
-                  alt="Riara University" 
-                  width={24} 
-                  height={24} 
-                  className="size-6" 
+              <Link href="/manager/dashboard" className="flex items-center gap-2 min-w-0">
+                <img
+                  src={siteConfig.brand.icon}
+                  alt=""
+                  width={512}
+                  height={512}
+                  className="h-7 w-7 object-contain shrink-0"
+                  aria-hidden
                 />
-                <span className="text-lg font-bold text-primary">Riara University</span>
+                <span className="text-lg font-bold text-primary truncate">Riara University</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

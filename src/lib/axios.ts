@@ -77,7 +77,26 @@ const getApiBaseUrl = () => {
   } else {
     // Client-side (browser): Use NEXT_PUBLIC_BASE_API_URL or localhost
     baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL || siteConfig.apiBaseUrl || "http://localhost:8002";
-    
+
+    // If the "API" URL is identical to the site origin, requests like GET /jobs/... hit Next.js (HTML)
+    // instead of Caddy's /api → backend. Normalize to …/api for same-origin Docker/Caddy setups.
+    const appOrigin = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
+    let resolved = baseUrl.trim().replace(/\/+$/, "");
+    if (appOrigin && resolved === appOrigin) {
+      resolved = `${resolved}/api`;
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[getApiBaseUrl] API base matched app URL; appended /api:", resolved);
+      }
+    }
+    // Caddyfile uses handle_path /api/* → backend; …/backend is not proxied and yields Next.js 404 HTML.
+    if (/\/backend$/i.test(resolved)) {
+      resolved = resolved.replace(/\/backend$/i, "/api");
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[getApiBaseUrl] Replaced /backend suffix with /api:", resolved);
+      }
+    }
+    baseUrl = resolved;
+
     // Log for debugging
     if (process.env.NODE_ENV === "development") {
       console.log("[getApiBaseUrl] Client-side base URL:", baseUrl);
@@ -678,10 +697,22 @@ apiClient.interceptors.response.use(
       });
     }
 
+    /** HTML error pages (e.g. Next.js 404) must not become user-visible error text. */
+    const isProbablyHtmlResponseBody = (s: string): boolean => {
+      const t = s.trim();
+      if (t.length < 80) return false;
+      const head = t.slice(0, 240).toLowerCase();
+      if (head.startsWith("<!doctype html") || head.startsWith("<html")) return true;
+      if (t.includes("_next/static/") && (t.includes("<script") || t.includes("<head"))) return true;
+      return false;
+    };
+
     const normalizeErrorMessage = (value: unknown): string | null => {
       if (typeof value === "string") {
         const trimmed = value.trim();
-        return trimmed.length > 0 ? trimmed : null;
+        if (trimmed.length === 0) return null;
+        if (isProbablyHtmlResponseBody(trimmed)) return null;
+        return trimmed;
       }
       if (Array.isArray(value)) {
         const parts = value

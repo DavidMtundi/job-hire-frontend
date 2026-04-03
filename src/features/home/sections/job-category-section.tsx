@@ -7,6 +7,7 @@ import { useGetCategoriesQuery } from '~/apis/categories/queries';
 import { TCategory } from '~/apis/categories/schemas';
 import { Button } from '~/components/ui/button';
 import { CategorySkeletonGrid } from '../category-skeleton-grid';
+import { safeErrorMessage } from '~/lib/safe-error-message';
 import { MdOutlineCategory } from "react-icons/md";
 
 
@@ -138,7 +139,7 @@ export const JobCategorySection = () => {
 
         {error && (
           <div className="flex flex-col gap-2 justify-center items-center h-full">
-            <p className="text-gray-500">Error fetching Categories: {error.message}</p>
+            <p className="text-gray-500 text-sm max-w-2xl mx-auto text-center">{safeErrorMessage(error, 'Error fetching Categories')}</p>
             <Button size="sm" variant="outline" onClick={() => refetch()}>
               Retry
             </Button>

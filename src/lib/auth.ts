@@ -2,6 +2,7 @@ import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { authConfig } from "~/config/auth-config";
+import { siteConfig } from "~/config/site";
 import { credentialLogin } from "~/apis/auth/services";
 import { ITokenResponse, IUser } from "~/types";
 import { graceHandler } from "~/utils/api-utils";
@@ -320,9 +321,9 @@ export const { handlers, signIn, signOut, auth: authSession } = NextAuth({
     maxAge: 30 * 24 * 60 * 60,
   },
   theme: {
-    colorScheme: "auto", // "auto" | "dark" | "light"
-    brandColor: "", // Hex color code #33FF5D
-    logo: "/logo.png", // Absolute URL to image
+    colorScheme: "light",
+    brandColor: siteConfig.brand.primaryHex,
+    logo: siteConfig.brand.logo,
   },
   // Enable debug messages in the console if you are having problems
   debug: process.env.NODE_ENV === "development",

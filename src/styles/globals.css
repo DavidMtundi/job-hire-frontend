@@ -3,6 +3,147 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Riara University design tokens + shadcn/ui */
+:root {
+  /* Brand */
+  --color-riara-red: #a10e83;
+  --color-riara-red-dark: #7d0a65;
+  --color-riara-red-light: #c515a0;
+  --color-riara-maroon: #a10e83;
+  --color-riara-maroon-dark: #7d0a65;
+  --color-riara-maroon-light: #c515a0;
+  --color-riara-gold: #f59e0b;
+  --color-riara-gold-light: #fbbf24;
+  --color-riara-gold-dark: #d97706;
+  --color-primary-blue-light: #46a5e5;
+  --color-primary-blue-medium: #179bd7;
+  --color-primary-blue-dark: #17376e;
+
+  /* Text */
+  --color-text-primary: #222222;
+  --color-text-secondary: #343434;
+  --color-text-tertiary: #666666;
+  --color-text-h5-h6: #444444;
+  --color-text-muted: #999999;
+  --color-text-copyright: #cccccc;
+  --color-text-inverse: #ffffff;
+  --color-text-inverse-secondary: #f5f5f5;
+
+  /* Backgrounds */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f6f6f6;
+  --color-bg-light-gray: #eaeaea;
+  --color-bg-medium-gray: #e5e5e5;
+  --color-bg-dark-gray: #2e2e2e;
+  --color-bg-footer: #2e2e2e;
+  --color-bg-copyright: #1a1a1a;
+  --color-bg-inverse: #000000;
+  --color-bg-maroon: #a10e83;
+  --color-bg-button-primary: #46a5e5;
+  --color-bg-button-secondary: #f0f0f0;
+  --color-bg-button-search: #eaeaea;
+
+  /* Borders */
+  --color-border-light: #eaeaea;
+  --color-border-medium: #e0e0e0;
+  --color-border-secondary: #e5e5e5;
+  --color-border-dark: #666666;
+  --color-border-maroon: #7d0a65;
+
+  /* Primary scale */
+  --color-primary-50: #f5e8f4;
+  --color-primary-100: #e8d1e2;
+  --color-primary-200: #d4a3c5;
+  --color-primary-300: #c075a8;
+  --color-primary-400: #ac478b;
+  --color-primary-500: #a10e83;
+  --color-primary-600: #7d0a65;
+  --color-primary-700: #5d084b;
+  --color-primary-800: #3d0531;
+  --color-primary-900: #1d0317;
+
+  /* Neutral scale */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f6f6f6;
+  --color-neutral-200: #eaeaea;
+  --color-neutral-300: #e5e5e5;
+  --color-neutral-400: #999999;
+  --color-neutral-500: #666666;
+  --color-neutral-600: #444444;
+  --color-neutral-700: #343434;
+  --color-neutral-800: #222222;
+  --color-neutral-900: #171717;
+
+  /* shadcn */
+  --radius: 1rem;
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-bg-primary);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-bg-primary);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-primary-500);
+  --primary-foreground: var(--color-text-inverse);
+  --secondary: var(--color-bg-button-secondary);
+  --secondary-foreground: var(--color-neutral-800);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  --accent: var(--color-primary-50);
+  --accent-foreground: var(--color-primary-700);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--color-border-light);
+  --input: var(--color-border-light);
+  --ring: var(--color-riara-red);
+  --chart-1: var(--color-primary-500);
+  --chart-2: var(--color-primary-blue-medium);
+  --chart-3: var(--color-riara-gold);
+  --chart-4: var(--color-riara-red-light);
+  --chart-5: var(--color-primary-blue-dark);
+  --sidebar: var(--color-bg-secondary);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--color-riara-red);
+  --sidebar-primary-foreground: var(--color-text-inverse);
+  --sidebar-accent: var(--color-neutral-100);
+  --sidebar-accent-foreground: var(--color-text-secondary);
+  --sidebar-border: var(--color-border-secondary);
+  --sidebar-ring: var(--color-riara-red);
+}
+
+.dark {
+  --background: var(--color-bg-copyright);
+  --foreground: var(--color-text-inverse);
+  --card: var(--color-bg-dark-gray);
+  --card-foreground: var(--color-text-inverse);
+  --popover: var(--color-bg-dark-gray);
+  --popover-foreground: var(--color-text-inverse);
+  --primary: var(--color-riara-red-light);
+  --primary-foreground: var(--color-text-inverse);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: var(--color-text-inverse);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: var(--color-text-inverse);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--color-riara-red-light);
+  --chart-1: var(--color-riara-red-light);
+  --chart-2: var(--color-primary-blue-light);
+  --chart-3: var(--color-riara-gold-light);
+  --chart-4: var(--color-primary-300);
+  --chart-5: var(--color-primary-blue-medium);
+  --sidebar: var(--color-bg-dark-gray);
+  --sidebar-foreground: var(--color-text-inverse);
+  --sidebar-primary: var(--color-riara-red-light);
+  --sidebar-primary-foreground: var(--color-text-inverse);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: var(--color-text-inverse);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--color-riara-red-light);
+}
+
 @theme inline {
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -41,97 +182,32 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* custom colors */
+/* Tailwind v4 utilities synced with Riara :root */
 @theme {
-  --color-primary: #af1685;
-  --color-primary-foreground: #ffffff;
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  --color-secondary: #e0e7ff;
-  --color-secondary-foreground: #1e1b4b;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-accent: #eef2ff;
-  --color-accent-foreground: #312e81;
+  --color-primary: var(--color-primary-500);
+  --color-primary-foreground: var(--color-text-inverse);
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-text-primary);
+  --color-secondary: var(--color-bg-button-secondary);
+  --color-secondary-foreground: var(--color-neutral-800);
+  --color-muted: var(--color-neutral-100);
+  --color-muted-foreground: var(--color-neutral-500);
+  --color-accent: var(--color-primary-50);
+  --color-accent-foreground: var(--color-primary-700);
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #af1685;
-  --color-chart-1: #c23aa0;
-  --color-chart-2: #10b981;
-  --color-chart-3: #f59e0b;
-  --color-chart-4: #f43f5e;
-  --color-chart-5: #3b82f6;
-}
-
-:root {
-  --radius: 1rem;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #af1685;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #af1685;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #af1685;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: #af1685;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #c23aa0;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #c23aa0;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #c23aa0;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #c23aa0;
+  --color-border: var(--color-border-light);
+  --color-input: var(--color-border-light);
+  --color-ring: var(--color-riara-red);
+  --color-chart-1: var(--color-primary-500);
+  --color-chart-2: var(--color-primary-blue-medium);
+  --color-chart-3: var(--color-riara-gold);
+  --color-chart-4: var(--color-riara-red-light);
+  --color-chart-5: var(--color-primary-blue-dark);
+  --color-riara-maroon: var(--color-riara-red);
+  --color-riara-blue: var(--color-primary-blue-medium);
+  --color-riara-navy: var(--color-primary-blue-dark);
+  --color-riara-gold: var(--color-riara-gold);
 }
 
 @layer base {

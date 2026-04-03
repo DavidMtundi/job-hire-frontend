@@ -80,7 +80,7 @@ export const KPIAnalyticsChart = () => {
     },
     fill: {
       opacity: 1,
-      colors: ['#c4b5fd', '#a78bfa', '#c23aa0'],
+      colors: ['#46a5e5', '#f59e0b', '#a10e83'],
     },
     tooltip: {
       y: {
@@ -100,7 +100,7 @@ export const KPIAnalyticsChart = () => {
         vertical: 0,
       },
     },
-    colors: ['#c4b5fd', '#a78bfa', '#c23aa0'],
+    colors: ['#46a5e5', '#f59e0b', '#a10e83'],
     grid: {
       borderColor: '#f3f4f6',
       strokeDashArray: 0,

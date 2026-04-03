@@ -9,6 +9,11 @@ export const siteConfig = {
   siteUrl: APP_URL,
   apiBaseUrl: API_BASE_URL,
   robots: "noindex, nofollow",
+  brand: {
+    logo: "/riara-logo.png",
+    icon: "/riara-logo.png",
+    primaryHex: "#a10e83",
+  },
   author: {
     name: "Team-AI",
     website: "#",

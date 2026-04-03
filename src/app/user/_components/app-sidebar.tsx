@@ -23,6 +23,7 @@ import {
 } from "~/components/ui/sidebar"
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
+import { siteConfig } from "~/config/site"
 
 const data = {
   user: {
@@ -106,12 +107,12 @@ export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
           <SidebarMenuItem className="flex justify-center items-center">
             <Button asChild size="icon" variant="ghost">
               <Link href="/user/dashboard">
-                <img 
-                  src="/riara-logo.jpg" 
-                  alt="Riara University" 
-                  width={24} 
-                  height={24} 
-                  className="size-6" 
+                <img
+                  src={siteConfig.brand.icon}
+                  alt={siteConfig.title}
+                  width={512}
+                  height={512}
+                  className="h-7 w-7 object-contain"
                 />
               </Link>
             </Button>

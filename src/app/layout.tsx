@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   title: siteConfig.title,
   description: siteConfig.description,
   icons: {
-    icon: "/favicon.svg",
-    apple: "/icon.svg",
+    icon: [{ url: "/riara-logo.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/riara-logo.png", sizes: "512x512", type: "image/png" }],
   },
 };
 

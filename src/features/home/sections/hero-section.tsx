@@ -34,7 +34,7 @@ export const HeroSection = () => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[70%] rounded-full bg-primary/20 blur-[120px] mix-blend-multiply opacity-50 animate-pulse" />
         <div className="absolute top-[10%] -right-[10%] w-[50%] h-[60%] rounded-full bg-primary/100/20 blur-[100px] mix-blend-multiply opacity-50" />
-        <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-violet-400/20 blur-[120px] mix-blend-multiply opacity-50" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-riara-blue/20 blur-[120px] mix-blend-multiply opacity-50" />
       </div>
 
       <div className="container mx-auto text-center max-w-4xl relative z-10 pt-10">
@@ -47,7 +47,7 @@ export const HeroSection = () => {
         </div>
 
         <h1 className="text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight text-foreground/90">
-          Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/90 to-violet-500">Dream Job</span> Today
+          Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/90 to-riara-blue">Dream Job</span> Today
         </h1>
         <p className="text-xl lg:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto font-light">
           Connect with top companies and discover opportunities that match your skills and aspirations.

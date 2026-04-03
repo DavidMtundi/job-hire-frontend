@@ -7,6 +7,7 @@ import { useGetJobsQuery } from '~/apis/jobs/queries';
 import { Button } from '~/components/ui/button';
 import { TJob } from '~/apis/jobs/schemas';
 import { JobSkeletonGrid } from '../job-skeleton-grid';
+import { safeErrorMessage } from '~/lib/safe-error-message';
 
 export const FeaturedJobsSection = () => {
   // const jobs = [
@@ -358,7 +359,7 @@ export const FeaturedJobsSection = () => {
 
         {error && (
           <div className="flex flex-col gap-2 justify-center items-center h-full">
-            <p className="text-gray-500">Error fetching Featured jobs: {error.message}</p>
+            <p className="text-gray-500 text-sm max-w-2xl mx-auto text-center">{safeErrorMessage(error, 'Error fetching Featured jobs')}</p>
             <Button size="sm" variant="outline" onClick={() => refetch()}>
               Retry
             </Button>
