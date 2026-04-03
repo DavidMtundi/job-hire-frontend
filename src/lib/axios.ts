@@ -1,4 +1,4 @@
-import Axios from "axios";
+import Axios, { type InternalAxiosRequestConfig } from "axios";
 import { getSession } from "next-auth/react"; // client side
 import { authSession } from "~/lib/auth"; // wrapper for getServerSession
 import { siteConfig } from "~/config/site";
@@ -278,9 +278,11 @@ const refreshAccessToken = async (): Promise<string | null> => {
           params: { refresh_token: refreshToken },
         });
 
-        const responseData = refreshResponse?.data as
-          | { access_token?: string; refresh_token?: string }
-          | { data?: { access_token?: string; refresh_token?: string } };
+        const responseData = refreshResponse?.data as {
+          access_token?: string;
+          refresh_token?: string;
+          data?: { access_token?: string; refresh_token?: string };
+        };
         const newAccessToken = responseData?.access_token ?? responseData?.data?.access_token ?? null;
         const newRefreshToken = responseData?.refresh_token ?? responseData?.data?.refresh_token ?? null;
 
@@ -739,7 +741,9 @@ apiClient.interceptors.response.use(
     const isLoginEndpoint = requestUrl?.includes("/auth/login");
     const isRefreshEndpoint =
       requestUrl?.includes("/auth/refresh-token") || requestUrl?.includes("/auth/refresh_token");
-    const originalRequest = axiosError?.config as (typeof axiosError.config & { _retry?: boolean }) | undefined;
+    const originalRequest = axiosError?.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
 
     if (
       isAxiosError &&
