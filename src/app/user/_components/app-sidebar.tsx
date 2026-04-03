@@ -1,7 +1,6 @@
 "use client"
 
 import { HelpCircleIcon, SearchIcon, SettingsIcon } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 import { PiFiles, PiListMagnifyingGlassDuotone, PiReadCvLogo, PiUserCircleCheckDuotone, PiUserFocusDuotone } from "react-icons/pi"
@@ -47,11 +46,11 @@ const data = {
       url: "/user/applications",
       icon: PiFiles,
     },
-    // {
-    //   title: "Resume",
-    //   url: "/user/resume",
-    //   icon: PiReadCvLogo,
-    // },
+    {
+      title: "Resume",
+      url: "/user/resume",
+      icon: PiReadCvLogo,
+    },
     {
       title: "Profile",
       url: "/user/profile",
@@ -107,9 +106,9 @@ export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
           <SidebarMenuItem className="flex justify-center items-center">
             <Button asChild size="icon" variant="ghost">
               <Link href="/user/dashboard">
-                <Image 
-                  src="/logo.svg" 
-                  alt="Job Hire" 
+                <img 
+                  src="/riara-logo.jpg" 
+                  alt="Riara University" 
                   width={24} 
                   height={24} 
                   className="size-6" 

@@ -140,8 +140,8 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Building2 className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary/15 rounded-lg">
+            <Building2 className="h-6 w-6 text-primary" />
           </div>
           <div>
             <CardTitle>Edit Company</CardTitle>

@@ -130,9 +130,9 @@ export function BulkActionsToolbar({ table }: BulkActionsToolbarProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/20 rounded-lg">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-blue-900">
+          <span className="text-sm font-medium text-primary">
             {selectedCount} application{selectedCount !== 1 ? "s" : ""} selected
           </span>
         </div>

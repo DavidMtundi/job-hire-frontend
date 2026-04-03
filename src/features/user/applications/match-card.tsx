@@ -20,10 +20,10 @@ export const MatchCard = ({ score, title, matching_skills, missing_skills, recom
       };
     } else if (score >= 80) {
       return {
-        bg: 'bg-gradient-to-b from-slate-900 to-blue-900',
-        ring: 'text-blue-400',
-        text: 'text-blue-400',
-        border: 'border-blue-500/30',
+        bg: 'bg-gradient-to-b from-slate-900 to-primary',
+        ring: 'text-primary',
+        text: 'text-primary',
+        border: 'border-primary/30',
       };
     } else {
       return {

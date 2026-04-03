@@ -94,6 +94,11 @@ const apiClient = Axios.create({
   timeout: API_CONFIG.timeout,
 });
 
+let inMemoryAccessToken: string | null = null;
+let inMemoryRefreshToken: string | null = null;
+let refreshPromise: Promise<string | null> | null = null;
+let authRecoveryInProgress = false;
+
 // Helper: get access token depending on environment
 // CRITICAL: This function MUST reliably retrieve the access token from the NextAuth session
 const getAccessToken = async (retryCount: number = 0): Promise<string | null> => {
@@ -131,6 +136,13 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
         }
         
         const token = session?.tokens?.accessToken ?? null;
+        const refreshToken = session?.tokens?.refreshToken ?? null;
+        if (token) {
+          inMemoryAccessToken = token;
+        }
+        if (refreshToken) {
+          inMemoryRefreshToken = refreshToken;
+        }
         
         if (!token) {
           console.error(`[getAccessToken] No access token found in session (attempt ${retryCount + 1})!`, {
@@ -165,10 +177,17 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
       const res = await fetch("/api/auth/session");
           if (!res.ok) {
             console.warn("Fallback fetch failed:", res.status, res.statusText);
-            return null;
+            return inMemoryAccessToken;
           }
       const session = await res.json();
           const fallbackToken = session?.tokens?.accessToken ?? null;
+          const fallbackRefreshToken = session?.tokens?.refreshToken ?? null;
+          if (fallbackToken) {
+            inMemoryAccessToken = fallbackToken;
+          }
+          if (fallbackRefreshToken) {
+            inMemoryRefreshToken = fallbackRefreshToken;
+          }
           
           if (fallbackToken) {
             console.log("[getAccessToken] ✅ Token retrieved via fallback fetch");
@@ -179,7 +198,7 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
           return fallbackToken;
         } catch (fetchError) {
           console.error("[getAccessToken] Fallback fetch also failed:", fetchError);
-          return null;
+          return inMemoryAccessToken;
         }
       }
     }
@@ -192,7 +211,86 @@ const getAccessToken = async (retryCount: number = 0): Promise<string | null> =>
       return getAccessToken(retryCount + 1);
     }
     
+    return inMemoryAccessToken;
+  }
+};
+
+const getRefreshToken = async (): Promise<string | null> => {
+  if (inMemoryRefreshToken) return inMemoryRefreshToken;
+
+  try {
+    if (typeof window === "undefined") {
+      const session = await authSession();
+      const refreshToken = session?.tokens?.refreshToken ?? null;
+      if (refreshToken) {
+        inMemoryRefreshToken = refreshToken;
+      }
+      return refreshToken;
+    }
+
+    const session = await getSession();
+    const refreshToken = session?.tokens?.refreshToken ?? null;
+    if (refreshToken) {
+      inMemoryRefreshToken = refreshToken;
+    }
+    return refreshToken;
+  } catch (error) {
+    console.error("[Token Refresh] Failed to read refresh token from session:", error);
+    return inMemoryRefreshToken;
+  }
+};
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) {
+      console.warn("[Token Refresh] No refresh token available");
+      return null;
+    }
+
+    const refreshEndpoints = ["/auth/refresh-token", "/auth/refresh_token"];
+    for (const endpoint of refreshEndpoints) {
+      try {
+        const refreshResponse = await Axios.post(endpoint, null, {
+          baseURL: getApiBaseUrl(),
+          timeout: API_CONFIG.timeout,
+          params: { refresh_token: refreshToken },
+        });
+
+        const responseData = refreshResponse?.data as
+          | { access_token?: string; refresh_token?: string }
+          | { data?: { access_token?: string; refresh_token?: string } };
+        const newAccessToken = responseData?.access_token ?? responseData?.data?.access_token ?? null;
+        const newRefreshToken = responseData?.refresh_token ?? responseData?.data?.refresh_token ?? null;
+
+        if (newAccessToken) {
+          inMemoryAccessToken = newAccessToken;
+        }
+        if (newRefreshToken) {
+          inMemoryRefreshToken = newRefreshToken;
+        }
+
+        if (newAccessToken) {
+          console.log("[Token Refresh] Access token refreshed successfully");
+          return newAccessToken;
+        }
+      } catch (refreshError) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`[Token Refresh] Failed endpoint ${endpoint}`, toLoggableError(refreshError));
+        }
+      }
+    }
+
+    console.error("[Token Refresh] All refresh endpoints failed");
     return null;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
   }
 };
 
@@ -260,25 +358,6 @@ apiClient.interceptors.request.use(
           method: config.method?.toUpperCase(),
         });
       }
-    }
-    
-    // Add breakpoint for AI job generation endpoint specifically
-    if (config.url?.includes("/jobs/ai-generate")) {
-      console.log("========================================");
-      console.log("[Axios Interceptor] 🔵 REQUEST INTERCEPTOR: AI Job Generation");
-      console.log("[Axios Interceptor] Request intercepted at:", new Date().toISOString());
-      console.log("[Axios Interceptor] Request details:", {
-        url: config.url,
-        fullUrl: `${config.baseURL}${config.url}`,
-        method: config.method?.toUpperCase(),
-        baseURL: config.baseURL,
-        data: config.data,
-        existingHeaders: Object.keys(config.headers || {}),
-        existingAuthHeader: !!config.headers?.Authorization,
-        authHeaderValue: config.headers?.Authorization && typeof config.headers.Authorization === 'string' 
-          ? config.headers.Authorization.substring(0, 50) + "..." 
-          : "NONE",
-      });
     }
     
     // Helper function to check if URL matches endpoint pattern
@@ -368,6 +447,7 @@ apiClient.interceptors.request.use(
       config.url.includes("/auth/login") ||
       config.url.includes("/auth/register") ||
       config.url.includes("/auth/refresh_token") ||
+      config.url.includes("/auth/refresh-token") ||
       config.url.includes("/users/login") ||
       config.url.includes("/users/register")
     );
@@ -391,33 +471,9 @@ apiClient.interceptors.request.use(
         });
       }
       
-      if (config.url?.includes("/jobs/ai-generate")) {
-        console.log("[Axios Interceptor] 🔑 Starting token retrieval for AI endpoint...");
-      }
-      
       // Call getAccessToken which has its own internal retry logic
       // This handles race conditions where session might not be ready immediately
-      const tokenStartTime = Date.now();
       const token = await getAccessToken(0);
-      const tokenRetrievalDuration = Date.now() - tokenStartTime;
-      
-      if (config.url?.includes("/jobs/ai-generate")) {
-        console.log("[Axios Interceptor] 🔑 Token retrieval completed");
-        console.log("[Axios Interceptor] Token retrieval duration:", tokenRetrievalDuration, "ms");
-        console.log("[Axios Interceptor] Token retrieval result:", {
-          hasToken: !!token,
-          tokenLength: token?.length || 0,
-          tokenPreview: token ? token.substring(0, 30) + "..." : "NONE - TOKEN MISSING!",
-          tokenStart: token ? token.substring(0, 10) : "N/A",
-        });
-        
-        if (!token) {
-          console.error("[Axios Interceptor] ❌ CRITICAL: NO TOKEN RETRIEVED!");
-          console.error("[Axios Interceptor] This request will likely fail with 401 Unauthorized");
-        } else {
-          console.log("[Axios Interceptor] ✅ Token successfully retrieved");
-        }
-      }
       
       if (token) {
         // CRITICAL: Ensure Authorization header is ALWAYS set with Bearer token
@@ -436,24 +492,6 @@ apiClient.interceptors.request.use(
           console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - ✅ Token attached`);
         }
         
-        if (config.url?.includes("/jobs/ai-generate")) {
-          console.log("[Axios Interceptor] ✅ TOKEN ATTACHED TO REQUEST");
-          console.log("[Axios Interceptor] Authorization header details:", {
-            headerExists: !!config.headers.Authorization,
-            headerLength: config.headers.Authorization?.length || 0,
-            headerPrefix: config.headers.Authorization && typeof config.headers.Authorization === 'string' 
-              ? config.headers.Authorization.substring(0, 20) 
-              : undefined,
-            headerFull: config.headers.Authorization ? "Bearer [TOKEN]" : "MISSING",
-            allHeaderKeys: Object.keys(config.headers || {}),
-          });
-          console.log("[Axios Interceptor] Request config final state:", {
-            url: config.url,
-            method: config.method,
-            hasData: !!config.data,
-            dataKeys: config.data ? Object.keys(config.data) : [],
-          });
-        }
       } else {
         // CRITICAL: For authenticated endpoints, we MUST have a token
         // If no token after retries (handled internally by getAccessToken), this is a critical error
@@ -469,57 +507,27 @@ apiClient.interceptors.request.use(
           });
         }
         
-        if (config.url?.includes("/jobs/ai-generate")) {
-          console.error("[Axios Interceptor] ❌ CRITICAL: NO TOKEN AVAILABLE for AI endpoint after all retries!");
-          console.error("[Axios Interceptor] This will cause a 401 Unauthorized error. Check:");
-          console.error("  1. Is user logged in?");
-          console.error("  2. Is NextAuth session properly configured?");
-          console.error("  3. Are tokens being stored in JWT callback?");
-          console.error("  4. Is getSession() returning the session with tokens?");
-          
-          // Try to get session one more time to see what's happening
-          if (typeof window !== "undefined") {
-            try {
-              // Use dynamic import for next-auth/react
-              const nextAuthReact = await import("next-auth/react");
-              const lastAttemptSession = await nextAuthReact.getSession();
-              console.error("[Axios Interceptor] Last attempt session check:", {
-                hasSession: !!lastAttemptSession,
-                sessionKeys: lastAttemptSession ? Object.keys(lastAttemptSession) : [],
-                hasTokens: !!lastAttemptSession?.tokens,
-                tokensKeys: lastAttemptSession?.tokens ? Object.keys(lastAttemptSession.tokens) : [],
-                accessTokenPresent: !!lastAttemptSession?.tokens?.accessToken,
-                userEmail: lastAttemptSession?.user?.email,
-                isAuthenticated: lastAttemptSession?.isAuthenticated,
-              });
-              
-              // Try to trigger a session refresh if session exists but no tokens
-              if (lastAttemptSession && !lastAttemptSession.tokens?.accessToken) {
-                console.warn("[Axios Interceptor] Session exists but no tokens - attempting session refresh");
-                await nextAuthReact.getSession();
-              }
-            } catch (e) {
-              console.error("[Axios Interceptor] Failed to check session in error handler:", e);
-            }
+        // Prevent repeated unauthorized calls when the session is invalid.
+        // Trigger a single redirect to login and reject this request early.
+        if (typeof window !== "undefined" && !authRecoveryInProgress) {
+          authRecoveryInProgress = true;
+          try {
+            const nextAuth = await import("next-auth/react");
+            await nextAuth.signOut({ callbackUrl: "/login", redirect: true });
+          } catch (signOutError) {
+            console.error("[Auth Recovery] Failed to sign out after missing token:", toLoggableError(signOutError));
+          } finally {
+            setTimeout(() => {
+              authRecoveryInProgress = false;
+            }, 1000);
           }
         }
+
+        const authError = new Error("Authentication required: Please log in again");
+        (authError as any).isAuthError = true;
+        (authError as any).code = "AUTH_REQUIRED";
+        return Promise.reject(authError);
         
-        // CRITICAL FIX: For critical authenticated endpoints, reject immediately to prevent 401 redirect
-        // This gives us a chance to handle the error gracefully in the UI
-        // Only do this for POST/PUT/DELETE requests to avoid blocking GET requests unnecessarily
-        const isModifyingRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase() || '');
-        
-        if (isModifyingRequest && config.url?.includes("/jobs/ai-generate")) {
-          // Reject the promise immediately to prevent the request
-          // This allows the UI error handler to show a message instead of redirecting
-          const rejectionError = new Error("Authentication required: Please log in again");
-          (rejectionError as any).isAuthError = true;
-          (rejectionError as any).code = "AUTH_REQUIRED";
-          return Promise.reject(rejectionError);
-        }
-        
-        // For other requests, proceed and let backend handle 401
-        // But log a clear warning
       }
     } else {
       // Public endpoint or auth endpoint - no token needed, but log for debugging
@@ -535,27 +543,6 @@ apiClient.interceptors.request.use(
     if (isAuthEndpoint && config.headers?.Authorization) {
       console.warn(`[API Request] ⚠️ WARNING: Auth endpoint ${config.url} has Authorization header - removing it`);
       delete config.headers.Authorization;
-    }
-    
-    // Final verification: For authenticated endpoints, ensure Authorization header exists
-    if (!finalIsPublicEndpoint && config.url?.includes("/jobs/ai-generate")) {
-      const hasAuthHeader = !!(config.headers.Authorization || config.headers.get?.('Authorization'));
-      console.log("[Axios Interceptor] Final request config verification:", {
-        url: config.url,
-        method: config.method,
-        hasAuthHeader,
-        authHeaderExists: !!config.headers.Authorization,
-        authHeaderMethod: typeof config.headers.get === 'function' ? config.headers.get('Authorization') : 'N/A',
-        authHeaderPreview: config.headers.Authorization && typeof config.headers.Authorization === 'string' 
-          ? config.headers.Authorization.substring(0, 30) + "..." 
-          : "MISSING",
-        allHeaders: Object.keys(config.headers),
-        data: config.data,
-      });
-      
-      if (!hasAuthHeader) {
-        console.error("[Axios Interceptor] ⚠️ WARNING: Authorization header missing from final config!");
-      }
     }
     
     return config;
@@ -591,11 +578,26 @@ const toLoggableError = (error: unknown) => {
   }
 
   if (error instanceof Error) {
+    const ownProps = Object.getOwnPropertyNames(error).reduce<Record<string, unknown>>((acc, key) => {
+      acc[key] = (error as unknown as Record<string, unknown>)[key];
+      return acc;
+    }, {});
+
     return {
       type: "error",
       name: error.name,
       message: error.message,
       stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      ownProps,
+    };
+  }
+
+  if (error && typeof error === "object") {
+    const objectValue = error as Record<string, unknown>;
+    return {
+      type: "object",
+      keys: Object.keys(objectValue),
+      value: objectValue,
     };
   }
 
@@ -605,32 +607,57 @@ const toLoggableError = (error: unknown) => {
   };
 };
 
+const hasUsefulErrorFields = (payload: Record<string, unknown>): boolean => {
+  return Object.values(payload).some((value) => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim().length > 0;
+    if (typeof value === "number" || typeof value === "boolean") return true;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "object") return Object.keys(value as Record<string, unknown>).length > 0;
+    return false;
+  });
+};
+
+const safeSerializeForLog = (value: unknown): string => {
+  try {
+    const seen = new WeakSet<object>();
+    return JSON.stringify(
+      value,
+      (_key, currentValue) => {
+        if (currentValue instanceof Error) {
+          return {
+            name: currentValue.name,
+            message: currentValue.message,
+            stack: process.env.NODE_ENV === "development" ? currentValue.stack : undefined,
+            ...Object.getOwnPropertyNames(currentValue).reduce<Record<string, unknown>>((acc, prop) => {
+              acc[prop] = (currentValue as unknown as Record<string, unknown>)[prop];
+              return acc;
+            }, {}),
+          };
+        }
+
+        if (currentValue && typeof currentValue === "object") {
+          if (seen.has(currentValue as object)) {
+            return "[Circular]";
+          }
+          seen.add(currentValue as object);
+        }
+
+        return currentValue;
+      },
+      2
+    );
+  } catch (serializeError) {
+    return `{"serializeError":"${serializeError instanceof Error ? serializeError.message : "unknown"}"}`;
+  }
+};
+
 // Response interceptor
 apiClient.interceptors.response.use(
   (res) => {
-    // Add breakpoint for AI job generation responses
-    if (res.config.url?.includes("/jobs/ai-generate")) {
-      console.log("========================================");
-      console.log("[Axios Response Interceptor] ✅ RESPONSE SUCCESS: AI Job Generation");
-      console.log("[Axios Response Interceptor] Response received at:", new Date().toISOString());
-      console.log("[Axios Response Interceptor] Response details:", {
-        url: res.config.url,
-        fullUrl: `${res.config.baseURL || ''}${res.config.url}`,
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.keys(res.headers || {}),
-        contentType: res.headers['content-type'],
-        dataType: typeof res.data,
-        dataKeys: res.data ? Object.keys(res.data) : [],
-        hasData: !!res.data,
-        dataPreview: res.data ? JSON.stringify(res.data).substring(0, 300) + "..." : "NONE",
-      });
-      console.log("[Axios Response Interceptor] Full response data:", JSON.stringify(res.data, null, 2));
-      console.log("========================================");
-    }
     return res;
   },
-  (error) => {
+  async (error) => {
     const isAxiosError = Axios.isAxiosError(error);
     const axiosError = isAxiosError ? error : null;
     const response = axiosError?.response;
@@ -679,6 +706,45 @@ apiClient.interceptors.response.use(
 
     const isNetworkError = isAxiosError ? !response : false;
     const isLoginEndpoint = requestUrl?.includes("/auth/login");
+    const isRefreshEndpoint =
+      requestUrl?.includes("/auth/refresh-token") || requestUrl?.includes("/auth/refresh_token");
+    const originalRequest = axiosError?.config as (typeof axiosError.config & { _retry?: boolean }) | undefined;
+
+    if (
+      isAxiosError &&
+      status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isLoginEndpoint &&
+      !isRefreshEndpoint
+    ) {
+      originalRequest._retry = true;
+      const refreshedAccessToken = await refreshAccessToken();
+
+      if (refreshedAccessToken) {
+        if (!originalRequest.headers) {
+          originalRequest.headers = {} as any;
+        }
+        originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`;
+        return apiClient.request(originalRequest);
+      }
+
+      // If refresh failed, the session is no longer valid.
+      // Trigger a single recovery redirect to login instead of infinite failing retries.
+      if (typeof window !== "undefined" && !authRecoveryInProgress) {
+        authRecoveryInProgress = true;
+        try {
+          const nextAuth = await import("next-auth/react");
+          await nextAuth.signOut({ callbackUrl: "/login", redirect: true });
+        } catch (signOutError) {
+          console.error("[Auth Recovery] Failed to sign out after 401:", toLoggableError(signOutError));
+        } finally {
+          setTimeout(() => {
+            authRecoveryInProgress = false;
+          }, 1000);
+        }
+      }
+    }
     const serverMessage =
       normalizeErrorMessage(data?.message) ||
       normalizeErrorMessage(data?.detail) ||
@@ -729,18 +795,31 @@ apiClient.interceptors.response.use(
     // Don't log 404 errors - they're often handled gracefully by queries
     // (e.g., checking if a resource exists)
     // Don't log 403 errors - they're permission errors that should be handled by UI
-    const shouldLogError = status !== 404 && status !== 403;
+    const shouldLogError = status !== 404 && status !== 403 && status !== 401;
 
     if (shouldLogError) {
-      console.error("Axios Error:", {
+      const detail = toLoggableError(error);
+      const logPayload: Record<string, unknown> = {
         message,
         status: status ?? null,
         code,
         url: requestUrl,
         method: requestMethod,
         responseData: response?.data ?? null,
-        detail: toLoggableError(error),
-      });
+        detail,
+      };
+
+      const payload = hasUsefulErrorFields(logPayload)
+        ? logPayload
+        : {
+            message: message || "Unknown request error",
+            status: status ?? null,
+            code: code ?? "UNKNOWN_ERROR",
+            rawErrorType: typeof error,
+            detail,
+          };
+
+      console.error(`Axios Error: ${safeSerializeForLog(payload)}`);
     }
 
     const apiErrorMetadata = {

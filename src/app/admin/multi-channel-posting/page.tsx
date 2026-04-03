@@ -11,7 +11,7 @@ export default function MultiChannelPostingPage() {
       title: "LinkedIn",
       description: "Automatically post to LinkedIn job board and company page. Reach millions of professionals instantly.",
       icon: TbBrandLinkedin,
-      color: "text-blue-600",
+      color: "text-primary",
     },
     {
       id: "whatsapp",
@@ -25,14 +25,14 @@ export default function MultiChannelPostingPage() {
       title: "Job Listing Platforms",
       description: "Post to Indeed, Glassdoor, ZipRecruiter, and other major job boards with one click. Maximize job visibility.",
       icon: TbWorld,
-      color: "text-blue-500",
+      color: "text-primary",
     },
     {
       id: "social-media",
       title: "Social Media",
       description: "Auto-post to company Facebook, Twitter, and other social media pages. Expand your reach organically.",
       icon: TbBrandFacebook,
-      color: "text-blue-500",
+      color: "text-primary",
     },
   ]
 
@@ -100,9 +100,9 @@ export default function MultiChannelPostingPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Expected Launch: 6-8 weeks</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg border border-primary/20 dark:border-primary/40">
+              <h3 className="font-semibold text-primary dark:text-primary-foreground mb-2">Expected Launch: 6-8 weeks</h3>
+              <p className="text-sm text-primary dark:text-primary-foreground/90">
                 We're building integrations with major job boards and social platforms. Once launched, you'll save 
                 hours of manual posting and reach 10x more candidates.
               </p>
@@ -165,7 +165,7 @@ export default function MultiChannelPostingPage() {
               <div>
                 <h4 className="font-semibold mb-1">Create Your Job Posting</h4>
                 <p className="text-sm text-muted-foreground">
-                  Write your job description once in JobHire platform
+                  Write your job description once in Riara University platform
                 </p>
               </div>
             </div>

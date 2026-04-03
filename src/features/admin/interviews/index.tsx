@@ -162,9 +162,9 @@ export default function InterviewsScreen() {
         const interviewCard = document.getElementById(`interview-card-${interviewId}`);
         if (interviewCard) {
           interviewCard.scrollIntoView({ behavior: "smooth", block: "center" });
-          interviewCard.classList.add("ring-2", "ring-blue-500", "ring-offset-2");
+          interviewCard.classList.add("ring-2", "ring-primary", "ring-offset-2");
           setTimeout(() => {
-            interviewCard.classList.remove("ring-2", "ring-blue-500", "ring-offset-2");
+            interviewCard.classList.remove("ring-2", "ring-primary", "ring-offset-2");
           }, 3000);
           router.replace("/admin/interviews");
         }

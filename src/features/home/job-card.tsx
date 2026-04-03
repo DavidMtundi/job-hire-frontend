@@ -66,7 +66,7 @@ const JobCard = ({ job }: JobCardProps) => {
                     (skill: string, index: number) => (
                       <span
                         key={index}
-                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium"
+                        className="bg-primary/15 text-primary px-2 py-1 rounded-full text-xs font-medium"
                       >
                         {skill}
                       </span>

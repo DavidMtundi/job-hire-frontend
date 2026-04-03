@@ -342,7 +342,7 @@ export default function EmailTemplatesScreen() {
                     </TableCell>
                     <TableCell>
                       {template.is_default ? (
-                        <Badge className="bg-blue-100 text-blue-800">Default</Badge>
+                        <Badge className="bg-primary/15 text-primary">Default</Badge>
                       ) : (
                         <Badge variant="outline">Custom</Badge>
                       )}

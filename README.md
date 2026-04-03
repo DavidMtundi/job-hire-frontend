@@ -1,6 +1,6 @@
-# Job Hire Frontend
+# Riara University Frontend
 
-Next.js frontend application for the Job Hire platform.
+Next.js frontend application for the Riara University platform.
 
 ## 🚀 Quick Start
 

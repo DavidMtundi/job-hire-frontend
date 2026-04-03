@@ -359,12 +359,12 @@ export const SignupForm = () => {
         <FormSuccess message={success} />
         <FormError message={error} />
         {success && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 mb-2">
+          <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+            <p className="text-sm text-primary mb-2">
               <strong>Account created successfully!</strong>
             </p>
             {selectedRole === "hr" ? (
-              <div className="text-sm text-blue-700 space-y-1">
+              <div className="text-sm text-primary space-y-1">
                 <p>1. Check your email to verify your account</p>
                 <p>2. Login with your credentials</p>
                 {form.watch("company_name") ? (
@@ -374,11 +374,11 @@ export const SignupForm = () => {
                 )}
               </div>
             ) : selectedRole === "candidate" ? (
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-primary">
                 Check your email to verify your account, then complete your profile to start applying for jobs.
               </p>
             ) : (
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-primary">
                 Check your email to verify your account, then login to access your dashboard.
               </p>
             )}

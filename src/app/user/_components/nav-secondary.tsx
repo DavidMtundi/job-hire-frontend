@@ -26,7 +26,7 @@ export const NavSecondary = ({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title} className="inline-flex flex-col justify-center items-center">
-              <SidebarMenuButton size="icon" tooltip={item.title} className="flex justify-center items-center hover:bg-blue-100">
+              <SidebarMenuButton size="icon" tooltip={item.title} className="flex justify-center items-center hover:bg-primary/15">
                 {item.icon && <item.icon className="size-6" />}
                 {/* <span>{item.title}</span> */}
               </SidebarMenuButton>

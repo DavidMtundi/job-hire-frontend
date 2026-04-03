@@ -363,7 +363,7 @@ export default function ResumeUploadScreen() {
     <div className="bg-gray-50 py-3">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-950 mb-1">
+          <h1 className="text-2xl font-bold text-primary mb-1">
             Upload your resume
           </h1>
           <p className="text-sm text-gray-700">
@@ -430,7 +430,7 @@ export default function ResumeUploadScreen() {
                               href={existingResumeUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary transition-colors"
                             >
                               <EyeIcon className="size-4" />
                               View Resume
@@ -464,8 +464,8 @@ export default function ResumeUploadScreen() {
                         </button>
                       </div>
 
-                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                        <p className="text-sm text-blue-800">
+                      <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-md">
+                        <p className="text-sm text-primary">
                           <strong>Note:</strong> Uploading a new resume is <strong>optional</strong>. You can continue with your current resume or upload a new one to replace it.
                         </p>
                       </div>
@@ -535,7 +535,7 @@ export default function ResumeUploadScreen() {
                           variant="outline"
                           onClick={handleSkipAndFillManually}
                           disabled={isLoading || sessionStatus === "loading"}
-                          className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                          className="border-primary/30 text-primary hover:bg-primary/10"
                         >
                           Fill Manually
                         </Button>

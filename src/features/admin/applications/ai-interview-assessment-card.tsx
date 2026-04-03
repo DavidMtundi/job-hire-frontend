@@ -131,7 +131,7 @@ export const AIInterviewAssessmentCard = ({ application }: AIInterviewAssessment
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 relative">
                   <div className="absolute top-2 right-2">
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <TrendingUp className="h-4 w-4 text-primary" />
                   </div>
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium text-gray-700">Technical Score</h4>

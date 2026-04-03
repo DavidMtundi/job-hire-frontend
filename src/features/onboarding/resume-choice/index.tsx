@@ -75,7 +75,7 @@ export default function ResumeChoiceScreen() {
     <div className="bg-gray-50 py-3">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-950 mb-1">Choose Resume for This Step</h1>
+          <h1 className="text-2xl font-bold text-primary mb-1">Choose Resume for This Step</h1>
           <p className="text-sm text-gray-700">
             Continue with your current resume or upload a new one before proceeding.
           </p>
@@ -117,7 +117,7 @@ export default function ResumeChoiceScreen() {
                     href={existingResumeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary transition-colors"
                   >
                     <EyeIcon className="size-4" />
                     View Resume

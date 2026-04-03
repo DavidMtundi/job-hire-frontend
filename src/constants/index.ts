@@ -4,6 +4,7 @@ export const publicEndpoints = [
   "/auth/login",
   "/auth/login/social",
   "/auth/refresh_token",
+  "/auth/refresh-token",
   "/auth/send-verification-email",
   "/auth/verify-email",
   "/auth/reset/generate",
@@ -15,6 +16,7 @@ export const publicEndpoints = [
   "/users/register",
   "/users/reset/generate",
   "/users/refresh_token",
+  "/users/refresh-token",
   "/users/direct-login/verify",
   "/users/reset-password/verify",
   // Public job endpoints

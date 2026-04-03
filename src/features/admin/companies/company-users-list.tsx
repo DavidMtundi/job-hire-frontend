@@ -37,7 +37,7 @@ export function CompanyUsersList({ companyId }: CompanyUsersListProps) {
       case "owner":
         return <Shield className="h-4 w-4 text-yellow-600" />;
       case "admin":
-        return <Shield className="h-4 w-4 text-blue-600" />;
+        return <Shield className="h-4 w-4 text-primary" />;
       default:
         return <User className="h-4 w-4 text-gray-600" />;
     }

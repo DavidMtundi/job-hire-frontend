@@ -135,7 +135,7 @@ export const columns: ColumnDef<TUser>[] = [
       return (
         <div className="flex space-x-4 text-sm w-[100px]">
           <div className="text-center">
-            <div className="font-medium text-blue-600">
+            <div className="font-medium text-primary">
               -
             </div>
             <div className="text-gray-500">Jobs</div>

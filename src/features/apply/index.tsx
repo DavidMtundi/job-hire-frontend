@@ -207,7 +207,7 @@ export default function Apply() {
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-blue-600 mr-3" />
+                    <FileText className="h-8 w-8 text-primary mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">
                         {resume?.name ||
@@ -280,7 +280,7 @@ export default function Apply() {
             )}
 
             {hasExistingResume && !resume && !resumeMeta && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+              <div className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-primary">
                 You already have a resume on file. You can use it as-is or upload a new one.
               </div>
             )}

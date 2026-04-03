@@ -37,11 +37,11 @@ export default function Success() {
               </p>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">
+            <div className="bg-primary/10 p-4 rounded-lg">
+              <h3 className="font-medium text-primary mb-2">
                 What happens next?
               </h3>
-              <ul className="text-sm text-blue-800 space-y-1">
+              <ul className="text-sm text-primary space-y-1">
                 <li>• Our team will review your application</li>
                 <li>• You&apos;ll hear back within 3-5 business days</li>
                 <li>• Check your email for updates</li>

@@ -177,7 +177,7 @@ export default function CalendarIntegrationPage() {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-blue-600" />
+                        <Calendar className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium capitalize">{integration.calendar_type} Calendar</p>
                           <p className="text-sm text-gray-500">{integration.calendar_id}</p>
@@ -255,7 +255,7 @@ export default function CalendarIntegrationPage() {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-blue-600" />
+                        <Clock className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">{DAYS_OF_WEEK[slot.day_of_week]}</p>
                           <p className="text-sm text-gray-500">

@@ -72,8 +72,8 @@ const UserDetailsView = ({ user }: { user: TUser }) => {
       <div>
         <h4 className="font-semibold mb-2">Activity Statistics</h4>
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="text-center p-4 bg-primary/10 rounded-lg">
+            <p className="text-2xl font-bold text-primary">
               0
             </p>
             <p className="text-sm text-gray-600">Jobs Created</p>

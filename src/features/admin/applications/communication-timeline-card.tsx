@@ -31,13 +31,13 @@ const getCommunicationIcon = (type: TCommunicationType) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case "sent":
-      return "bg-blue-100 text-blue-800";
+      return "bg-primary/15 text-primary";
     case "delivered":
       return "bg-green-100 text-green-800";
     case "opened":
       return "bg-purple-100 text-purple-800";
     case "clicked":
-      return "bg-indigo-100 text-indigo-800";
+      return "bg-primary/15 text-primary";
     case "failed":
       return "bg-red-100 text-red-800";
     case "bounced":
@@ -110,7 +110,7 @@ export const CommunicationTimelineCard = ({ applicationId }: CommunicationTimeli
               className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0"
             >
               <div className="flex-shrink-0 mt-1">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary">
                   {getCommunicationIcon(comm.communication_type)}
                 </div>
               </div>

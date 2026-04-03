@@ -28,14 +28,14 @@ export const CandidateSummaryCard = ({ summary, candidateName }: CandidateSummar
   const assessment = summary.overall_assessment || "";
 
   return (
-    <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/10 to-white">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-600" />
+            <Sparkles className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg font-semibold">AI Candidate Summary</CardTitle>
           </div>
-          <Badge variant="default" className="bg-blue-500 hover:bg-blue-500 text-white">
+          <Badge variant="default" className="bg-primary/100 hover:bg-primary/100 text-white">
             <Sparkles className="h-3 w-3 mr-1" /> AI-Assisted
           </Badge>
         </div>
@@ -48,10 +48,10 @@ export const CandidateSummaryCard = ({ summary, candidateName }: CandidateSummar
         {assessment && (
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Target className="h-4 w-4 text-blue-600" />
+              <Target className="h-4 w-4 text-primary" />
               Overall Assessment
             </h4>
-            <p className="text-sm text-gray-600 bg-white p-3 rounded-md border border-blue-100">
+            <p className="text-sm text-gray-600 bg-white p-3 rounded-md border border-primary/20">
               {assessment}
             </p>
           </div>

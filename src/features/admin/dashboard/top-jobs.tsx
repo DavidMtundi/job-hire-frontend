@@ -57,7 +57,7 @@ export const TopJobs = () => {
               </div>
               <div className="text-right">
                 <div className="flex space-x-4 text-sm">
-                  <span className="text-blue-600">
+                  <span className="text-primary">
                     {job.applications} apps
                   </span>
                   <span className="text-purple-600">

@@ -47,7 +47,7 @@ export const JobDetailsCard = ({ application }: JobDetailsCardProps) => {
     <Card className="bg-white shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-primary to-primary/80 rounded-lg">
             <Briefcase className="h-5 w-5 text-white" />
           </div>
           <CardTitle className="text-lg font-semibold">Job Details</CardTitle>

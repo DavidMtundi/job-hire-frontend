@@ -173,8 +173,8 @@ export const JobCard = ({ job }: JobCardProps) => {
 const JobCardStats = () => {
   return (
     <div className="grid grid-cols-4 gap-4 mb-4">
-      <div className="text-center p-3 bg-blue-50 rounded-lg">
-        <p className="text-2xl font-bold text-blue-600">
+      <div className="text-center p-3 bg-primary/10 rounded-lg">
+        <p className="text-2xl font-bold text-primary">
           {/* {job.applicationsCount} */}
           -
         </p>

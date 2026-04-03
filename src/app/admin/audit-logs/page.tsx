@@ -89,7 +89,7 @@ export default function AuditLogsPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
+                <Sparkles className="h-5 w-5 text-primary" />
                 <CardTitle>AI Usage Metrics (Last Month)</CardTitle>
               </div>
               <CardDescription>Summary of AI operations and estimated costs</CardDescription>
@@ -97,10 +97,10 @@ export default function AuditLogsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {aiMetricsData.data.map((metric: any, index: number) => (
-                  <div key={index} className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-semibold text-blue-900">{metric.action_type || "Unknown"}</p>
-                    <p className="text-2xl font-bold text-blue-600">{metric.usage_count || 0}</p>
-                    <p className="text-xs text-blue-700">
+                  <div key={index} className="p-4 bg-primary/10 rounded-lg">
+                    <p className="text-sm font-semibold text-primary">{metric.action_type || "Unknown"}</p>
+                    <p className="text-2xl font-bold text-primary">{metric.usage_count || 0}</p>
+                    <p className="text-xs text-primary">
                       Model: {metric.ai_model || "N/A"} | Est. Cost: ${(metric.total_cost_estimate || 0).toFixed(4)}
                     </p>
                   </div>
@@ -208,7 +208,7 @@ export default function AuditLogsPage() {
                         </td>
                         <td className="p-2 text-sm">
                           {log.ai_used ? (
-                            <Badge className="bg-blue-500 hover:bg-blue-500">
+                            <Badge className="bg-primary/100 hover:bg-primary/100">
                               <Sparkles className="h-3 w-3 mr-1" />
                               {log.ai_model || "AI"}
                             </Badge>

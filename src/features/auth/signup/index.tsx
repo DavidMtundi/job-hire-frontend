@@ -16,7 +16,7 @@ const SignupScreen = () => {
             </CardTitle>
             <CardDescription className="space-y-3">
               <p className="text-base">Create your account to get started</p>
-              <div className="pt-3 border-t bg-blue-50 p-3 rounded-lg">
+              <div className="pt-3 border-t bg-primary/10 p-3 rounded-lg">
                 <p className="text-sm text-gray-700 mb-2 font-semibold">For Company Owners & HR:</p>
                 <p className="text-xs text-gray-600 mb-2">
                   Select <strong>"HR"</strong> role below. You can optionally provide company details during signup to create your company automatically, or register it later after logging in.

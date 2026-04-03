@@ -169,7 +169,7 @@ export const ApplyJobModal = ({ job, triggerLabel = "Apply", trigger }: ApplyJob
               render={({ field }) => (
                 <FormItem>
                   <Label>Job</Label>
-                  <Card className="p-0 bg-blue-50 rounded-lg">
+                  <Card className="p-0 bg-primary/10 rounded-lg">
                     <CardContent className="p-2">
                       <h6 className="text-lg font-medium">
                         {job.title}

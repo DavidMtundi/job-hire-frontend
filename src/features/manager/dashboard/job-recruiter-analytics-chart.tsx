@@ -69,7 +69,7 @@ export const JobRecruiterAnalyticsChart = () => {
     },
     fill: {
       opacity: 1,
-      colors: ['#c4b5fd', '#a78bfa', '#8b5cf6'],
+      colors: ['#c4b5fd', '#a78bfa', '#c23aa0'],
     },
     xaxis: {
       categories: categories,
@@ -112,7 +112,7 @@ export const JobRecruiterAnalyticsChart = () => {
         vertical: 0,
       },
     },
-    colors: ['#c4b5fd', '#a78bfa', '#8b5cf6'],
+    colors: ['#c4b5fd', '#a78bfa', '#c23aa0'],
     grid: {
       borderColor: '#f3f4f6',
       strokeDashArray: 0,
@@ -169,7 +169,7 @@ export const JobRecruiterAnalyticsChart = () => {
               onClick={() => setActiveTab('job')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'job'
-                  ? 'bg-blue-950 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -179,7 +179,7 @@ export const JobRecruiterAnalyticsChart = () => {
               onClick={() => setActiveTab('recruiter')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'recruiter'
-                  ? 'bg-blue-950 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >

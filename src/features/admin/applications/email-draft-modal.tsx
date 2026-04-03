@@ -119,7 +119,7 @@ export function EmailDraftModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-600" />
+            <Sparkles className="h-5 w-5 text-primary" />
             AI Email Draft
           </DialogTitle>
           <DialogDescription>
@@ -340,7 +340,7 @@ export function EmailDraftModal({
                 <Button
                   onClick={handleSendEmail}
                   disabled={isSending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary"
                 >
                   {isSending ? (
                     <>

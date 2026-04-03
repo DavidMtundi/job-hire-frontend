@@ -52,7 +52,7 @@ export const InterviewCard = ({ interview, application }: InterviewCardProps) =>
   };
 
   return (
-    <div className="p-5 rounded-lg border bg-white border-blue-200 relative w-full min-w-0">
+    <div className="p-5 rounded-lg border bg-white border-primary/20 relative w-full min-w-0">
       <div
         className={`absolute top-3 right-3 px-2 py-1 rounded-md ${
           isCompleted
@@ -97,7 +97,7 @@ export const InterviewCard = ({ interview, application }: InterviewCardProps) =>
                   e.preventDefault();
                   handleJoinInterview();
                 }}
-                className="text-blue-600 hover:text-blue-800 underline"
+                className="text-primary hover:text-primary underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >

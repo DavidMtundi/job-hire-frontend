@@ -111,8 +111,8 @@ export function CompanyRegistrationForm() {
       {/* Header Section */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 bg-blue-100 rounded-lg">
-            <Building2 className="h-8 w-8 text-blue-600" />
+          <div className="p-3 bg-primary/15 rounded-lg">
+            <Building2 className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Register Your Company</h1>
         </div>
@@ -120,8 +120,8 @@ export function CompanyRegistrationForm() {
           Create your company profile to start posting jobs, managing applications, and finding the best talent.
         </p>
         {session && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg inline-block">
-            <p className="text-sm text-blue-800">
+          <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg inline-block">
+            <p className="text-sm text-primary">
               ✓ You're logged in as <strong>{session.user?.email}</strong>. This account will be set as the company owner.
             </p>
           </div>
@@ -132,11 +132,11 @@ export function CompanyRegistrationForm() {
               <strong>Please login first</strong> to register your company. If you don't have an account, please sign up first.
             </p>
             <div className="flex gap-3 justify-center">
-              <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-sm text-blue-600 hover:text-blue-700 font-medium underline">
+              <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-sm text-primary hover:text-primary font-medium underline">
                 Login
               </a>
               <span className="text-yellow-600">•</span>
-              <a href="/signup" className="text-sm text-blue-600 hover:text-blue-700 font-medium underline">
+              <a href="/signup" className="text-sm text-primary hover:text-primary font-medium underline">
                 Sign Up
               </a>
             </div>
@@ -163,7 +163,7 @@ export function CompanyRegistrationForm() {
               {/* Company Information Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <Building2 className="h-5 w-5 text-blue-600" />
+                  <Building2 className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold text-gray-900">Company Information</h3>
                 </div>
 
@@ -323,11 +323,11 @@ export function CompanyRegistrationForm() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
+            <a href="/signup" className="text-primary hover:text-primary font-medium underline">
               Sign up
             </a>
             {" "}or{" "}
-            <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-blue-600 hover:text-blue-700 font-medium underline">
+            <a href={`/login?redirect=${encodeURIComponent("/admin/companies/register")}`} className="text-primary hover:text-primary font-medium underline">
               login
             </a>
             {" "}to register your company.

@@ -44,7 +44,7 @@ const getStatusColor = (stage: string) => {
     case "In Review":
       return "bg-yellow-100 text-yellow-800";
     case "Interview":
-      return "bg-blue-100 text-blue-800";
+      return "bg-primary/15 text-primary";
     case "Offer":
       return "bg-green-100 text-green-800";
     case "Rejected":

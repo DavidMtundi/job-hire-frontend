@@ -2,15 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { authSession } from "~/lib/auth";
 import { serverAuthenticatedFetch } from "~/lib/api-helpers";
 
-// Allow this API route to be included in static HTML export builds.
-export const dynamic = "force-static";
-
-// For `output: "export"`, Next requires `generateStaticParams()` on dynamic routes.
-// Returning an empty list avoids prerendering any `/api/applications/[id]/status` variants.
-export async function generateStaticParams() {
-  // Placeholder parameter set to satisfy `output: "export"`.
-  return [{ id: "0" }];
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(
   request: NextRequest,

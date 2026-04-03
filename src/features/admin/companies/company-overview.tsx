@@ -48,8 +48,8 @@ export function CompanyOverview() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building2 className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-primary/15 rounded-lg">
+                <Building2 className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <CardTitle>{company.name}</CardTitle>
@@ -75,7 +75,7 @@ export function CompanyOverview() {
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   {company.website}
                 </a>

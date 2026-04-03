@@ -108,7 +108,7 @@ export default function ApplicationDetailsPage() {
                   setIsScheduleModalOpen(true);
                 }}
                 size="sm"
-                className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
+                className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
               >
                 <Calendar className="h-3.5 w-3.5 mr-1.5" />
                 Schedule Interview

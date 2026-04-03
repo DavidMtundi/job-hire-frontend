@@ -240,7 +240,7 @@ export default function ComplianceManagementPage() {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
+                        <FileText className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">{doc.file_name}</p>
                           <p className="text-sm text-gray-500">
@@ -305,7 +305,7 @@ export default function ComplianceManagementPage() {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <FileCheck className="h-5 w-5 text-blue-600" />
+                        <FileCheck className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">{report.report_name}</p>
                           <p className="text-sm text-gray-500">

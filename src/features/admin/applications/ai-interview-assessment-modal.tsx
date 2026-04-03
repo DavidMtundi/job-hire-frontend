@@ -86,13 +86,13 @@ export const AIInterviewAssessmentModal = ({
 
         <div className="space-y-6 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="px-4 py-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 shadow-sm">
+            <div className="px-4 py-6 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl border-2 border-primary/20 shadow-sm">
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Technical Score</h4>
                 <p className="text-3xl font-bold text-gray-900">{assessmentData.technicalScore}%</p>
                 <div className="relative h-3 w-full overflow-hidden rounded-full bg-white shadow-inner">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all rounded-full"
+                    className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all rounded-full"
                     style={{ width: `${assessmentData.technicalScore}%` }}
                   />
                 </div>
@@ -229,7 +229,7 @@ export const AIInterviewAssessmentModal = ({
                           {answer.answer_url && (
                             <div className="space-y-3">
                               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-primary/100 rounded-full"></div>
                                 Audio Response
                               </label>
                               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
@@ -256,14 +256,14 @@ export const AIInterviewAssessmentModal = ({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-primary/100 rounded-full"></div>
                                 Technical Score
                               </label>
-                              <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
+                              <div className="p-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-lg border-2 border-primary/20">
                                 <p className="text-2xl font-bold text-gray-900 mb-3">{technicalScore}/10</p>
                                 <div className="relative h-3 w-full overflow-hidden rounded-full bg-white shadow-inner">
                                   <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all rounded-full"
+                                    className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all rounded-full"
                                     style={{ width: `${(technicalScore / 10) * 100}%` }}
                                   />
                                 </div>

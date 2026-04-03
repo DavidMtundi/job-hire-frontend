@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "riarauniversity.ac.ke",
+      },
+    ],
+  },
   output: 'standalone', // Enable standalone output for Docker/Node server
   env: {
     AUTH_URL: process.env.AUTH_URL,

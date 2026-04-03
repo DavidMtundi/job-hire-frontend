@@ -302,10 +302,10 @@ export default function AIInterviewScreen() {
 
   if (isLoadingQuestions) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center space-y-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center animate-pulse">
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-primary to-teal-500 flex items-center justify-center animate-pulse">
               <Clock className="w-10 h-10 text-white" />
             </div>
             <div>
@@ -320,7 +320,7 @@ export default function AIInterviewScreen() {
 
   if (questionsError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center space-y-6">
             <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center">
@@ -355,10 +355,10 @@ export default function AIInterviewScreen() {
 
   if (currentStep === "submitted") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center space-y-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-primary to-teal-500 flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10 text-white" />
             </div>
             <div>
@@ -376,7 +376,7 @@ export default function AIInterviewScreen() {
 
   if (currentStep === "review") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 p-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <Card>
             <CardContent className="p-6">
@@ -386,11 +386,11 @@ export default function AIInterviewScreen() {
           </Card>
 
           {/* Time Taken Card */}
-          <Card className="border-2 border-blue-200 bg-blue-50">
+          <Card className="border-2 border-primary/20 bg-primary/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-blue-600">
+                  <div className="p-3 rounded-full bg-primary">
                     <Clock className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -402,7 +402,7 @@ export default function AIInterviewScreen() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Out of</p>
-                  <p className="text-xl font-semibold text-blue-600">15 minutes</p>
+                  <p className="text-xl font-semibold text-primary">15 minutes</p>
                 </div>
               </div>
             </CardContent>
@@ -416,7 +416,7 @@ export default function AIInterviewScreen() {
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold text-blue-600">
+                        <span className="text-sm font-semibold text-primary">
                           Question {index + 1}
                         </span>
                       </div>
@@ -454,7 +454,7 @@ export default function AIInterviewScreen() {
             <CardContent className="p-6">
               <Button
                 onClick={handleSubmit}
-                className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-lg py-6"
+                className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-primary text-white text-lg py-6"
               >
                 Submit Interview
               </Button>
@@ -467,10 +467,10 @@ export default function AIInterviewScreen() {
 
   if (questions.length === 0 || answers.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center space-y-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center animate-pulse">
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-primary to-teal-500 flex items-center justify-center animate-pulse">
               <Clock className="w-10 h-10 text-white" />
             </div>
             <div>
@@ -484,7 +484,7 @@ export default function AIInterviewScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/15 to-primary/20 flex items-center justify-center p-4">
       <div className="max-w-3xl w-full space-y-6">
         {/* Progress Bar */}
         <div className="text-center">
@@ -493,7 +493,7 @@ export default function AIInterviewScreen() {
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-blue-600 to-teal-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-primary to-teal-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             />
           </div>
@@ -537,7 +537,7 @@ export default function AIInterviewScreen() {
                         "w-32 h-32 rounded-full transition-all duration-300 relative z-10",
                         isRecording
                           ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                          : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                          : "bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-primary"
                       )}
                     >
                       {isRecording ? (
@@ -576,7 +576,7 @@ export default function AIInterviewScreen() {
                       </Button>
                       <Button
                         onClick={goToNextQuestion}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white"
+                        className="flex-1 bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-primary text-white"
                       >
                         {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Review Answers"}
                       </Button>

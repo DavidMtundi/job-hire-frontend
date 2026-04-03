@@ -46,7 +46,7 @@ export default function VerifyEmail() {
           <CardContent className="flex flex-col gap-3 justify-center items-center text-center">
             <AlertTriangleIcon className="sizw-12 text-red-600" />
 
-            <h2 className="text-2xl font-bold text-blue-950">Invalid Verification Link</h2>
+            <h2 className="text-2xl font-bold text-primary">Invalid Verification Link</h2>
             <p className="text-gray-600">
               The token or verification link is invalid or has expired. Please check your email for the verification link.
             </p>
@@ -55,7 +55,7 @@ export default function VerifyEmail() {
               If you didn&apos;t get the email, please check your spam folder.
             </p>
 
-            <div className="text-sm text-blue-600 hover:underline cursor-pointer">
+            <div className="text-sm text-primary hover:underline cursor-pointer">
               Resend verification link
             </div>
           </CardContent>

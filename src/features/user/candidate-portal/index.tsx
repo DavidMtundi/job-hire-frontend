@@ -435,7 +435,7 @@ export default function CandidatePortalScreen() {
                     {application.is_remote && (
                       <Badge
                         variant="secondary"
-                        className="bg-blue-50 text-blue-700 border-blue-200"
+                        className="bg-primary/10 text-primary border-primary/20"
                       >
                         Remote
                       </Badge>
@@ -492,7 +492,7 @@ export default function CandidatePortalScreen() {
                                 <div
                                   className={`w-2 h-2 rounded-full ${
                                     index === filteredArray.length - 1
-                                      ? "bg-blue-600"
+                                      ? "bg-primary"
                                       : "bg-gray-900"
                                   } mt-2`}
                                 ></div>
@@ -520,7 +520,7 @@ export default function CandidatePortalScreen() {
                         application && (
                           <div className="flex gap-3">
                             <div className="flex flex-col items-center">
-                              <div className="w-2 h-2 rounded-full bg-blue-600 mt-2"></div>
+                              <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
                             </div>
                             <div className="flex-1 pb-4">
                               <h5 className="font-semibold text-gray-900">
@@ -645,7 +645,7 @@ export default function CandidatePortalScreen() {
                                     href={interview.meeting_link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline break-all"
+                                    className="text-primary hover:underline break-all"
                                   >
                                     {interview.meeting_link}
                                   </a>
@@ -698,7 +698,7 @@ export default function CandidatePortalScreen() {
 
                         {/* Show AI interview card only when ai_interview flag is true */}
                         {interview.ai_interview && (
-                          <div className="relative rounded-xl p-[3px] bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500">
+                          <div className="relative rounded-xl p-[3px] bg-gradient-to-r from-primary via-cyan-500 to-teal-500">
                             <Card className="border-0">
                               <CardContent className="p-6">
                                 {aiSubmission && aiSubmission.submitted ? (
@@ -724,9 +724,9 @@ export default function CandidatePortalScreen() {
                                         </span>
                                       </div>
 
-                                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-100">
+                                      <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
                                         <div className="flex items-center gap-3">
-                                          <Clock className="w-5 h-5 text-blue-600" />
+                                          <Clock className="w-5 h-5 text-primary" />
                                           <span className="text-sm text-gray-600">Total Time Taken</span>
                                         </div>
                                         <span className="text-lg font-semibold text-gray-900">
@@ -735,7 +735,7 @@ export default function CandidatePortalScreen() {
                                       </div>
                                     </div>
 
-                                    <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg p-4 text-center">
+                                    <div className="bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg p-4 text-center">
                                       <p className="text-gray-700 font-medium mb-1">
                                         Thank you for your time!
                                       </p>
@@ -747,7 +747,7 @@ export default function CandidatePortalScreen() {
                                 ) : (
                                   <>
                                     <div className="flex items-center gap-3 mb-6">
-                                      <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-teal-500">
+                                      <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-teal-500">
                                         <Sparkles className="w-6 h-6 text-white" />
                                       </div>
                                       <div>
@@ -757,8 +757,8 @@ export default function CandidatePortalScreen() {
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                                      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                                        <FileText className="w-5 h-5 text-blue-600" />
+                                      <div className="flex items-center gap-3 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                                        <FileText className="w-5 h-5 text-primary" />
                                         <div>
                                           <p className="text-sm text-gray-600">Questions</p>
                                           <p className="text-lg font-semibold text-gray-900">5 Questions</p>
@@ -774,7 +774,7 @@ export default function CandidatePortalScreen() {
                                     </div>
 
                                     <Button
-                                      className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-lg py-6"
+                                      className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-primary text-white text-lg py-6"
                                       onClick={() => {
                                         if (!application?.job_id) {
                                           toast.error("Job ID is missing. Cannot start AI interview.");

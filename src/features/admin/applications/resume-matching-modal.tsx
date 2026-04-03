@@ -21,7 +21,7 @@ export const ResumeMatchingModal = ({
   const getMatchLevelClasses = (level: string | null) => {
     if (!level) return { bg: "bg-gray-500", badge: "bg-gray-100 text-gray-700", icon: "text-gray-600", progress: "bg-gray-500" };
     if (level.includes("Strong")) return { bg: "bg-green-500", badge: "bg-green-100 text-green-700", icon: "text-green-600", progress: "bg-green-500" };
-    if (level.includes("Good")) return { bg: "bg-blue-500", badge: "bg-blue-100 text-blue-700", icon: "text-blue-600", progress: "bg-blue-500" };
+    if (level.includes("Good")) return { bg: "bg-primary/100", badge: "bg-primary/15 text-primary", icon: "text-primary", progress: "bg-primary/100" };
     if (level.includes("Potential")) return { bg: "bg-yellow-500", badge: "bg-yellow-100 text-yellow-700", icon: "text-yellow-600", progress: "bg-yellow-500" };
     return { bg: "bg-orange-500", badge: "bg-orange-100 text-orange-700", icon: "text-orange-600", progress: "bg-orange-500" };
   };
@@ -59,9 +59,9 @@ export const ResumeMatchingModal = ({
       </p>
 
       {/* AI Disclosure */}
-      <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-blue-800">
+      <div className="flex items-start gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+        <AlertCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-primary">
           <strong>AI Disclosure:</strong> This matching score is calculated using an explainable algorithm with weighted factors (Skills: 50%, Experience: 30%, Education: 20%).
           All scores are transparent and auditable. No automated hiring decisions are made without human review.
         </p>
@@ -96,13 +96,13 @@ export const ResumeMatchingModal = ({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Code className="h-4 w-4 text-blue-600" />
+                <Code className="h-4 w-4 text-primary" />
                 Skills Match
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-primary">
                   {Math.round(breakdown.skills_score)}%
                 </div>
                 <div className="text-xs text-gray-600">

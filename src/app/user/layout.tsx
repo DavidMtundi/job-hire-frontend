@@ -29,7 +29,7 @@ export default async function UserLayout({ children }: { children: React.ReactNo
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <SidebarInset className="bg-gradient-to-br from-primary/10 via-white to-primary/10 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <SiteHeader />
         <div className="p-4 sm:p-6 h-full overflow-auto">
           {children}

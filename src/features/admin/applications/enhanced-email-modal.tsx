@@ -195,7 +195,7 @@ export function EnhancedEmailModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-600" />
+            <Mail className="h-5 w-5 text-primary" />
             Send Email to Candidate
           </DialogTitle>
           <DialogDescription>
@@ -353,7 +353,7 @@ export function EnhancedEmailModal({
               <Button
                 onClick={handleSendEmail}
                 disabled={!selectedTemplateId || isSending}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary"
               >
                 {isSending ? (
                   <>
@@ -416,7 +416,7 @@ export function EnhancedEmailModal({
                 <Button
                   onClick={handleGenerateAIEmail}
                   disabled={!aiPrompt.trim() || isGeneratingAI}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="w-full bg-gradient-to-r from-purple-600 to-primary/80 hover:from-purple-700 hover:to-primary"
                 >
                   {isGeneratingAI ? (
                     <>
@@ -479,7 +479,7 @@ export function EnhancedEmailModal({
                     <Button
                       onClick={handleSendCustomEmail}
                       disabled={!customSubject.trim() || !customBody.trim() || isSending}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-primary hover:bg-primary"
                     >
                       {isSending ? (
                         <>

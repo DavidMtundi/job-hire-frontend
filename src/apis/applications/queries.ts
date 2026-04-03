@@ -74,19 +74,8 @@ export const useCreateApplicationMutation = () => {
             remark: "Application Received",
           });
 
-          queryClient.invalidateQueries({
-            queryKey: ["application-status", applicationId]
-          });
-          queryClient.refetchQueries({
-            queryKey: ["application-status", applicationId]
-          });
-
-          queryClient.invalidateQueries({
-            queryKey: ["application-status-history", applicationId]
-          });
-          queryClient.refetchQueries({
-            queryKey: ["application-status-history", applicationId]
-          });
+          queryClient.invalidateQueries({ queryKey: ["application-status", applicationId] });
+          queryClient.invalidateQueries({ queryKey: ["application-status-history", applicationId] });
 
           toast.success("Application created with initial status");
         } catch (error) {
@@ -100,9 +89,6 @@ export const useCreateApplicationMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       queryClient.invalidateQueries({ queryKey: ["application-detail"] });
 
-      await queryClient.refetchQueries({
-        predicate: (query) => query.queryKey[0] === "applications"
-      });
     },
     onError: (error) => {
       console.error("Error creating application:", error);
@@ -190,7 +176,7 @@ export const useUpdateApplicationStatusMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["application-detail"] });
       if (variables.applicationId) {
         queryClient.invalidateQueries({ queryKey: ["application-status", variables.applicationId] });
-        queryClient.refetchQueries({ queryKey: ["application-status", variables.applicationId] });
+        queryClient.invalidateQueries({ queryKey: ["application-status-history", variables.applicationId] });
       }
     },
     onError: (error) => {
@@ -265,9 +251,7 @@ export const useCreateApplicationStatusMutation = () => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["application-status", variables.applicationId] });
-      queryClient.refetchQueries({ queryKey: ["application-status", variables.applicationId] });
       queryClient.invalidateQueries({ queryKey: ["application-status-history", variables.applicationId] });
-      queryClient.refetchQueries({ queryKey: ["application-status-history", variables.applicationId] });
     },
     onError: (error) => {
       console.error("Error creating application status:", error);
@@ -300,12 +284,8 @@ export const useUpdateApplicationStatusByIdMutation = () => {
     onSuccess: async (data, variables) => {
       await queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === "applications",
-        refetchType: 'active'
+        refetchType: "active",
       });
-      await queryClient.refetchQueries({
-        predicate: (query) => query.queryKey[0] === "applications"
-      });
-
       queryClient.invalidateQueries({ queryKey: ["application-detail"] });
 
       queryClient.invalidateQueries({ queryKey: ["application-status", variables.applicationId] });

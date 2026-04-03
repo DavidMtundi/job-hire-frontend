@@ -86,9 +86,9 @@ export default function CalendarIntegrationPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Expected Launch: 4-5 weeks</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg border border-primary/20 dark:border-primary/40">
+              <h3 className="font-semibold text-primary dark:text-primary-foreground mb-2">Expected Launch: 4-5 weeks</h3>
+              <p className="text-sm text-primary dark:text-primary-foreground/90">
                 We're working hard to bring you this feature. Once launched, you'll save 2-3 hours per week on scheduling coordination.
               </p>
             </div>

@@ -20,11 +20,12 @@ const queryClientOptions = {
 const ReactQueryProvider: React.FC<PropsWithChildren> = ({ children }) => {
   // Create a query client instance
   const [queryClient] = useState(() => new QueryClient(queryClientOptions));
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </QueryClientProvider>
   );
 };

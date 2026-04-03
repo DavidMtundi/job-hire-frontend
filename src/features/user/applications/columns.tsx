@@ -42,7 +42,7 @@ const getStatusColor = (statusName: string) => {
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
     case "HR Interview":
     case "Interview Scheduled":
-      return "bg-blue-100 text-blue-800 border-blue-200";
+      return "bg-primary/15 text-primary border-primary/20";
     case "Offer Sent":
     case "Offer Extended":
     case "Offer Accepted":

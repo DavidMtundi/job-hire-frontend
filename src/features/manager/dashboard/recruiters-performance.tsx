@@ -121,7 +121,7 @@ export const RecruitersPerformance = () => {
         vertical: 0,
       },
     },
-    colors: ["#c4b5fd", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9"],
+    colors: ["#c4b5fd", "#a78bfa", "#c23aa0", "#af1685", "#8a1169"],
     grid: {
       borderColor: "#f3f4f6",
       strokeDashArray: 0,
@@ -197,7 +197,7 @@ export const RecruitersPerformance = () => {
       accessorKey: "no_of_offer_sent",
       header: "Offers Sent",
       cell: ({ row }) => (
-        <div className="text-center font-semibold text-blue-600">
+        <div className="text-center font-semibold text-primary">
           {row.getValue("no_of_offer_sent")}
         </div>
       ),

@@ -86,7 +86,7 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
               <div className="space-y-2 w-full">
                 <div className="border rounded-lg px-4 py-3 space-y-1">
                   <Label className="font-semibold">Overall Fit</Label>
-                  <div className="text-2xl font-bold text-blue-600">{compareResumeData.score}%</div>
+                  <div className="text-2xl font-bold text-primary">{compareResumeData.score}%</div>
                   <p className="text-xs text-gray-600">
                     {compareResumeData.score >= 80
                       ? 'Highly recommended'
@@ -197,7 +197,7 @@ export const ResumeComparisonModal = ({ jobId, trigger }: ResumeComparisonModalP
 const ScoreGauge = ({ score }: { score: number }) => {
   const getScoreColor = (s: number) => {
     if (s >= 80) return 'from-green-500 to-emerald-600';
-    if (s >= 60) return 'from-blue-500 to-cyan-600';
+    if (s >= 60) return 'from-primary to-cyan-600';
     if (s >= 40) return 'from-yellow-500 to-orange-600';
     return 'from-red-500 to-rose-600';
   };

@@ -33,7 +33,7 @@ export const HeroSection = () => {
       {/* Decorative blurred background blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[70%] rounded-full bg-primary/20 blur-[120px] mix-blend-multiply opacity-50 animate-pulse" />
-        <div className="absolute top-[10%] -right-[10%] w-[50%] h-[60%] rounded-full bg-indigo-500/20 blur-[100px] mix-blend-multiply opacity-50" />
+        <div className="absolute top-[10%] -right-[10%] w-[50%] h-[60%] rounded-full bg-primary/100/20 blur-[100px] mix-blend-multiply opacity-50" />
         <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-violet-400/20 blur-[120px] mix-blend-multiply opacity-50" />
       </div>
 
@@ -47,7 +47,7 @@ export const HeroSection = () => {
         </div>
 
         <h1 className="text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight text-foreground/90">
-          Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-500 to-violet-500">Dream Job</span> Today
+          Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/90 to-violet-500">Dream Job</span> Today
         </h1>
         <p className="text-xl lg:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto font-light">
           Connect with top companies and discover opportunities that match your skills and aspirations.
@@ -73,7 +73,7 @@ export const HeroSection = () => {
               onChange={(e) => setLocationValue(e.target.value)}
             />
           </div>
-          <Button size="lg" className="h-14 px-8 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5" onClick={handleSearch}>
+          <Button size="lg" className="h-14 px-8 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5" onClick={handleSearch}>
             Search Jobs
           </Button>
         </div>

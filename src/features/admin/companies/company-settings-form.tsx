@@ -99,8 +99,8 @@ export function CompanySettingsForm({ companyId }: CompanySettingsFormProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Settings className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary/15 rounded-lg">
+            <Settings className="h-6 w-6 text-primary" />
           </div>
           <div>
             <CardTitle>Email Automation Settings</CardTitle>

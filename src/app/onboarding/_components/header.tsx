@@ -17,14 +17,14 @@ export const OnboardingHeader = () => {
         <Link href="/">
           <div className="flex items-center gap-3">
             <img 
-              src="/logo.svg" 
-              alt="Job Hire" 
+              src="/riara-logo.jpg" 
+              alt="Riara University" 
               width={32} 
               height={32} 
               className="size-8"
             />
-            <span className="text-xl font-bold text-blue-950">
-              Job Hire
+            <span className="text-xl font-bold text-primary">
+              Riara University
             </span>
           </div>
         </Link>

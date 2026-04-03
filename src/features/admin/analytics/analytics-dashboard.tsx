@@ -125,7 +125,7 @@ export default function AnalyticsDashboard() {
       height: 350,
     },
     labels: sourceOfHire?.data?.map((item) => item.source) || [],
-    colors: ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"],
+    colors: ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#c23aa0"],
     legend: {
       position: "bottom" as const,
     },

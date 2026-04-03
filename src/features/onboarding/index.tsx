@@ -108,10 +108,10 @@ export default function OnboardingScreen() {
     <div className="bg-gray-50 py-3">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-950 mb-1">
+          <h1 className="text-3xl font-bold text-primary mb-1">
             Upload Your Resume
           </h1>
-          <p className="text-blue-950">
+          <p className="text-primary">
             We&apos;ll extract your details to speed up your profile setup
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function OnboardingScreen() {
                 <div className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <FileText className="h-8 w-8 text-blue-600 mr-3" />
+                      <FileText className="h-8 w-8 text-primary mr-3" />
                       <div>
                         <p className="font-medium text-gray-900">
                           {resume.name}
@@ -166,7 +166,7 @@ export default function OnboardingScreen() {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsDialogOpen(true)}
-                        className="text-blue-600"
+                        className="text-primary"
                       >
                         <Eye className="h-4 w-4 mr-1" /> View
                       </Button>

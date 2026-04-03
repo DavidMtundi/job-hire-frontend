@@ -250,7 +250,7 @@ export function ScheduleInterviewModal({
           <DialogDescription>
             Fill in the details to schedule a new interview
             {prefilledData?.candidateName && (
-              <span className="block mt-1 font-medium text-blue-600">
+              <span className="block mt-1 font-medium text-primary">
                 For: {prefilledData.candidateName} - {prefilledData.jobTitle}
               </span>
             )}

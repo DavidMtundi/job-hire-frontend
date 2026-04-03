@@ -79,12 +79,16 @@ export default function ApplicationsScreen() {
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
-          {/* <Tabs 
-            defaultValue="all" 
-            className="w-full mb-4" 
-            onValueChange={(value) => setFilter({ ...filter, stage: value as TApplicationStatus })}
+          <Tabs
+            defaultValue="all"
+            className="w-full mb-4"
+            onValueChange={(value) =>
+              setFilter(
+                value === "all" ? undefined : { ...filter, stage: value as TApplicationStatus }
+              )
+            }
           >
-            <TabsList className="w-full">
+            <TabsList className="w-full flex flex-wrap h-auto gap-1">
               <TabsTrigger value="all" className="cursor-pointer">
                 All ({count.all})
               </TabsTrigger>
@@ -92,19 +96,17 @@ export default function ApplicationsScreen() {
                 Pending ({count.Applied + count.Screening})
               </TabsTrigger>
               <TabsTrigger value="interviews" className="cursor-pointer">
-                Interviews ({count["HR Interview"] + count["Technical Interview"] + count["Final Interview"]})
+                Interviews (
+                {count["HR Interview"] + count["Technical Interview"] + count["Final Interview"]})
               </TabsTrigger>
-              {/* <TabsTrigger value="In Review" className="cursor-pointer">
-                In Review ({count["In Review"]})
-              </TabsTrigger> */}
-              {/* <TabsTrigger value="accepted" className="cursor-pointer">
+              <TabsTrigger value="accepted" className="cursor-pointer">
                 Accepted ({count["Offer Sent"] + count["Hired"]})
               </TabsTrigger>
               <TabsTrigger value="rejected" className="cursor-pointer">
                 Rejected ({count.Rejected + count["Talent Pool"]})
               </TabsTrigger>
             </TabsList>
-          </Tabs> */} 
+          </Tabs>
 
           <DataList columns={columns} data={applications} />
         </CardContent>

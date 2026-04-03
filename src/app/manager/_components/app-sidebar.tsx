@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 import {
@@ -78,14 +77,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/manager/dashboard" className="flex items-center gap-2">
-                <Image 
-                  src="/logo.svg" 
-                  alt="Job Hire" 
+                <img 
+                  src="/riara-logo.jpg" 
+                  alt="Riara University" 
                   width={24} 
                   height={24} 
                   className="size-6" 
                 />
-                <span className="text-lg font-bold text-blue-950">Job Hire</span>
+                <span className="text-lg font-bold text-primary">Riara University</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

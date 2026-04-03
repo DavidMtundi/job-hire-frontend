@@ -113,78 +113,13 @@ export const useGenerateJobWithAIMutation = () => {
   return useMutation({
     mutationKey: ["generate-job-ai"],
     mutationFn: async (data: IAIGenerateJobRequest) => {
-      console.log("========================================");
-      console.log("[Mutation] 🎯 MUTATION FUNCTION CALLED");
-      console.log("[Mutation] Entry point - Request data:", {
-        text: data.text,
-        language: data.language,
-        save: data.save,
-        timestamp: new Date().toISOString(),
-      });
-      debugger; // BREAKPOINT 17: Mutation function entry - check request data
-      
-      const requestStartTime = Date.now();
-      const requestId = Math.random().toString(36).substring(7);
-      
-      try {
-        console.log("[Mutation] 📡 Preparing API request to /jobs/ai-generate");
-        console.log("[Mutation] Request ID:", requestId);
-        console.log("[Mutation] Using apiClient instance:", !!apiClient);
-        console.log("[Mutation] Request payload:", JSON.stringify(data, null, 2));
-        
-        debugger; // BREAKPOINT 18: Before API call
-        console.log("[Mutation] ⏱️ Calling apiClient.post now...");
-        
-        const response = await apiClient.post<IAIGenerateJobResponse>("/jobs/ai-generate", data);
-        
-        const requestDuration = Date.now() - requestStartTime;
-        debugger; // BREAKPOINT 19: API call successful - inspect response
-        console.log("========================================");
-        console.log("[Mutation] ✅ API CALL SUCCESSFUL!");
-        console.log("[Mutation] Request ID:", requestId);
-        console.log("[Mutation] Request duration:", requestDuration, "ms");
-        console.log("[Mutation] Response status:", response.status, response.statusText);
-        console.log("[Mutation] Response headers:", {
-          contentType: response.headers['content-type'],
-          allHeaders: Object.keys(response.headers),
-        });
-        console.log("[Mutation] Response data:", JSON.stringify(response.data, null, 2));
-        console.log("========================================");
-        
-        return response.data;
-      } catch (error: any) {
-        const requestDuration = Date.now() - requestStartTime;
-        debugger; // BREAKPOINT 20: API call failed - inspect error
-        console.log("========================================");
-        console.log("[Mutation] ❌ API CALL FAILED!");
-        console.log("[Mutation] Request ID:", requestId);
-        console.log("[Mutation] Request duration before error:", requestDuration, "ms");
-        console.log("[Mutation] Error type:", error?.constructor?.name);
-        console.log("[Mutation] Error details:", {
-          message: error?.message,
-          code: error?.code,
-          status: error?.response?.status,
-          statusText: error?.response?.statusText,
-          responseData: error?.response?.data,
-          requestUrl: error?.config?.url,
-          requestMethod: error?.config?.method,
-          requestHeaders: error?.config?.headers ? Object.keys(error?.config?.headers) : [],
-          hasAuthHeader: !!error?.config?.headers?.Authorization,
-        });
-        console.log("[Mutation] Full error object:", error);
-        console.log("========================================");
-        throw error; // Re-throw so onError handler can catch it
-      }
+      const response = await apiClient.post<IAIGenerateJobResponse>("/jobs/ai-generate", data);
+      return response.data;
     },
     onError: (error) => {
-      debugger; // BREAKPOINT 21: Mutation onError handler
-      console.log("========================================");
-      console.log("[Mutation] ⚠️ onError HANDLER TRIGGERED");
-      console.log("[Mutation] Error caught by React Query onError:", error);
-      console.log("========================================");
-    },
-    onSettled: () => {
-      console.log("[Mutation] Mutation settled (completed or failed)");
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error generating AI job:", error);
+      }
     },
   });
 };

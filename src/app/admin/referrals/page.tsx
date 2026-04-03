@@ -68,9 +68,9 @@ export default function ReferralManagementPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Expected Launch: 3-4 weeks</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg border border-primary/20 dark:border-primary/40">
+              <h3 className="font-semibold text-primary dark:text-primary-foreground mb-2">Expected Launch: 3-4 weeks</h3>
+              <p className="text-sm text-primary dark:text-primary-foreground/90">
                 We're building a comprehensive referral system that will help you tap into your employees' networks 
                 and reduce cost-per-hire while improving hire quality.
               </p>

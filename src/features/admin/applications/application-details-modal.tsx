@@ -111,7 +111,7 @@ const ApplicationDetailsView = ({
       case "review":
         return "bg-yellow-100 text-yellow-800";
       case "interview":
-        return "bg-blue-100 text-blue-800";
+        return "bg-primary/15 text-primary";
       case "offer":
         return "bg-purple-100 text-purple-800";
       case "hired":
@@ -242,7 +242,7 @@ const ApplicationDetailsView = ({
                           {getStatusName(status.status_id)}
                         </Badge>
                         {index === 0 && (
-                          <span className="text-xs text-blue-600 font-medium">Current</span>
+                          <span className="text-xs text-primary font-medium">Current</span>
                         )}
                       </div>
                       {status.remark && (
@@ -281,8 +281,8 @@ const ApplicationDetailsView = ({
         <h4 className="font-semibold text-lg">Resume</h4>
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
           <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <DownloadIcon className="h-8 w-8 text-blue-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center">
+              <DownloadIcon className="h-8 w-8 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900">
@@ -314,7 +314,7 @@ const ApplicationDetailsView = ({
                             {application.matching_skills.map((sk: string, i: number) => (
                               <span
                                 key={i}
-                                className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded"
+                                className="inline-block bg-primary/15 text-primary text-xs font-medium px-2 py-0.5 rounded"
                               >
                                 {sk}
                               </span>
@@ -392,8 +392,8 @@ const ApplicationDetailsView = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="text-center p-4 bg-primary/10 rounded-lg">
+            <p className="text-2xl font-bold text-primary">
               {application.job.title === "Senior" ? "5+" : "3+"}
             </p>
             <p className="text-sm text-gray-600">Years Experience</p>
@@ -417,8 +417,8 @@ const ApplicationDetailsView = ({
         <h4 className="font-semibold text-lg">Resume</h4>
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
           <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <DownloadIcon className="h-8 w-8 text-blue-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center">
+              <DownloadIcon className="h-8 w-8 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900">
@@ -450,7 +450,7 @@ const ApplicationDetailsView = ({
                             {application.matching_skills.map((sk: string, i: number) => (
                               <span
                                 key={i}
-                                className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded"
+                                className="inline-block bg-primary/15 text-primary text-xs font-medium px-2 py-0.5 rounded"
                               >
                                 {sk}
                               </span>
@@ -528,8 +528,8 @@ const ApplicationDetailsView = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="text-center p-4 bg-primary/10 rounded-lg">
+            <p className="text-2xl font-bold text-primary">
               {application.job.title === "Senior" ? "5+" : "3+"}
             </p>
             <p className="text-sm text-gray-600">Years Experience</p>

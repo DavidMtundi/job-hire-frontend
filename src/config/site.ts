@@ -4,8 +4,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:8002";
 
 export const siteConfig = {
-  title: "Job Portal",
-  description: "Job Portal",
+  title: "Riara University",
+  description: "Riara University",
   siteUrl: APP_URL,
   apiBaseUrl: API_BASE_URL,
   robots: "noindex, nofollow",

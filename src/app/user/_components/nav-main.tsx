@@ -41,7 +41,7 @@ export const NavMain = ({ items }: NavMainProps) => {
                 <Link 
                   href={item.url} 
                   className={cn("flex flex-col justify-center items-center text-gray-700", {
-                    "font-medium text-blue-950": isActive(item.url),
+                    "font-medium text-primary": isActive(item.url),
                   })}
                   >
                   <div className="flex flex-col gap-1 justify-center items-center">

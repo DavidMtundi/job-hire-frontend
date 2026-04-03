@@ -35,7 +35,7 @@ import { ViewCandidateProfileModal } from "./manage/view-candidate-profile-modal
 
 const getStatusColor = (status: string) => {
   const colors = {
-    active: "bg-blue-100 text-blue-800",
+    active: "bg-primary/15 text-primary",
     interview: "bg-purple-100 text-purple-800",
     offer: "bg-yellow-100 text-yellow-800",
     hired: "bg-green-100 text-green-800",
@@ -360,7 +360,7 @@ export default function CandidatesScreen() {
                   {
                     value: selectedApplicant.years_experience,
                     label: "Experience",
-                    color: "text-blue-600",
+                    color: "text-primary",
                   },
                   {
                     value: selectedApplicant.metadata?.rating,

@@ -64,8 +64,8 @@ const ResumeView = ({ application }: { application: TApplication }) => {
       {/* Resume Preview Area */}
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
         <div className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-            <DownloadIcon className="h-8 w-8 text-blue-600" />
+          <div className="mx-auto w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center">
+            <DownloadIcon className="h-8 w-8 text-primary" />
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-900">
@@ -98,7 +98,7 @@ const ResumeView = ({ application }: { application: TApplication }) => {
                           {application.matching_skills.map((sk: string, i: number) => (
                             <span
                               key={i}
-                              className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded"
+                              className="inline-block bg-primary/15 text-primary text-xs font-medium px-2 py-0.5 rounded"
                             >
                               {sk}
                             </span>
@@ -178,8 +178,8 @@ const ResumeView = ({ application }: { application: TApplication }) => {
 
       {/* Quick Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="text-center p-4 bg-blue-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="text-center p-4 bg-primary/10 rounded-lg">
+          <p className="text-2xl font-bold text-primary">
             {application.job.title === "Senior" ? "5+" : "3+"}
           </p>
           <p className="text-sm text-gray-600">Years Experience</p>

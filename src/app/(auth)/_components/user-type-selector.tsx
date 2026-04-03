@@ -13,8 +13,8 @@ export function UserTypeSelector() {
         <Link href="/signup">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                <User className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-primary/15 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <User className="h-6 w-6 text-primary" />
               </div>
               <CardTitle className="text-xl">I'm a Job Seeker</CardTitle>
             </div>
@@ -37,7 +37,7 @@ export function UserTypeSelector() {
                 Track your application status
               </li>
             </ul>
-            <Button className="w-full group-hover:bg-blue-600" variant="default">
+            <Button className="w-full group-hover:bg-primary" variant="default">
               Sign up as Candidate
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

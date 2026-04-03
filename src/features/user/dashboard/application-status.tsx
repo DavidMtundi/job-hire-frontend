@@ -19,7 +19,7 @@ export const ApplicationStatus = () => {
   
   const statusColors: Record<string, string> = {
     Pending: "#FACC15", // yellow-400
-    Shortlisted: "#60A5FA", // blue-400
+    Shortlisted: "#C23AA0", // purple-500
     Interviewed: "#34D399", // green-400
     Rejected: "#F87171", // red-400
     Hired: "#4ADE80", // green-400

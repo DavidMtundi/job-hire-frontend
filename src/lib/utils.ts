@@ -10,7 +10,7 @@ export const getStatusColor = (status: string) => {
     case "review":
       return "bg-yellow-100 text-yellow-800";
     case "interview":
-      return "bg-blue-100 text-blue-800";
+      return "bg-primary/15 text-primary";
     case "offer":
       return "bg-purple-100 text-purple-800";
     case "hired":

@@ -29,8 +29,8 @@ export const CandidateDetailsCard = ({ application }: CandidateDetailsCardProps)
     <Card className="bg-white shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <FileText className="h-5 w-5 text-blue-600" />
+          <div className="p-2 bg-primary/15 rounded-lg">
+            <FileText className="h-5 w-5 text-primary" />
           </div>
           <CardTitle className="text-lg font-semibold">Candidate Details</CardTitle>
         </div>
@@ -60,7 +60,7 @@ export const CandidateDetailsCard = ({ application }: CandidateDetailsCardProps)
           <button
             onClick={handleViewResume}
             disabled={!resumeUrl}
-            className="w-full px-4 py-2 text-white font-medium rounded-md bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 hover:from-blue-800 hover:via-blue-600 hover:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-4 py-2 text-white font-medium rounded-md bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <DownloadIcon className="h-4 w-4" />
             View Resume
